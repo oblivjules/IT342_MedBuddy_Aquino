@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Heart } from 'lucide-react'
-import logo from '../assets/medbuddy-logo.png'
+import logo from '../assets/medbuddy-logo-removebg-preview.png'
 
 const quickLinks = ['Appointments', 'Doctors', 'Services']
 const supportLinks = ['Contact', 'FAQ', 'Privacy Policy']
@@ -12,7 +12,7 @@ export default function LandingFooter() {
                 <div className="grid gap-8 md:grid-cols-4">
                     {/* Brand */}
                     <div className="space-y-4">
-                        <img src={logo} alt="MedBuddy" className="h-8" />
+                        <img src={logo} alt="MedBuddy" className="h-16 md:h-18 w-auto" />
                         <p className="text-sm text-muted-foreground font-body">
                             Your trusted partner for seamless hospital appointments and healthcare management.
                         </p>

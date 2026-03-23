@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import axiosInstance from '../api/axiosInstance'
+import logo from '../assets/medbuddy-logo-removebg-preview.png'
+
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 /**
  * Login page
@@ -18,59 +21,27 @@ function Login() {
   const { login } = useAuth()
 
   const [form, setForm] = useState({ email: '', password: '' })
-  const [fieldErrors, setFieldErrors] = useState({})
-  const [formError, setFormError] = useState(null)
-  const [success, setSuccess] = useState(location.state?.successMessage || null)
+  const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const from = location.state?.from?.pathname || null
 
   function handleChange(e) {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-    setFieldErrors((prev) => ({ ...prev, [name]: null }))
-    setFormError(null)
-  }
-
-  function validateForm() {
-    const nextErrors = {}
-
-    if (!form.email.trim()) {
-      nextErrors.email = 'Email is required.'
-    }
-
-    if (!form.password) {
-      nextErrors.password = 'Password is required.'
-    }
-
-    return nextErrors
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setFormError(null)
-    setSuccess(null)
-
-    const nextErrors = validateForm()
-    if (Object.keys(nextErrors).length > 0) {
-      setFieldErrors(nextErrors)
-      return
-    }
-
-    setFieldErrors({})
+    setError(null)
     setLoading(true)
 
     try {
       const { data } = await axiosInstance.post('/api/auth/login', {
-        email: form.email.trim(),
+        email: form.email,
         password: form.password,
       })
 
       login(data.token, data.user)
-      setSuccess('Login successful. Redirecting...')
-
-      // Keep success feedback visible briefly before route transition.
-      await new Promise((resolve) => setTimeout(resolve, 700))
 
       // Redirect: back to the page they tried, or role dashboard
       if (from) {
@@ -81,22 +52,11 @@ function Login() {
         navigate('/patient/dashboard', { replace: true })
       }
     } catch (err) {
-      const responseErrors = err.response?.data?.errors
-
-      if (responseErrors && typeof responseErrors === 'object') {
-        setFieldErrors(responseErrors)
-      } else {
-        const detail =
-          err.response?.data?.detail ||
-          err.response?.data?.message ||
-          'Login failed. Please check your credentials.'
-
-        if (typeof detail === 'string' && detail.toLowerCase().includes('password')) {
-          setFieldErrors({ password: detail })
-        } else {
-          setFormError(detail)
-        }
-      }
+      setError(
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        'Login failed. Please check your credentials.',
+      )
     } finally {
       setLoading(false)
     }
@@ -106,13 +66,13 @@ function Login() {
     <div className="flex min-h-screen items-center justify-center bg-hero-gradient p-4">
       <div className="w-full max-w-md space-y-6 rounded-2xl border border-border bg-card p-8 shadow-elevated opacity-0 animate-fade-in">
         <div className="text-center">
-          <h1 className="text-3xl font-extrabold text-gradient mb-1">MedBuddy</h1>
+          <img src={logo} alt="MedBuddy" className="mx-auto mb-1 h-20 w-auto" />
           <h2 className="text-2xl font-bold mt-2">Welcome Back</h2>
           <p className="text-sm text-muted-foreground font-body mt-1">Sign in to your MedBuddy account</p>
         </div>
 
-        {success && (
-          <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-600">{success}</p>
+        {error && (
+          <p className="text-destructive bg-destructive/10 rounded-md px-3 py-2 text-sm">{error}</p>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -125,12 +85,9 @@ function Login() {
               value={form.email}
               onChange={handleChange}
               required
-              className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${fieldErrors.email ? 'border-destructive focus-visible:ring-destructive' : 'border-input'}`}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               placeholder="you@example.com"
             />
-            {fieldErrors.email && (
-              <p className="text-xs text-destructive">{fieldErrors.email}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -142,26 +99,44 @@ function Login() {
               value={form.password}
               onChange={handleChange}
               required
-              className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${fieldErrors.password ? 'border-destructive focus-visible:ring-destructive' : 'border-input'}`}
-              placeholder="********"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              placeholder="••••••••"
             />
-            {fieldErrors.password && (
-              <p className="text-xs text-destructive">{fieldErrors.password}</p>
-            )}
           </div>
-
-          {formError && (
-            <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{formError}</p>
-          )}
 
           <button
             type="submit"
             disabled={loading}
             className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
+
+        {/* ── Divider ────────────────────────────────────────────── */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
+
+        {/* ── Google OAuth2 sign-in ──────────────────────────────── */}
+        <a
+          href={`${BACKEND_URL}/api/auth/oauth2/init?redirect=${encodeURIComponent(window.location.origin + '/oauth-callback')}`}
+          className="inline-flex h-10 w-full items-center justify-center gap-3 rounded-md border border-input bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          {/* Google logo SVG */}
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" />
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" />
+            <path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" />
+            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" />
+          </svg>
+          Sign in with Google
+        </a>
 
         <p className="text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}

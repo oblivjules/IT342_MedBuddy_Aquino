@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
-import logo from '../assets/medbuddy-logo.png'
+import logo from '../assets/medbuddy-logo-removebg-preview.png'
 
 const navItems = [
     { label: 'Home', href: '#' },
@@ -17,7 +17,7 @@ export default function LandingNavbar() {
             <div className="container flex h-16 items-center justify-between">
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-2">
-                    <img src={logo} alt="MedBuddy" className="h-8" />
+                    <img src={logo} alt="MedBuddy" className="h-16 md:h-18 w-auto" />
                 </Link>
 
                 {/* Desktop nav */}
