@@ -1,36 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { Stethoscope, User } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import axiosInstance from '../api/axiosInstance'
+import { getSpecializations } from '../api/specializationApi'
 import logo from '../assets/medbuddy-logo-removebg-preview.png'
-
-const SPECIALIZATIONS = [
-  'Cardiology',
-  'Dermatology',
-  'Neurology',
-  'Orthopedics',
-  'Pediatrics',
-  'General Medicine',
-  'Obstetrics & Gynecology',
-  'Ophthalmology',
-  'Ear, Nose & Throat (ENT)',
-  'Psychiatry',
-  'Pulmonology',
-  'Gastroenterology',
-  'Endocrinology',
-  'Nephrology',
-  'Urology',
-  'Oncology',
-  'Rheumatology',
-  'Hematology',
-  'Infectious Disease',
-  'Emergency Medicine',
-  'Anesthesiology',
-  'Radiology',
-  'Pathology',
-  'Physical Medicine & Rehabilitation',
-  'Dentistry',
-]
 
 /**
  * Register page
@@ -44,6 +18,7 @@ const SPECIALIZATIONS = [
 function Register() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const [specializations, setSpecializations] = useState([])
 
   const [form, setForm] = useState({
     firstName: '',
@@ -53,10 +28,31 @@ function Register() {
     confirmPassword: '',
     role: 'PATIENT',
     phoneNumber: '',
-    specializations: [],
+    specializationIds: [],
   })
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    getSpecializations()
+      .then((data) => {
+        if (!Array.isArray(data)) {
+          setSpecializations([])
+          return
+        }
+
+        // Normalize backend payload to ensure IDs are numeric and stable for checkbox selection.
+        const normalized = data
+          .map((spec) => ({
+            id: Number(spec?.id),
+            name: String(spec?.name ?? '').trim(),
+          }))
+          .filter((spec) => Number.isFinite(spec.id) && spec.id > 0 && spec.name.length > 0)
+
+        setSpecializations(normalized)
+      })
+      .catch(() => setSpecializations([]))
+  }, [])
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -71,12 +67,12 @@ function Register() {
   }
 
   function handleSpecializationChange(e) {
-    const value = e.target.value
+    const id = Number(e.target.value)
     setForm((prev) => {
-      const selected = prev.specializations.includes(value)
-        ? prev.specializations.filter((s) => s !== value)
-        : [...prev.specializations, value]
-      return { ...prev, specializations: selected }
+      const selected = prev.specializationIds.includes(id)
+        ? prev.specializationIds.filter((s) => s !== id)
+        : [...prev.specializationIds, id]
+      return { ...prev, specializationIds: selected }
     })
   }
 
@@ -94,7 +90,11 @@ function Register() {
       return
     }
 
-    if (form.role === 'DOCTOR' && form.specializations.length === 0) {
+    const specializationIds = [...new Set(form.specializationIds)].filter(
+      (id) => Number.isInteger(id) && id > 0,
+    )
+
+    if (form.role === 'DOCTOR' && specializationIds.length === 0) {
       setError('Please select at least one specialization.')
       return
     }
@@ -109,7 +109,7 @@ function Register() {
         password: form.password,
         role: form.role,
         phoneNumber: `+63${form.phoneNumber}`,
-        ...(form.role === 'DOCTOR' && { specializations: form.specializations }),
+        ...(form.role === 'DOCTOR' && { specializationIds }),
       }
       const { data } = await axiosInstance.post('/api/auth/register', payload)
 
@@ -130,6 +130,10 @@ function Register() {
       setLoading(false)
     }
   }
+
+  const selectedSpecializationNames = specializations
+    .filter((spec) => form.specializationIds.includes(spec.id))
+    .map((spec) => spec.name)
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-hero-gradient p-4 py-8">
@@ -240,18 +244,29 @@ function Register() {
             <p className="text-xs text-muted-foreground">Enter exactly 10 digits after +63.</p>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none" htmlFor="role">I am a…</label>
-            <select
-              id="role"
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          <div className="flex rounded-lg border border-border bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => setForm((prev) => ({ ...prev, role: 'PATIENT', specializationIds: [] }))}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors ${
+                form.role === 'PATIENT'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              <option value="PATIENT">Patient</option>
-              <option value="DOCTOR">Doctor</option>
-            </select>
+              <User className="h-4 w-4" /> Patient
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm((prev) => ({ ...prev, role: 'DOCTOR' }))}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors ${
+                form.role === 'DOCTOR'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Stethoscope className="h-4 w-4" /> Doctor
+            </button>
           </div>
 
           {form.role === 'DOCTOR' && (
@@ -260,22 +275,25 @@ function Register() {
                 Specialization(s) <span className="text-destructive">*</span>
               </label>
               <div className="max-h-48 overflow-y-auto rounded-md border border-input bg-background p-3 space-y-2">
-                {SPECIALIZATIONS.map((spec) => (
-                  <label key={spec} className="flex items-center gap-2 text-sm cursor-pointer">
+                {specializations.map((spec) => (
+                  <label key={spec.id} className="flex items-center gap-2 text-sm cursor-pointer">
                     <input
                       type="checkbox"
-                      value={spec}
-                      checked={form.specializations.includes(spec)}
+                      value={spec.id}
+                      checked={form.specializationIds.includes(spec.id)}
                       onChange={handleSpecializationChange}
                       className="h-4 w-4 rounded border-input accent-primary"
                     />
-                    {spec}
+                    {spec.name}
                   </label>
                 ))}
+                {specializations.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No specializations loaded from backend.</p>
+                )}
               </div>
-              {form.specializations.length > 0 && (
+              {form.specializationIds.length > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Selected: {form.specializations.join(', ')}
+                  Selected: {selectedSpecializationNames.join(', ')}
                 </p>
               )}
             </div>

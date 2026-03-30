@@ -19,6 +19,7 @@ public class UserDto {
     private Long id;
     private String email;
     private Role role;
+    private String profileImageUrl;
 
     // ── Profile fields (populated from Patient or Doctor entity) ──────
     /** Database ID of the Patient or Doctor profile entity. */
@@ -26,6 +27,10 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private String phoneNumber;
+
     /** Only populated when role == DOCTOR. */
+    private java.util.List<String> specializations;
+
+    /** Backward-compatible field for older clients. */
     private String specialization;
 }

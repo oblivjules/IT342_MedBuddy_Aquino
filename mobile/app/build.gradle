@@ -1,0 +1,91 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+def debugApiBaseUrl = (project.findProperty("MEDBUDDY_DEBUG_API_BASE_URL") ?: "http://10.0.2.2:8080/").toString()
+def releaseApiBaseUrl = (project.findProperty("MEDBUDDY_RELEASE_API_BASE_URL") ?: "https://medbuddy-backend-8lmw.onrender.com/").toString()
+
+android {
+    namespace 'com.medbuddy'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.medbuddy"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Fallback URL (overridden per build type below).
+        buildConfigField "String", "API_BASE_URL", "\"${debugApiBaseUrl}\""
+    }
+
+    buildTypes {
+        debug {
+            // Android emulator -> host machine local Spring Boot server.
+            // Override using MEDBUDDY_DEBUG_API_BASE_URL in gradle.properties for real devices/LAN.
+            buildConfigField "String", "API_BASE_URL", "\"${debugApiBaseUrl}\""
+            debuggable true
+        }
+        release {
+            // Replace with the real production URL before publishing
+            buildConfigField "String", "API_BASE_URL", "\"${releaseApiBaseUrl}\""
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+        // Jetpack Compose is explicitly disabled
+        compose false
+    }
+}
+
+dependencies {
+    // AndroidX core
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.12.0'
+
+    // Lifecycle (ViewModel + LiveData, coroutine scope support)
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
+
+    // Kotlin Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
+    // Retrofit 2 + OkHttp
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+
+    // RecyclerView
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+
+    // Encrypted SharedPreferences (JWT storage)
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // Chrome Custom Tabs — used for Google OAuth2 sign-in
+    implementation 'androidx.browser:browser:1.8.0'
+
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+}

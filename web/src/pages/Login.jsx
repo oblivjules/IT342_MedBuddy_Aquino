@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { Stethoscope, User } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import axiosInstance from '../api/axiosInstance'
 import logo from '../assets/medbuddy-logo-removebg-preview.png'
@@ -19,6 +20,7 @@ function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
+  const [selectedRole, setSelectedRole] = useState('PATIENT')
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState(null)
@@ -39,6 +41,7 @@ function Login() {
       const { data } = await axiosInstance.post('/api/auth/login', {
         email: form.email,
         password: form.password,
+        role: selectedRole,
       })
 
       login(data.token, data.user)
@@ -55,7 +58,7 @@ function Login() {
       setError(
         err.response?.data?.detail ||
         err.response?.data?.message ||
-        'Login failed. Please check your credentials.',
+        `Unable to sign in as ${selectedRole === 'DOCTOR' ? 'doctor' : 'patient'}. Please check your credentials.`,
       )
     } finally {
       setLoading(false)
@@ -69,6 +72,31 @@ function Login() {
           <img src={logo} alt="MedBuddy" className="mx-auto mb-1 h-20 w-auto" />
           <h2 className="text-2xl font-bold mt-2">Welcome Back</h2>
           <p className="text-sm text-muted-foreground font-body mt-1">Sign in to your MedBuddy account</p>
+        </div>
+
+        <div className="flex rounded-lg border border-border bg-muted p-1">
+          <button
+            type="button"
+            onClick={() => setSelectedRole('PATIENT')}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors ${
+              selectedRole === 'PATIENT'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <User className="h-4 w-4" /> Patient
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedRole('DOCTOR')}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors ${
+              selectedRole === 'DOCTOR'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Stethoscope className="h-4 w-4" /> Doctor
+          </button>
         </div>
 
         {error && (
@@ -109,7 +137,9 @@ function Login() {
             disabled={loading}
             className="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading
+              ? `Signing in as ${selectedRole === 'DOCTOR' ? 'Doctor' : 'Patient'}...`
+              : `Sign In as ${selectedRole === 'DOCTOR' ? 'Doctor' : 'Patient'}`}
           </button>
         </form>
 
@@ -125,7 +155,7 @@ function Login() {
 
         {/* ── Google OAuth2 sign-in ──────────────────────────────── */}
         <a
-          href={`${BACKEND_URL}/api/auth/oauth2/init?redirect=${encodeURIComponent(window.location.origin + '/oauth-callback')}`}
+          href={`${BACKEND_URL}/api/auth/oauth2/google?redirect=${encodeURIComponent(window.location.origin + '/oauth-callback')}`}
           className="inline-flex h-10 w-full items-center justify-center gap-3 rounded-md border border-input bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           {/* Google logo SVG */}

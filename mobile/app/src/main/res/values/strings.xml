@@ -1,0 +1,104 @@
+<resources>
+    <string name="app_name">MedBuddy</string>
+    <string name="content_desc_medbuddy_logo">MedBuddy logo</string>
+
+    <!-- Activity titles -->
+    <string name="title_login">Log In</string>
+    <string name="title_register">Create Account</string>
+    <string name="title_patient_dashboard">Patient Dashboard</string>
+    <string name="title_doctor_dashboard">Doctor Dashboard</string>
+
+    <!-- Login screen -->
+    <string name="hint_enter_email">Enter your email</string>
+    <string name="hint_enter_password">Enter your password</string>
+    <string name="login_footer_prefix">Don\'t have an account? </string>
+    <string name="sign_up_action">Sign Up</string>
+    <string name="register_footer_prefix">Already have an account? </string>
+    <string name="log_in_action">Log In</string>
+    <string name="placeholder_first_name">John</string>
+    <string name="placeholder_last_name">Doe</string>
+    <string name="placeholder_register_email">john.doe@example.com</string>
+    <string name="specializations_load_failed">Could not load specializations.</string>
+    <string name="specializations_load_failed_local_hint">Could not load specializations. Make sure your local backend is running and reachable.</string>
+    <string name="specializations_empty">No specializations are available yet. Please try again later.</string>
+    <string name="btn_retry">Retry</string>
+
+    <string name="hint_first_name">First Name</string>
+    <string name="hint_last_name">Last Name</string>
+    <string name="hint_phone">Phone Number (optional)</string>
+    <string name="hint_specialization">Specialization</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_confirm_password">Confirm password</string>
+    <string name="hint_date">Date (YYYY-MM-DD)</string>
+    <string name="hint_time">Start Time (HH:mm)</string>
+    <string name="hint_notes">Notes (optional)</string>
+    <string name="btn_login">Log In</string>
+    <string name="btn_register">Create Account</string>
+    <string name="btn_book">Book Appointment</string>
+    <string name="btn_add_availability">Add Availability</string>
+    <string name="btn_load_slots">Load Slots</string>
+    <string name="btn_refresh">Refresh</string>
+    <string name="link_go_register">Don\'t have an account? Sign Up</string>
+    <string name="link_go_login">Already have an account? Log In</string>
+    <string name="label_role">I\'m a…</string>
+    <string name="label_sign_in_as">Sign in as</string>
+    <string name="label_or_divider">Or continue with</string>
+
+    <!-- Role labels -->
+    <string name="role_patient">Patient</string>
+    <string name="role_doctor">Doctor</string>
+
+    <!-- Dashboard -->
+    <string name="btn_logout">Log Out</string>
+    <string name="label_welcome_patient">Welcome, Patient</string>
+    <string name="label_welcome_doctor">Welcome, Doctor</string>
+    <string name="label_my_appointments">My Appointments</string>
+    <string name="label_find_doctor">Find Doctor</string>
+    <string name="label_profile_availability">Profile &amp; Availability</string>
+
+    <!-- Dashboard cards — Patient -->
+    <string name="card_my_appointments">My Appointments</string>
+    <string name="card_find_doctor">Find a Doctor</string>
+    <string name="card_medical_records">Medical Records (Soon)</string>
+    <string name="card_profile_settings">Profile Settings (Soon)</string>
+
+    <!-- Dashboard cards — Doctor -->
+    <string name="card_today_schedule">Today\'s Schedule</string>
+    <string name="card_all_appointments">All Appointments</string>
+    <string name="card_patient_records">Patient Records</string>
+    <string name="card_availability">Profile &amp; Availability</string>
+
+    <!-- Errors / loading -->
+    <string name="loading">Loading…</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_network_unreachable">Cannot reach server. Check your connection and local backend URL.</string>
+    <string name="error_server_unavailable">Server error. Please try again in a moment.</string>
+    <string name="error_unexpected_response">Unexpected server response. Verify the app points to your API backend.</string>
+    <string name="error_unauthorized">Unauthorized request. Please sign in again.</string>
+    <string name="error_forbidden">You do not have permission to perform this action.</string>
+    <string name="error_not_found">Requested resource was not found.</string>
+    <string name="error_bad_request">Invalid request. Please check your inputs and try again.</string>
+    <string name="error_required">Please fill in all required fields.</string>
+    <string name="error_passwords_match">Passwords do not match.</string>
+    <string name="error_password_length">Password must be at least 8 characters.</string>
+    <string name="error_doctor_specialization">Specialization is required for doctor accounts.</string>
+    <string name="error_invalid_datetime">Please use valid date and time format.</string>
+    <string name="error_google_unavailable">Google login is not enabled on this backend build.</string>
+    <string name="success_registered">Account created successfully.</string>
+    <string name="success_login">Logged in successfully.</string>
+    <string name="success_booked">Appointment booked successfully.</string>
+    <string name="success_availability_added">Availability slot added.</string>
+    <string name="btn_google_sign_in">Sign in with Google</string>
+    <string name="btn_continue_with_google">Continue with Google</string>
+
+    <string name="status_pending">PENDING</string>
+    <string name="status_confirmed">CONFIRMED</string>
+    <string name="status_cancelled">CANCELLED</string>
+    <string name="status_completed">COMPLETED</string>
+
+    <string name="label_no_data">No data yet.</string>
+    <string name="patient">Patient</string>
+    <string name="doctor">Doctor</string>
+    <string name="specializations">Specializations</string>
+</resources>

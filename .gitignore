@@ -1,0 +1,34 @@
+# Backend build artifacts
+backend/target/
+
+# Mobile build artifacts
+mobile/app/build/
+mobile/build/
+*.apk
+*.ap_
+*.dex
+
+# Frontend
+node_modules/
+web/node_modules/
+dist/
+web/dist/
+.env
+web/.env
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Gradle caches
+.gradle/
+mobile/.gradle/
+mobile/app/.gradle/
+
+# Android local configuration
+mobile/local.properties

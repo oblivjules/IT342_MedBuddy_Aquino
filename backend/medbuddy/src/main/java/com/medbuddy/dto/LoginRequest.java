@@ -1,5 +1,6 @@
 package com.medbuddy.dto;
 
+import com.medbuddy.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -13,4 +14,6 @@ public class LoginRequest {
 
     @NotBlank(message = "Password is required")
     private String password;
+
+    private Role role;
 }

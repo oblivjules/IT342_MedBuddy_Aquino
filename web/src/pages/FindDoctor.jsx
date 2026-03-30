@@ -15,6 +15,13 @@ export default function FindDoctor() {
             .finally(() => setLoading(false));
     }, []);
 
+    function formatSpecializations(doc) {
+        if (Array.isArray(doc.specializations) && doc.specializations.length > 0) {
+            return doc.specializations.join(', ')
+        }
+        return doc.specialization || ''
+    }
+
     return (
         <div className="min-h-screen bg-background">
             <div className="container max-w-3xl py-12">
@@ -43,8 +50,8 @@ export default function FindDoctor() {
                                 <p className="truncate font-semibold text-sm text-foreground">
                                     Dr. {[doc.firstName, doc.lastName].filter(Boolean).join(' ') || doc.email}
                                 </p>
-                                {doc.specialization && (
-                                    <p className="text-xs text-muted-foreground font-body mt-0.5">{doc.specialization}</p>
+                                {formatSpecializations(doc) && (
+                                    <p className="text-xs text-muted-foreground font-body mt-0.5">{formatSpecializations(doc)}</p>
                                 )}
                                 <span className="mt-1 inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">Doctor</span>
                             </div>

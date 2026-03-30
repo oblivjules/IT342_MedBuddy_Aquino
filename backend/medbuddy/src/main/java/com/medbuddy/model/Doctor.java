@@ -1,7 +1,10 @@
 package com.medbuddy.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -11,8 +14,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,8 +49,16 @@ public class Doctor {
     @Column(length = 20)
     private String phoneNumber;
 
-    @Column(length = 1000)
-    private String specialization;
+    @ManyToMany
+    @JoinTable(
+            name = "doctor_specializations",
+            joinColumns = @JoinColumn(name = "doctor_id"),
+            inverseJoinColumns = @JoinColumn(name = "specialization_id"))
+    @Builder.Default
+    private Set<Specialization> specializations = new HashSet<>();
+
+    @Column(name = "specializations", length = 500)
+    private String specializationsSummary;
 
     /** The auth user linked to this doctor profile (one-to-one). */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
@@ -61,4 +76,18 @@ public class Doctor {
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = false)
     @Builder.Default
     private List<RatingAndFeedback> ratings = new ArrayList<>();
+
+    @PrePersist
+    @PreUpdate
+    void syncSpecializationsSummary() {
+        if (specializations == null || specializations.isEmpty()) {
+            specializationsSummary = null;
+            return;
+        }
+
+        specializationsSummary = specializations.stream()
+                .map(Specialization::getName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.joining(", "));
+    }
 }

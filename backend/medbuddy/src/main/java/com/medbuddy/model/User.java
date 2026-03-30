@@ -34,6 +34,9 @@ public class User {
     @Column(nullable = false, length = 20)
     private Provider provider;
 
+    @Column(length = 1000)
+    private String profileImageUrl;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

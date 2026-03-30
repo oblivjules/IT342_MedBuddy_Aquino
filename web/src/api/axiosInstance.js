@@ -1,5 +1,16 @@
 import axios from 'axios'
 
+const PUBLIC_PATHS = [
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/health',
+  '/api/specializations',
+]
+
+function isPublicRequest(url = '') {
+  return PUBLIC_PATHS.some((path) => url === path || url.startsWith(`${path}/`))
+}
+
 // Base URL is read from Vite's environment variable.
 // Set VITE_API_BASE_URL in your .env file.
 const axiosInstance = axios.create({
@@ -13,7 +24,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('medbuddy_token')
-    if (token) {
+    if (token && !isPublicRequest(config.url)) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config

@@ -52,17 +52,16 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Preflight requests must always pass — no auth check
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
+                // Public catalog (exact path + subpaths) for web/mobile registration
+                .requestMatchers(HttpMethod.GET, "/api/specializations").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/specializations/**").permitAll()
                 // Public endpoints
                 .requestMatchers(
-                    "/api/auth/**",
-                    "/oauth2/**",
-                    "/login/oauth2/**"
+                    "/api/auth/**"
                 ).permitAll()
                 // Protected endpoints
                 .anyRequest().authenticated()
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .defaultSuccessUrl("/api/auth/oauth2/success", true)
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -79,10 +78,12 @@ public class SecurityConfig {
         List<String> origins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .toList();
-        config.setAllowedOriginPatterns(origins);
+        // We use explicit origins for local dev/prod (see application.properties).
+        // Credentials are not required for JWT Bearer auth; keep them disabled for simpler CORS.
+        config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

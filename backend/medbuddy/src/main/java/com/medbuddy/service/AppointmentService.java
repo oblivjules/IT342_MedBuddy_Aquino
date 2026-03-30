@@ -126,6 +126,10 @@ public class AppointmentService {
             throw new AccessDeniedException("Patients can only cancel appointments.");
         }
 
+        if (isOwnerDoctor && request.getStatus() == AppointmentStatus.PENDING) {
+            throw new IllegalArgumentException("Doctors cannot set appointment status back to PENDING.");
+        }
+
         appointment.setStatus(request.getStatus());
         return toResponse(appointmentRepository.save(appointment));
     }
@@ -163,13 +167,20 @@ public class AppointmentService {
     }
 
     static DoctorDto toDoctorDto(Doctor d) {
+        List<String> specNames = d.getSpecializations().stream()
+                .map(s -> s.getName())
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.toList());
+
         return DoctorDto.builder()
                 .id(d.getId())
                 .userId(d.getUser().getId())
                 .firstName(d.getFirstName())
                 .lastName(d.getLastName())
                 .phoneNumber(d.getPhoneNumber())
-                .specialization(d.getSpecialization())
+                .specializations(specNames)
+                .specialization(d.getSpecializationsSummary())
+                .profileImageUrl(d.getUser().getProfileImageUrl())
                 .email(d.getUser().getEmail())
                 .build();
     }
