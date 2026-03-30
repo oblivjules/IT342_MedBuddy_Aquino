@@ -26,6 +26,9 @@
     <string name="hint_first_name">First Name</string>
     <string name="hint_last_name">Last Name</string>
     <string name="hint_phone">Phone Number (optional)</string>
+    <string name="hint_phone_required">Phone Number</string>
+    <string name="placeholder_phone_digits">9123456789</string>
+    <string name="phone_helper">Enter exactly 10 digits after +63.</string>
     <string name="hint_specialization">Specialization</string>
     <string name="hint_email">Email</string>
     <string name="hint_password">Password</string>
@@ -82,7 +85,9 @@
     <string name="error_required">Please fill in all required fields.</string>
     <string name="error_passwords_match">Passwords do not match.</string>
     <string name="error_password_length">Password must be at least 8 characters.</string>
-    <string name="error_doctor_specialization">Specialization is required for doctor accounts.</string>
+    <string name="error_phone_digits">Phone number must contain exactly 10 digits after +63.</string>
+    <string name="error_doctor_specialization">Please select at least one specialization.</string>
+    <string name="error_registration_failed">Registration failed. Please try again.</string>
     <string name="error_invalid_datetime">Please use valid date and time format.</string>
     <string name="error_google_unavailable">Google login is not enabled on this backend build.</string>
     <string name="success_registered">Account created successfully.</string>

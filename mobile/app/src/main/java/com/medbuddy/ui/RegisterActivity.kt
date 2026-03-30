@@ -14,17 +14,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
-import com.google.gson.Gson
 import com.medbuddy.api.ApiErrorMapper
 import com.medbuddy.R
 import com.medbuddy.api.RetrofitClient
-import com.medbuddy.auth.TokenManager
 import com.medbuddy.constants.AppConstants
 import com.medbuddy.databinding.ActivityRegisterBinding
 import com.medbuddy.dto.RegisterRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import retrofit2.HttpException
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -186,6 +186,10 @@ class RegisterActivity : AppCompatActivity() {
         binding.etConfirmPassword.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) validateConfirmPassword()
         }
+
+        binding.etPhoneNumber.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) validatePhoneNumber()
+        }
     }
 
     private fun setFieldError(view: View, hasError: Boolean) {
@@ -214,6 +218,13 @@ class RegisterActivity : AppCompatActivity() {
         return valid
     }
 
+    private fun validatePhoneNumber(): Boolean {
+        val phoneDigits = binding.etPhoneNumber.text.toString().filter { it.isDigit() }
+        val valid = phoneDigits.length == 10
+        setFieldError(binding.etPhoneNumber, !valid)
+        return valid
+    }
+
     // =========================
     // REGISTER
     // =========================
@@ -222,6 +233,7 @@ class RegisterActivity : AppCompatActivity() {
         val lastName = binding.etLastName.text.toString().trim()
         val email = binding.etEmail.text.toString().trim()
         val password = binding.etPassword.text.toString()
+        val phoneDigits = binding.etPhoneNumber.text.toString().filter { it.isDigit() }
 
         val isDoctor = binding.toggleRole.checkedButtonId == binding.btnRoleDoctor.id
         val role = if (isDoctor) AppConstants.Role.DOCTOR else AppConstants.Role.PATIENT
@@ -231,8 +243,18 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
-        if (!validateEmail() || !validatePassword() || !validateConfirmPassword()) {
+        if (!validateEmail() || !validatePassword()) {
             showError(getString(R.string.error_generic))
+            return
+        }
+
+        if (!validateConfirmPassword()) {
+            showError(getString(R.string.error_passwords_match))
+            return
+        }
+
+        if (!validatePhoneNumber()) {
+            showError(getString(R.string.error_phone_digits))
             return
         }
 
@@ -245,42 +267,53 @@ class RegisterActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val response = RetrofitClient.getInstance(applicationContext).apiService.register(
+                RetrofitClient.getInstance(applicationContext).apiService.register(
                     RegisterRequest(
                         email = email,
                         password = password,
                         role = role,
                         firstName = firstName,
                         lastName = lastName,
-                        phoneNumber = null,
+                        phoneNumber = "+63$phoneDigits",
                         specializationIds = if (isDoctor) selectedSpecializationIds.toList() else null
                     )
                 )
-
-                val tokenManager = TokenManager(applicationContext)
-                tokenManager.saveToken(response.token)
-                tokenManager.saveUserJson(Gson().toJson(response.user))
-
-                val destination = if (response.user.role == AppConstants.Role.DOCTOR) {
-                    DoctorDashboardActivity::class.java
-                } else {
-                    PatientDashboardActivity::class.java
-                }
 
                 Toast.makeText(
                     this@RegisterActivity,
                     getString(R.string.success_registered),
                     Toast.LENGTH_SHORT
                 ).show()
-                startActivity(Intent(this@RegisterActivity, destination))
-                finishAffinity()
+
+                startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
+                finish()
 
             } catch (e: Throwable) {
-                showError(ApiErrorMapper.toUserMessage(this@RegisterActivity, e))
+                showError(resolveRegisterErrorMessage(e))
             } finally {
                 setLoading(false)
             }
         }
+    }
+
+    private fun resolveRegisterErrorMessage(throwable: Throwable): String {
+        if (throwable is HttpException) {
+            val errorBody = runCatching {
+                throwable.response()?.errorBody()?.string()
+            }.getOrNull().orEmpty()
+
+            val serverMessage = runCatching {
+                val json = JSONObject(errorBody)
+                json.optString("detail").takeIf { it.isNotBlank() }
+                    ?: json.optString("message").takeIf { it.isNotBlank() }
+            }.getOrNull()
+
+            if (!serverMessage.isNullOrBlank()) {
+                return serverMessage
+            }
+        }
+
+        return getString(R.string.error_registration_failed)
     }
 
     private fun setLoading(loading: Boolean) {

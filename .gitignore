@@ -29,6 +29,7 @@ Thumbs.db
 .gradle/
 mobile/.gradle/
 mobile/app/.gradle/
+mobile/gradle-8.4/
 
 # Android local configuration
 mobile/local.properties
