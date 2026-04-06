@@ -5,7 +5,6 @@ import com.medbuddy.dto.DoctorAvailabilityResponse;
 import com.medbuddy.model.AvailabilityStatus;
 import com.medbuddy.model.Doctor;
 import com.medbuddy.model.DoctorAvailability;
-import com.medbuddy.model.DoctorAvailabilityId;
 import com.medbuddy.model.Role;
 import com.medbuddy.model.User;
 import com.medbuddy.repository.DoctorAvailabilityRepository;
@@ -30,7 +29,7 @@ public class AvailabilityService {
 
     @Transactional(readOnly = true)
     public List<DoctorAvailabilityResponse> getDoctorAvailability(Long doctorId) {
-        return availabilityRepository.findByIdDoctorIdOrderByIdAvailableDateAscIdStartTimeAsc(doctorId)
+        return availabilityRepository.findByDoctor_IdOrderByAvailableDateAsc(doctorId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -38,7 +37,7 @@ public class AvailabilityService {
 
     @Transactional(readOnly = true)
     public List<DoctorAvailabilityResponse> getDoctorAvailabilityByDate(Long doctorId, LocalDate date) {
-        return availabilityRepository.findByIdDoctorIdAndIdAvailableDateOrderByIdStartTimeAsc(doctorId, date)
+        return availabilityRepository.findByDoctor_IdAndAvailableDate(doctorId, date)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -59,7 +58,10 @@ public class AvailabilityService {
         }
 
         List<DoctorAvailability> daySlots = availabilityRepository
-                .findByIdDoctorIdAndIdAvailableDateOrderByIdStartTimeAsc(doctor.getId(), request.getAvailableDate());
+                .findByDoctor_IdAndAvailableDateBetweenOrderByAvailableDateAsc(
+                        doctor.getId(),
+                        request.getAvailableDate(),
+                        request.getAvailableDate());
 
         boolean hasOverlap = daySlots.stream().anyMatch(slot ->
                 request.getStartTime().isBefore(slot.getEndTime()) && slot.getStartTime().isBefore(request.getEndTime()));
@@ -68,8 +70,9 @@ public class AvailabilityService {
         }
 
         DoctorAvailability availability = DoctorAvailability.builder()
-                .id(new DoctorAvailabilityId(doctor.getId(), request.getAvailableDate(), request.getStartTime()))
+            .availableDate(request.getAvailableDate())
                 .doctor(doctor)
+            .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .status(request.getStatus() != null ? request.getStatus() : AvailabilityStatus.AVAILABLE)
                 .build();
@@ -87,7 +90,7 @@ public class AvailabilityService {
         Doctor doctor = doctorRepository.findByUser_Id(user.getId())
                 .orElseThrow(() -> new IllegalStateException("Doctor profile not found for user: " + userEmail));
 
-        availabilityRepository.deleteByIdDoctorIdAndIdAvailableDate(doctor.getId(), date);
+        availabilityRepository.deleteByDoctor_IdAndAvailableDate(doctor.getId(), date);
     }
 
     private User findUserByEmail(String email) {

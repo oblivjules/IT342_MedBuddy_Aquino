@@ -6,10 +6,10 @@ import axiosInstance from './axiosInstance'
  */
 
 /** Patient: book a new appointment */
-export async function bookAppointment(doctorId, dateTime, notes = '') {
+export async function bookAppointment(doctorId, slotId, notes = '') {
     const { data } = await axiosInstance.post('/api/appointments', {
         doctorId,
-        dateTime,
+        slotId,
         notes,
     })
     return data
@@ -17,7 +17,9 @@ export async function bookAppointment(doctorId, dateTime, notes = '') {
 
 /** Retrieve all appointments for the authenticated user (PATIENT or DOCTOR) */
 export async function getMyAppointments() {
-    const { data } = await axiosInstance.get('/api/appointments/my')
+    const { data } = await axiosInstance.get('/api/appointments', {
+        skipCache: true,
+    })
     return data
 }
 

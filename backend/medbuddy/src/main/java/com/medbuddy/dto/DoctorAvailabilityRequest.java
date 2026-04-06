@@ -1,25 +1,31 @@
 package com.medbuddy.dto;
 
-import com.medbuddy.model.AvailabilityStatus;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import com.medbuddy.model.AvailabilityStatus;
+
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class DoctorAvailabilityRequest {
 
-    @NotNull(message = "availableDate is required")
-    @FutureOrPresent(message = "availableDate must be today or in the future")
+    @NotNull(message = "Available date is required")
     private LocalDate availableDate;
 
-    @NotNull(message = "startTime is required")
+    /**
+     * Required for AVAILABLE entries.
+     * Optional for UNAVAILABLE entries (service applies defaults).
+     */
     private LocalTime startTime;
 
-    @NotNull(message = "endTime is required")
+    /**
+     * Required for AVAILABLE entries.
+     * Optional for UNAVAILABLE entries (service applies defaults).
+     */
     private LocalTime endTime;
 
+    /** Optional — defaults to AVAILABLE if not supplied. */
     private AvailabilityStatus status;
 }
-
