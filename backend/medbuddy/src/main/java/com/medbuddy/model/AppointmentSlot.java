@@ -14,7 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,37 +21,36 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(
-        name = "doctor_availability",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"doctor_id", "available_date"})
-)
+@Table(name = "appointment_slots")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DoctorAvailability {
+public class AppointmentSlot {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "available_date", nullable = false)
-    private LocalDate availableDate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_availability_id", referencedColumnName = "id")
+    private DoctorAvailability doctorAvailability;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctor;
-
-    @Column(nullable = false)
-    private LocalTime startTime;
+    @Column(name = "doctor_id")
+    private Long doctorId;
 
     @Column(nullable = false)
-    private LocalTime endTime;
+    private LocalDate slotDate;
 
-    /** Optional availability status — defaults to AVAILABLE. */
+    @Column(nullable = false)
+    private LocalTime slotStartTime;
+
+    @Column(nullable = false)
+    private LocalTime slotEndTime;
+
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(nullable = false, length = 20)
     @Builder.Default
-    private AvailabilityStatus status = AvailabilityStatus.AVAILABLE;
+    private AppointmentSlotStatus status = AppointmentSlotStatus.AVAILABLE;
 }

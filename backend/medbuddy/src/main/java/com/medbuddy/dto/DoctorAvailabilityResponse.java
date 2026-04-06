@@ -1,12 +1,13 @@
 package com.medbuddy.dto;
 
 import com.medbuddy.model.AvailabilityStatus;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @Builder
@@ -19,5 +20,6 @@ public class DoctorAvailabilityResponse {
     private LocalTime startTime;
     private LocalTime endTime;
     private AvailabilityStatus status;
+    /** Convenience: the doctor's full name. */
+    private String doctorName;
 }
-

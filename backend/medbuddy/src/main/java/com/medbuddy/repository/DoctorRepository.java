@@ -27,4 +27,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     @Override
     @EntityGraph(attributePaths = { "user", "specializations" })
     List<Doctor> findAll();
+
+    @Query("SELECT d.id FROM Doctor d")
+    List<Long> findAllIds();
 }

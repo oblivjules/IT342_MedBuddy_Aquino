@@ -1,6 +1,8 @@
 package com.medbuddy.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -14,6 +16,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,7 +48,19 @@ public class Appointment {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "slot_id")
+    private AppointmentSlot slot;
+
+    // Legacy columns kept for compatibility with existing DB constraints.
+    @Column(name = "date", nullable = false)
+    private LocalDate date;
+
+    // Legacy columns kept for compatibility with existing DB constraints.
+    @Column(name = "time", nullable = false)
+    private LocalTime time;
+
+    @Column(name = "date_time", nullable = false)
     private LocalDateTime dateTime;
 
     @Enumerated(EnumType.STRING)
@@ -58,4 +74,31 @@ public class Appointment {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    @PreUpdate
+    @SuppressWarnings("unused")
+    private void syncLegacyDateTimeColumns() {
+        if (slot != null) {
+            if (date == null) {
+                date = slot.getSlotDate();
+            }
+            if (time == null) {
+                time = slot.getSlotStartTime();
+            }
+            if (dateTime == null) {
+                dateTime = LocalDateTime.of(slot.getSlotDate(), slot.getSlotStartTime());
+            }
+            return;
+        }
+
+        if (dateTime != null) {
+            if (date == null) {
+                date = dateTime.toLocalDate();
+            }
+            if (time == null) {
+                time = dateTime.toLocalTime();
+            }
+        }
+    }
 }

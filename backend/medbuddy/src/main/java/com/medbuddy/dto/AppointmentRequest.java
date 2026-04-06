@@ -1,8 +1,5 @@
 package com.medbuddy.dto;
 
-import java.time.LocalDateTime;
-
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -17,9 +14,8 @@ public class AppointmentRequest {
     @NotNull(message = "Doctor ID is required")
     private Long doctorId;
 
-    @NotNull(message = "Date/time is required")
-    @Future(message = "Appointment must be scheduled in the future")
-    private LocalDateTime dateTime;
+    @NotNull(message = "Appointment slot ID is required")
+    private Long slotId;
 
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String notes;

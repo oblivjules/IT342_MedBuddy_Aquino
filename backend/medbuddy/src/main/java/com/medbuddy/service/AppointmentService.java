@@ -1,5 +1,6 @@
 package com.medbuddy.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,12 +15,16 @@ import com.medbuddy.dto.AppointmentStatusRequest;
 import com.medbuddy.dto.DoctorDto;
 import com.medbuddy.dto.PatientDto;
 import com.medbuddy.model.Appointment;
+import com.medbuddy.model.AppointmentSlot;
+import com.medbuddy.model.AppointmentSlotStatus;
 import com.medbuddy.model.AppointmentStatus;
 import com.medbuddy.model.Doctor;
 import com.medbuddy.model.Patient;
 import com.medbuddy.model.Role;
+import com.medbuddy.model.Specialization;
 import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentRepository;
+import com.medbuddy.repository.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.UserRepository;
@@ -34,14 +39,10 @@ public class AppointmentService {
     private final UserRepository userRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
+    private final AppointmentSlotRepository appointmentSlotRepository;
+    // private final EmailService emailService; 
 
     // ── Book ──────────────────────────────────────────────────────────────
-    /**
-     * A PATIENT books an appointment with a DOCTOR.
-     *
-     * @param patientEmail authenticated patient's email (from JWT)
-     * @param request      booking details (doctorId refers to Doctor profile ID)
-     */
     @Transactional
     public AppointmentResponse book(String patientEmail, AppointmentRequest request) {
         User patientUser = findUserByEmail(patientEmail);
@@ -58,18 +59,57 @@ public class AppointmentService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Doctor not found with id: " + request.getDoctorId()));
 
+        AppointmentSlot slot = appointmentSlotRepository.findById(request.getSlotId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Appointment slot not found with id: " + request.getSlotId()));
+
+        Long slotDoctorId = slot.getDoctorId();
+        if (slotDoctorId == null && slot.getDoctorAvailability() != null && slot.getDoctorAvailability().getDoctor() != null) {
+            slotDoctorId = slot.getDoctorAvailability().getDoctor().getId();
+        }
+
+        if (slotDoctorId == null) {
+            throw new IllegalStateException("Selected slot has no associated doctor.");
+        }
+
+        if (!slotDoctorId.equals(doctor.getId())) {
+            throw new IllegalArgumentException("Selected slot does not belong to the requested doctor.");
+        }
+
+        if (slot.getStatus() != AppointmentSlotStatus.AVAILABLE) {
+            throw new IllegalStateException("Selected slot is not available.");
+        }
+
+        LocalDateTime appointmentDateTime = LocalDateTime.of(slot.getSlotDate(), slot.getSlotStartTime());
+        if (!appointmentDateTime.isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Appointment slot must be in the future.");
+        }
+
         Appointment appointment = Appointment.builder()
                 .patient(patient)
                 .doctor(doctor)
-                .dateTime(request.getDateTime())
+                .slot(slot)
+                .dateTime(appointmentDateTime)
                 .notes(request.getNotes())
                 .status(AppointmentStatus.PENDING)
                 .build();
 
-        return toResponse(appointmentRepository.save(appointment));
+        slot.setStatus(AppointmentSlotStatus.BOOKED);
+
+        AppointmentResponse saved = toResponse(appointmentRepository.save(appointment));
+
+        // EMAIL DISABLED
+        // String toEmail    = patient.getUser().getEmail();
+        // String patientName = patient.getFirstName() + " " + patient.getLastName();
+        // String doctorName  = doctor.getFirstName() + " " + doctor.getLastName();
+        // emailService.sendAppointmentConfirmationEmail(
+        //         toEmail, patientName, doctorName,
+        //         appointmentDateTime);
+
+        return saved;
     }
 
-    // ── My appointments (caller-role aware) ───────────────────────────────
+    // ── My appointments ───────────────────────────────────────────────────
     @Transactional(readOnly = true)
     public List<AppointmentResponse> getMyAppointments(String userEmail) {
         User user = findUserByEmail(userEmail);
@@ -79,31 +119,48 @@ public class AppointmentService {
             Doctor doctor = doctorRepository.findByUser_Id(user.getId())
                     .orElseThrow(() -> new IllegalStateException(
                             "Doctor profile not found for user: " + userEmail));
-            list = appointmentRepository.findByDoctor_IdOrderByDateTimeAsc(doctor.getId());
+            list = appointmentRepository.findByDoctor_IdOrderBySlot_SlotDateAscSlot_SlotStartTimeAsc(doctor.getId());
         } else {
             Patient patient = patientRepository.findByUser_Id(user.getId())
                     .orElseThrow(() -> new IllegalStateException(
                             "Patient profile not found for user: " + userEmail));
-            list = appointmentRepository.findByPatient_IdOrderByDateTimeAsc(patient.getId());
+            list = appointmentRepository.findByPatient_IdOrderBySlot_SlotDateAscSlot_SlotStartTimeAsc(patient.getId());
         }
 
         return list.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
-    // ── Update status ─────────────────────────────────────────────────────
-    @Transactional
-    public AppointmentResponse updateStatus(String userEmail,
-                                             Long appointmentId,
-                                             AppointmentStatusRequest request) {
+    @Transactional(readOnly = true)
+    public AppointmentResponse getById(String userEmail, Long appointmentId) {
         User user = findUserByEmail(userEmail);
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Appointment not found with id: " + appointmentId));
 
-        // Resolve profile IDs for ownership check
+        boolean isOwnerPatient = appointment.getPatient().getUser().getId().equals(user.getId());
+        boolean isOwnerDoctor = appointment.getDoctor().getUser().getId().equals(user.getId());
+
+        if (!isOwnerPatient && !isOwnerDoctor) {
+            throw new AccessDeniedException("You do not have permission to view this appointment.");
+        }
+
+        return toResponse(appointment);
+    }
+
+    // ── Update status ─────────────────────────────────────────────────────
+    @Transactional
+    public AppointmentResponse updateStatus(String userEmail,
+                                            Long appointmentId,
+                                            AppointmentStatusRequest request) {
+        User user = findUserByEmail(userEmail);
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Appointment not found with id: " + appointmentId));
+
         boolean isOwnerPatient = false;
-        boolean isOwnerDoctor  = false;
+        boolean isOwnerDoctor = false;
 
         if (user.getRole() == Role.PATIENT) {
             isOwnerPatient = appointment.getPatient().getUser().getId().equals(user.getId());
@@ -126,12 +183,27 @@ public class AppointmentService {
             throw new AccessDeniedException("Patients can only cancel appointments.");
         }
 
-        if (isOwnerDoctor && request.getStatus() == AppointmentStatus.PENDING) {
-            throw new IllegalArgumentException("Doctors cannot set appointment status back to PENDING.");
+        appointment.setStatus(request.getStatus());
+
+        if (request.getStatus() == AppointmentStatus.CANCELLED && appointment.getSlot() != null) {
+            appointment.getSlot().setStatus(AppointmentSlotStatus.AVAILABLE);
         }
 
-        appointment.setStatus(request.getStatus());
-        return toResponse(appointmentRepository.save(appointment));
+        AppointmentResponse updated = toResponse(appointmentRepository.save(appointment));
+
+        // EMAIL DISABLED
+        // if (request.getStatus() == AppointmentStatus.CONFIRMED) {
+        //     String patientEmail = appointment.getPatient().getUser().getEmail();
+        //     String patientName  = appointment.getPatient().getFirstName() + " "
+        //                           + appointment.getPatient().getLastName();
+        //     String doctorName   = appointment.getDoctor().getFirstName() + " "
+        //                           + appointment.getDoctor().getLastName();
+        //     emailService.sendAppointmentApprovedEmail(
+        //             patientEmail, patientName, doctorName,
+        //             resolveAppointmentDateTime(appointment));
+        // }
+
+        return updated;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -142,17 +214,34 @@ public class AppointmentService {
                         "No account found with email: " + email));
     }
 
-    /** Maps an Appointment entity → AppointmentResponse DTO. */
     private AppointmentResponse toResponse(Appointment a) {
         return AppointmentResponse.builder()
                 .id(a.getId())
                 .patient(toPatientDto(a.getPatient()))
                 .doctor(toDoctorDto(a.getDoctor()))
-                .dateTime(a.getDateTime())
+                .dateTime(resolveAppointmentDateTime(a))
                 .status(a.getStatus())
                 .notes(a.getNotes())
                 .createdAt(a.getCreatedAt())
                 .build();
+    }
+
+    private LocalDateTime resolveAppointmentDateTime(Appointment appointment) {
+        if (appointment.getSlot() != null) {
+            return LocalDateTime.of(
+                    appointment.getSlot().getSlotDate(),
+                    appointment.getSlot().getSlotStartTime());
+        }
+
+        if (appointment.getDateTime() != null) {
+            return appointment.getDateTime();
+        }
+
+        if (appointment.getDate() != null && appointment.getTime() != null) {
+            return LocalDateTime.of(appointment.getDate(), appointment.getTime());
+        }
+
+        return appointment.getCreatedAt();
     }
 
     static PatientDto toPatientDto(Patient p) {
@@ -167,19 +256,15 @@ public class AppointmentService {
     }
 
     static DoctorDto toDoctorDto(Doctor d) {
-        List<String> specNames = d.getSpecializations().stream()
-                .map(s -> s.getName())
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .collect(Collectors.toList());
-
         return DoctorDto.builder()
                 .id(d.getId())
                 .userId(d.getUser().getId())
                 .firstName(d.getFirstName())
                 .lastName(d.getLastName())
                 .phoneNumber(d.getPhoneNumber())
-                .specializations(specNames)
-                .specialization(d.getSpecializationsSummary())
+                .specializations(d.getSpecializations().stream()
+                        .map(Specialization::getName)
+                        .collect(Collectors.toList()))
                 .profileImageUrl(d.getUser().getProfileImageUrl())
                 .email(d.getUser().getEmail())
                 .build();

@@ -70,6 +70,27 @@ public class AppointmentController {
     }
 
     /**
+     * Spec-compatible alias for authenticated caller appointments.
+     * GET /api/appointments
+     */
+    @GetMapping
+    public ResponseEntity<List<AppointmentResponse>> getAppointments(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return getMyAppointments(userDetails);
+    }
+
+    /**
+     * Retrieve one appointment by ID if caller is either the patient or doctor.
+     * GET /api/appointments/{id}
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<AppointmentResponse> getById(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        return ResponseEntity.ok(appointmentService.getById(userDetails.getUsername(), id));
+    }
+
+    /**
      * Update the status of an appointment.
      * DOCTOR: CONFIRMED | CANCELLED | COMPLETED
      * PATIENT: CANCELLED only

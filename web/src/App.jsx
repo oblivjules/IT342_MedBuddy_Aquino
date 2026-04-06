@@ -1,19 +1,31 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { AuthProvider } from './context/AuthContext'
+import { ToastProvider } from './context/ToastContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import axiosInstance from './api/axiosInstance'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import PatientDashboard from './pages/PatientDashboard'
-import DoctorDashboard from './pages/DoctorDashboard'
-import FindDoctor from './pages/FindDoctor'
-import BookAppointment from './pages/BookAppointment'
-import MyAppointments from './pages/MyAppointments'
+import PatientDashboard from './pages/patient/Dashboard'
+import DoctorDashboard from './pages/doctor/Dashboard'
+import PatientFindDoctor from './pages/patient/FindDoctor'
+import PatientBookAppointment from './pages/patient/BookAppointment'
+import PatientDoctorProfile from './pages/patient/DoctorProfile'
+import PatientAppointments from './pages/patient/Appointments'
+import DoctorAppointments from './pages/doctor/Appointments'
+import DoctorSchedule from './pages/doctor/Schedule'
 import LandingPage from './pages/LandingPage'
 
 function App() {
+  // Ping backend on load so cold starts happen before first user action.
+  useEffect(() => {
+    axiosInstance.get('/api/auth/health').catch(() => { })
+  }, [])
+
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ToastProvider>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -42,7 +54,7 @@ function App() {
             path="/patient/find-doctor"
             element={
               <ProtectedRoute allowedRoles={['PATIENT']}>
-                <FindDoctor />
+                <PatientFindDoctor />
               </ProtectedRoute>
             }
           />
@@ -50,7 +62,15 @@ function App() {
             path="/patient/book/:doctorId"
             element={
               <ProtectedRoute allowedRoles={['PATIENT']}>
-                <BookAppointment />
+                <PatientBookAppointment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/patient/doctor/:doctorId"
+            element={
+              <ProtectedRoute allowedRoles={['PATIENT']}>
+                <PatientDoctorProfile />
               </ProtectedRoute>
             }
           />
@@ -58,7 +78,7 @@ function App() {
             path="/patient/appointments"
             element={
               <ProtectedRoute allowedRoles={['PATIENT']}>
-                <MyAppointments />
+                <PatientAppointments />
               </ProtectedRoute>
             }
           />
@@ -68,7 +88,15 @@ function App() {
             path="/doctor/appointments"
             element={
               <ProtectedRoute allowedRoles={['DOCTOR']}>
-                <MyAppointments />
+                <DoctorAppointments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/schedule"
+            element={
+              <ProtectedRoute allowedRoles={['DOCTOR']}>
+                <DoctorSchedule />
               </ProtectedRoute>
             }
           />
@@ -79,6 +107,7 @@ function App() {
           {/* Catch-all */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   )
