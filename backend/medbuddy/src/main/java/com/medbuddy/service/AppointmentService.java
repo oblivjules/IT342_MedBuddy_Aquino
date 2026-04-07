@@ -26,6 +26,7 @@ import com.medbuddy.repository.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.service.appointment.state.AppointmentStateFactory;
 import com.medbuddy.service.appointment.strategy.AppointmentAccessStrategy;
 import com.medbuddy.service.appointment.strategy.AppointmentAccessStrategyFactory;
 
@@ -42,6 +43,7 @@ public class AppointmentService {
     private final AppointmentSlotRepository appointmentSlotRepository;
     private final AppointmentResponseAdapter appointmentResponseAdapter;
     private final AppointmentAccessStrategyFactory appointmentAccessStrategyFactory;
+    private final AppointmentStateFactory appointmentStateFactory;
     // private final EmailService emailService; 
 
     // ── Book ──────────────────────────────────────────────────────────────
@@ -158,11 +160,7 @@ public class AppointmentService {
                     "You do not have permission to modify this appointment.");
         }
 
-        AppointmentStatus current = appointment.getStatus();
-        if (current == AppointmentStatus.CANCELLED || current == AppointmentStatus.COMPLETED) {
-            throw new IllegalStateException(
-                    "Cannot modify an appointment that is already " + current + ".");
-        }
+        appointmentStateFactory.resolve(appointment.getStatus()).validateTransition(request.getStatus());
 
         strategy.validateRequestedStatus(request.getStatus());
 
