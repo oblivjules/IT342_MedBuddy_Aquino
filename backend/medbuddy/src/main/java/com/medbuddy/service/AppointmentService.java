@@ -9,11 +9,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.medbuddy.adapter.AppointmentResponseAdapter;
 import com.medbuddy.dto.AppointmentRequest;
 import com.medbuddy.dto.AppointmentResponse;
 import com.medbuddy.dto.AppointmentStatusRequest;
-import com.medbuddy.dto.DoctorDto;
-import com.medbuddy.dto.PatientDto;
 import com.medbuddy.model.Appointment;
 import com.medbuddy.model.AppointmentSlot;
 import com.medbuddy.model.AppointmentSlotStatus;
@@ -21,7 +20,6 @@ import com.medbuddy.model.AppointmentStatus;
 import com.medbuddy.model.Doctor;
 import com.medbuddy.model.Patient;
 import com.medbuddy.model.Role;
-import com.medbuddy.model.Specialization;
 import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentRepository;
 import com.medbuddy.repository.AppointmentSlotRepository;
@@ -40,6 +38,7 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final AppointmentSlotRepository appointmentSlotRepository;
+    private final AppointmentResponseAdapter appointmentResponseAdapter;
     // private final EmailService emailService; 
 
     // ── Book ──────────────────────────────────────────────────────────────
@@ -96,7 +95,7 @@ public class AppointmentService {
 
         slot.setStatus(AppointmentSlotStatus.BOOKED);
 
-        AppointmentResponse saved = toResponse(appointmentRepository.save(appointment));
+        AppointmentResponse saved = appointmentResponseAdapter.toResponse(appointmentRepository.save(appointment));
 
         // EMAIL DISABLED
         // String toEmail    = patient.getUser().getEmail();
@@ -127,7 +126,7 @@ public class AppointmentService {
             list = appointmentRepository.findByPatient_IdOrderBySlot_SlotDateAscSlot_SlotStartTimeAsc(patient.getId());
         }
 
-        return list.stream().map(this::toResponse).collect(Collectors.toList());
+        return list.stream().map(appointmentResponseAdapter::toResponse).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -145,7 +144,7 @@ public class AppointmentService {
             throw new AccessDeniedException("You do not have permission to view this appointment.");
         }
 
-        return toResponse(appointment);
+        return appointmentResponseAdapter.toResponse(appointment);
     }
 
     // ── Update status ─────────────────────────────────────────────────────
@@ -189,7 +188,7 @@ public class AppointmentService {
             appointment.getSlot().setStatus(AppointmentSlotStatus.AVAILABLE);
         }
 
-        AppointmentResponse updated = toResponse(appointmentRepository.save(appointment));
+        AppointmentResponse updated = appointmentResponseAdapter.toResponse(appointmentRepository.save(appointment));
 
         // EMAIL DISABLED
         // if (request.getStatus() == AppointmentStatus.CONFIRMED) {
@@ -214,59 +213,4 @@ public class AppointmentService {
                         "No account found with email: " + email));
     }
 
-    private AppointmentResponse toResponse(Appointment a) {
-        return AppointmentResponse.builder()
-                .id(a.getId())
-                .patient(toPatientDto(a.getPatient()))
-                .doctor(toDoctorDto(a.getDoctor()))
-                .dateTime(resolveAppointmentDateTime(a))
-                .status(a.getStatus())
-                .notes(a.getNotes())
-                .createdAt(a.getCreatedAt())
-                .build();
-    }
-
-    private LocalDateTime resolveAppointmentDateTime(Appointment appointment) {
-        if (appointment.getSlot() != null) {
-            return LocalDateTime.of(
-                    appointment.getSlot().getSlotDate(),
-                    appointment.getSlot().getSlotStartTime());
-        }
-
-        if (appointment.getDateTime() != null) {
-            return appointment.getDateTime();
-        }
-
-        if (appointment.getDate() != null && appointment.getTime() != null) {
-            return LocalDateTime.of(appointment.getDate(), appointment.getTime());
-        }
-
-        return appointment.getCreatedAt();
-    }
-
-    static PatientDto toPatientDto(Patient p) {
-        return PatientDto.builder()
-                .id(p.getId())
-                .userId(p.getUser().getId())
-                .firstName(p.getFirstName())
-                .lastName(p.getLastName())
-                .phoneNumber(p.getPhoneNumber())
-                .email(p.getUser().getEmail())
-                .build();
-    }
-
-    static DoctorDto toDoctorDto(Doctor d) {
-        return DoctorDto.builder()
-                .id(d.getId())
-                .userId(d.getUser().getId())
-                .firstName(d.getFirstName())
-                .lastName(d.getLastName())
-                .phoneNumber(d.getPhoneNumber())
-                .specializations(d.getSpecializations().stream()
-                        .map(Specialization::getName)
-                        .collect(Collectors.toList()))
-                .profileImageUrl(d.getUser().getProfileImageUrl())
-                .email(d.getUser().getEmail())
-                .build();
-    }
 }
