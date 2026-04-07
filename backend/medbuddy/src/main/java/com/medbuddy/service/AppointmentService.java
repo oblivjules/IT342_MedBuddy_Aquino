@@ -26,6 +26,8 @@ import com.medbuddy.repository.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.service.appointment.strategy.AppointmentAccessStrategy;
+import com.medbuddy.service.appointment.strategy.AppointmentAccessStrategyFactory;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +41,7 @@ public class AppointmentService {
     private final DoctorRepository doctorRepository;
     private final AppointmentSlotRepository appointmentSlotRepository;
     private final AppointmentResponseAdapter appointmentResponseAdapter;
+    private final AppointmentAccessStrategyFactory appointmentAccessStrategyFactory;
     // private final EmailService emailService; 
 
     // ── Book ──────────────────────────────────────────────────────────────
@@ -112,19 +115,8 @@ public class AppointmentService {
     @Transactional(readOnly = true)
     public List<AppointmentResponse> getMyAppointments(String userEmail) {
         User user = findUserByEmail(userEmail);
-
-        List<Appointment> list;
-        if (user.getRole() == Role.DOCTOR) {
-            Doctor doctor = doctorRepository.findByUser_Id(user.getId())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Doctor profile not found for user: " + userEmail));
-            list = appointmentRepository.findByDoctor_IdOrderBySlot_SlotDateAscSlot_SlotStartTimeAsc(doctor.getId());
-        } else {
-            Patient patient = patientRepository.findByUser_Id(user.getId())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Patient profile not found for user: " + userEmail));
-            list = appointmentRepository.findByPatient_IdOrderBySlot_SlotDateAscSlot_SlotStartTimeAsc(patient.getId());
-        }
+        AppointmentAccessStrategy strategy = appointmentAccessStrategyFactory.resolve(user.getRole());
+        List<Appointment> list = strategy.findAppointments(user, userEmail);
 
         return list.stream().map(appointmentResponseAdapter::toResponse).collect(Collectors.toList());
     }
@@ -137,10 +129,10 @@ public class AppointmentService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Appointment not found with id: " + appointmentId));
 
-        boolean isOwnerPatient = appointment.getPatient().getUser().getId().equals(user.getId());
-        boolean isOwnerDoctor = appointment.getDoctor().getUser().getId().equals(user.getId());
+        AppointmentAccessStrategy strategy = appointmentAccessStrategyFactory.resolve(user.getRole());
+        boolean isOwner = strategy.isOwner(user, appointment);
 
-        if (!isOwnerPatient && !isOwnerDoctor) {
+        if (!isOwner) {
             throw new AccessDeniedException("You do not have permission to view this appointment.");
         }
 
@@ -158,16 +150,10 @@ public class AppointmentService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Appointment not found with id: " + appointmentId));
 
-        boolean isOwnerPatient = false;
-        boolean isOwnerDoctor = false;
+        AppointmentAccessStrategy strategy = appointmentAccessStrategyFactory.resolve(user.getRole());
+        boolean isOwner = strategy.isOwner(user, appointment);
 
-        if (user.getRole() == Role.PATIENT) {
-            isOwnerPatient = appointment.getPatient().getUser().getId().equals(user.getId());
-        } else if (user.getRole() == Role.DOCTOR) {
-            isOwnerDoctor = appointment.getDoctor().getUser().getId().equals(user.getId());
-        }
-
-        if (!isOwnerPatient && !isOwnerDoctor) {
+        if (!isOwner) {
             throw new AccessDeniedException(
                     "You do not have permission to modify this appointment.");
         }
@@ -178,9 +164,7 @@ public class AppointmentService {
                     "Cannot modify an appointment that is already " + current + ".");
         }
 
-        if (isOwnerPatient && request.getStatus() != AppointmentStatus.CANCELLED) {
-            throw new AccessDeniedException("Patients can only cancel appointments.");
-        }
+        strategy.validateRequestedStatus(request.getStatus());
 
         appointment.setStatus(request.getStatus());
 
