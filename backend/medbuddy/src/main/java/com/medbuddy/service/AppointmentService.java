@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import com.medbuddy.adapter.AppointmentResponseAdapter;
 import com.medbuddy.dto.AppointmentRequest;
 import com.medbuddy.dto.AppointmentResponse;
 import com.medbuddy.dto.AppointmentStatusRequest;
+import com.medbuddy.event.AppointmentStatusChangedEvent;
 import com.medbuddy.model.Appointment;
 import com.medbuddy.model.AppointmentSlot;
 import com.medbuddy.model.AppointmentStatus;
@@ -45,6 +47,7 @@ public class AppointmentService {
     private final AppointmentAccessStrategyFactory appointmentAccessStrategyFactory;
     private final AppointmentStateFactory appointmentStateFactory;
     private final BookingValidationChain bookingValidationChain;
+    private final ApplicationEventPublisher eventPublisher;
     // private final EmailService emailService; 
 
     // ── Book ──────────────────────────────────────────────────────────────
@@ -146,13 +149,21 @@ public class AppointmentService {
 
         strategy.validateRequestedStatus(request.getStatus());
 
+        AppointmentStatus previousStatus = appointment.getStatus();
         appointment.setStatus(request.getStatus());
 
         if (request.getStatus() == AppointmentStatus.CANCELLED && appointment.getSlot() != null) {
             appointment.getSlot().setStatus(AppointmentSlotStatus.AVAILABLE);
         }
 
-        AppointmentResponse updated = appointmentResponseAdapter.toResponse(appointmentRepository.save(appointment));
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        eventPublisher.publishEvent(new AppointmentStatusChangedEvent(
+            savedAppointment.getId(),
+            previousStatus,
+            savedAppointment.getStatus(),
+            userEmail));
+
+        AppointmentResponse updated = appointmentResponseAdapter.toResponse(savedAppointment);
 
         // EMAIL DISABLED
         // if (request.getStatus() == AppointmentStatus.CONFIRMED) {
