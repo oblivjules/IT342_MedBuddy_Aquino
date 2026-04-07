@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Calendar, CheckCircle, Clock, Search, XCircle } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout'
-import { getMyAppointments, updateAppointmentStatus } from '../../api/appointmentApi'
+import {
+  completeAppointment,
+  confirmAppointment,
+  loadMyAppointments,
+  cancelAppointment,
+} from '../../facades/appointmentFacade'
 import { useToast } from '../../hooks/useToast'
 
 const statuses = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED']
@@ -47,8 +52,8 @@ export default function DoctorAppointments() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await getMyAppointments()
-        setAppointments(Array.isArray(data) ? data : [])
+        const data = await loadMyAppointments()
+        setAppointments(data)
       } catch {
         setError('Failed to load appointments.')
       } finally {
@@ -79,7 +84,13 @@ export default function DoctorAppointments() {
     setError('')
 
     try {
-      await updateAppointmentStatus(id, status)
+      if (status === 'CONFIRMED') {
+        await confirmAppointment(id)
+      } else if (status === 'COMPLETED') {
+        await completeAppointment(id)
+      } else if (status === 'CANCELLED') {
+        await cancelAppointment(id)
+      }
       setAppointments((prev) => prev.map((apt) => (apt.id === id ? { ...apt, status } : apt)))
       success(`Appointment ${status.toLowerCase()} successfully.`)
     } catch {
