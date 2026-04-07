@@ -15,7 +15,6 @@ import com.medbuddy.dto.AppointmentResponse;
 import com.medbuddy.dto.AppointmentStatusRequest;
 import com.medbuddy.model.Appointment;
 import com.medbuddy.model.AppointmentSlot;
-import com.medbuddy.model.AppointmentSlotStatus;
 import com.medbuddy.model.AppointmentStatus;
 import com.medbuddy.model.Doctor;
 import com.medbuddy.model.Patient;
@@ -26,6 +25,7 @@ import com.medbuddy.repository.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.service.appointment.booking.BookingValidationChain;
 import com.medbuddy.service.appointment.state.AppointmentStateFactory;
 import com.medbuddy.service.appointment.strategy.AppointmentAccessStrategy;
 import com.medbuddy.service.appointment.strategy.AppointmentAccessStrategyFactory;
@@ -44,6 +44,7 @@ public class AppointmentService {
     private final AppointmentResponseAdapter appointmentResponseAdapter;
     private final AppointmentAccessStrategyFactory appointmentAccessStrategyFactory;
     private final AppointmentStateFactory appointmentStateFactory;
+    private final BookingValidationChain bookingValidationChain;
     // private final EmailService emailService; 
 
     // ── Book ──────────────────────────────────────────────────────────────
@@ -67,27 +68,8 @@ public class AppointmentService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Appointment slot not found with id: " + request.getSlotId()));
 
-        Long slotDoctorId = slot.getDoctorId();
-        if (slotDoctorId == null && slot.getDoctorAvailability() != null && slot.getDoctorAvailability().getDoctor() != null) {
-            slotDoctorId = slot.getDoctorAvailability().getDoctor().getId();
-        }
-
-        if (slotDoctorId == null) {
-            throw new IllegalStateException("Selected slot has no associated doctor.");
-        }
-
-        if (!slotDoctorId.equals(doctor.getId())) {
-            throw new IllegalArgumentException("Selected slot does not belong to the requested doctor.");
-        }
-
-        if (slot.getStatus() != AppointmentSlotStatus.AVAILABLE) {
-            throw new IllegalStateException("Selected slot is not available.");
-        }
-
+        bookingValidationChain.validate(doctor, slot);
         LocalDateTime appointmentDateTime = LocalDateTime.of(slot.getSlotDate(), slot.getSlotStartTime());
-        if (!appointmentDateTime.isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Appointment slot must be in the future.");
-        }
 
         Appointment appointment = Appointment.builder()
                 .patient(patient)
