@@ -31,6 +31,7 @@ import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.SpecializationRepository;
 import com.medbuddy.repository.UserRepository;
 import com.medbuddy.security.JwtUtil;
+import com.medbuddy.service.registration.UserProfileFactory;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,6 +46,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final UserProfileFactory userProfileFactory;
 
     // ── Register ────────────────────────────────────────────────────────
     @Transactional
@@ -65,25 +67,7 @@ public class UserService {
 
         user = userRepository.save(user);
 
-        // Create corresponding profile entity
-        if (request.getRole() == Role.PATIENT) {
-            Patient patient = Patient.builder()
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
-                    .phoneNumber(request.getPhoneNumber())
-                    .user(user)
-                    .build();
-            patientRepository.save(patient);
-        } else {
-            Doctor doctor = Doctor.builder()
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
-                    .phoneNumber(request.getPhoneNumber())
-                    .user(user)
-                    .build();
-            doctor.setSpecializations(doctorSpecializations);
-            doctorRepository.save(doctor);
-        }
+        userProfileFactory.createProfile(user, request, doctorSpecializations);
 
         String token = jwtUtil.generateToken(user.getEmail());
         return AuthResponse.builder()

@@ -4,7 +4,7 @@ import { Calendar, ChevronDown, ChevronUp, Clock, FileText, Plus, RefreshCw, XCi
 import DashboardLayout from '../../components/DashboardLayout'
 // import FileOpenerModal from '../../components/FileOpenerModal'
 import UserAvatar from '../../components/UserAvatar'
-import { getMyAppointments, updateAppointmentStatus } from '../../api/appointmentApi'
+import { cancelAppointment, loadMyAppointments } from '../../facades/appointmentFacade'
 // import { getFileAccessUrl, getFilesByAppointment } from '../../api/fileUploadApi'
 // import { getMedicalRecordByAppointment } from '../../api/medicalRecordApi'
 import { useToast } from '../../hooks/useToast'
@@ -62,9 +62,8 @@ export default function PatientAppointments() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await getMyAppointments()
-        const safeAppointments = Array.isArray(data) ? data : []
-        setAppointments(safeAppointments)
+        const data = await loadMyAppointments()
+        setAppointments(data)
       } catch {
         setError('Failed to load appointments.')
       } finally {
@@ -85,7 +84,7 @@ export default function PatientAppointments() {
   async function handleCancel(id) {
     setError('')
     try {
-      await updateAppointmentStatus(id, 'CANCELLED')
+      await cancelAppointment(id)
       setAppointments((prev) => prev.map((appointment) => (appointment.id === id ? { ...appointment, status: 'CANCELLED' } : appointment)))
       success('Appointment cancelled successfully.')
     } catch {

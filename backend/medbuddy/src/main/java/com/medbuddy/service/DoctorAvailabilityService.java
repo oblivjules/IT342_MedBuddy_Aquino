@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +18,9 @@ import com.medbuddy.model.AppointmentSlotStatus;
 import com.medbuddy.model.AvailabilityStatus;
 import com.medbuddy.model.Doctor;
 import com.medbuddy.model.DoctorAvailability;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorAvailabilityRepository;
-import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.service.facade.UserAccessFacade;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,8 +35,7 @@ public class DoctorAvailabilityService {
 
     private final DoctorAvailabilityRepository availabilityRepository;
     private final AppointmentSlotRepository appointmentSlotRepository;
-    private final DoctorRepository doctorRepository;
-    private final UserRepository userRepository;
+    private final UserAccessFacade userAccessFacade;
 
     @Transactional
     public DoctorAvailabilityResponse upsert(String doctorEmail,
@@ -132,15 +126,7 @@ public class DoctorAvailabilityService {
     }
 
     private Doctor getDoctorProfile(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "No account found with email: " + email));
-        if (user.getRole() != Role.DOCTOR) {
-            throw new AccessDeniedException("Only doctors can manage availability slots.");
-        }
-        return doctorRepository.findByUser_Id(user.getId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "Doctor profile not found for user: " + email));
+        return userAccessFacade.getDoctorByEmail(email);
     }
 
     private DoctorAvailabilityResponse toResponse(DoctorAvailability slot) {
