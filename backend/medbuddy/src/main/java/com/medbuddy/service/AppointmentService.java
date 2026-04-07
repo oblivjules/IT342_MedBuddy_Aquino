@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,17 +19,15 @@ import com.medbuddy.model.AppointmentSlot;
 import com.medbuddy.model.AppointmentStatus;
 import com.medbuddy.model.Doctor;
 import com.medbuddy.model.Patient;
-import com.medbuddy.model.Role;
 import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentRepository;
 import com.medbuddy.repository.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.PatientRepository;
-import com.medbuddy.repository.UserRepository;
 import com.medbuddy.service.appointment.booking.BookingValidationChain;
 import com.medbuddy.service.appointment.state.AppointmentStateFactory;
 import com.medbuddy.service.appointment.strategy.AppointmentAccessStrategy;
 import com.medbuddy.service.appointment.strategy.AppointmentAccessStrategyFactory;
+import com.medbuddy.service.facade.UserAccessFacade;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,8 +36,6 @@ import lombok.RequiredArgsConstructor;
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final UserRepository userRepository;
-    private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final AppointmentSlotRepository appointmentSlotRepository;
     private final AppointmentResponseAdapter appointmentResponseAdapter;
@@ -48,20 +43,13 @@ public class AppointmentService {
     private final AppointmentStateFactory appointmentStateFactory;
     private final BookingValidationChain bookingValidationChain;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserAccessFacade userAccessFacade;
     // private final EmailService emailService; 
 
     // ── Book ──────────────────────────────────────────────────────────────
     @Transactional
     public AppointmentResponse book(String patientEmail, AppointmentRequest request) {
-        User patientUser = findUserByEmail(patientEmail);
-
-        if (patientUser.getRole() != Role.PATIENT) {
-            throw new AccessDeniedException("Only patients can book appointments.");
-        }
-
-        Patient patient = patientRepository.findByUser_Id(patientUser.getId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "Patient profile not found for user: " + patientEmail));
+        Patient patient = userAccessFacade.getPatientByEmail(patientEmail);
 
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -101,7 +89,7 @@ public class AppointmentService {
     // ── My appointments ───────────────────────────────────────────────────
     @Transactional(readOnly = true)
     public List<AppointmentResponse> getMyAppointments(String userEmail) {
-        User user = findUserByEmail(userEmail);
+        User user = userAccessFacade.findUserByEmail(userEmail);
         AppointmentAccessStrategy strategy = appointmentAccessStrategyFactory.resolve(user.getRole());
         List<Appointment> list = strategy.findAppointments(user, userEmail);
 
@@ -110,7 +98,7 @@ public class AppointmentService {
 
     @Transactional(readOnly = true)
     public AppointmentResponse getById(String userEmail, Long appointmentId) {
-        User user = findUserByEmail(userEmail);
+        User user = userAccessFacade.findUserByEmail(userEmail);
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -131,7 +119,7 @@ public class AppointmentService {
     public AppointmentResponse updateStatus(String userEmail,
                                             Long appointmentId,
                                             AppointmentStatusRequest request) {
-        User user = findUserByEmail(userEmail);
+        User user = userAccessFacade.findUserByEmail(userEmail);
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -181,11 +169,5 @@ public class AppointmentService {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
-
-    private User findUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "No account found with email: " + email));
-    }
 
 }
