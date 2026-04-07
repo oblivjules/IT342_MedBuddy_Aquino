@@ -16,6 +16,7 @@ import com.medbuddy.dto.AppointmentStatusRequest;
 import com.medbuddy.event.AppointmentStatusChangedEvent;
 import com.medbuddy.model.Appointment;
 import com.medbuddy.model.AppointmentSlot;
+import com.medbuddy.model.AppointmentSlotStatus;
 import com.medbuddy.model.AppointmentStatus;
 import com.medbuddy.model.Doctor;
 import com.medbuddy.model.Patient;
