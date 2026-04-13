@@ -25,6 +25,7 @@ function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const oauthPortal = selectedRole === 'DOCTOR' ? 'doctor' : 'patient'
 
   const from = location.state?.from?.pathname || null
 
@@ -45,6 +46,7 @@ function Login() {
       })
 
       login(data.token, data.user)
+      sessionStorage.setItem('medbuddy_last_auth_method', 'LOCAL')
 
       // Redirect: back to the page they tried, or role dashboard
       if (from) {
@@ -155,7 +157,7 @@ function Login() {
 
         {/* ── Google OAuth2 sign-in ──────────────────────────────── */}
         <a
-          href={`${BACKEND_URL}/api/auth/oauth2/google?redirect=${encodeURIComponent(window.location.origin + '/oauth-callback')}`}
+          href={`${BACKEND_URL}/api/auth/oauth2/google?portal=${oauthPortal}&redirect=${encodeURIComponent(window.location.origin + '/oauth-callback')}`}
           className="inline-flex h-10 w-full items-center justify-center gap-3 rounded-md border border-input bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           {/* Google logo SVG */}
