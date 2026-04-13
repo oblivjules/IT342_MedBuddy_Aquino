@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,13 +20,19 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.medbuddy.security.JwtAuthFilter;
+import com.medbuddy.security.OAuth2SuccessHandler;
+import com.medbuddy.service.OAuth2UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,9 +44,17 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final OAuth2UserService oAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Value("${allowed.origins:*}")
     private String allowedOrigins;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id:not-configured}")
+    private String googleClientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret:not-configured}")
+    private String googleClientSecret;
 
     // ── Filter Chain ─────────────────────────────────────────────────
     @Bean
@@ -47,24 +62,41 @@ public class SecurityConfig {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // IF_REQUIRED allows Spring Security to create a session for the
+            // OAuth2 state-parameter exchange; our API itself remains JWT-stateless.
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
                 // Preflight requests must always pass — no auth check
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
-                // Public catalog (exact path + subpaths) for web/mobile registration
                 .requestMatchers(HttpMethod.GET, "/api/specializations").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/specializations/**").permitAll()
                 // Public endpoints
                 .requestMatchers(
-                    "/api/auth/**"
+                    "/api/auth/**",
+                    "/oauth2/**",
+                    "/login/oauth2/**"
                 ).permitAll()
                 // Protected endpoints
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(ex -> ex
+                // API clients must receive 401 JSON-compatible responses instead
+                // of browser redirects to OAuth providers.
+                .defaultAuthenticationEntryPointFor(
+                    apiAuthenticationEntryPoint(),
+                    new AntPathRequestMatcher("/api/**")
+                )
+            )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        if (isGoogleOauthConfigured()) {
+            http.oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo ->
+                    userInfo.userService(oAuth2UserService))
+                .successHandler(oAuth2SuccessHandler)
+            );
+        }
 
         return http.build();
     }
@@ -78,12 +110,10 @@ public class SecurityConfig {
         List<String> origins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .toList();
-        // We use explicit origins for local dev/prod (see application.properties).
-        // Credentials are not required for JWT Bearer auth; keep them disabled for simpler CORS.
-        config.setAllowedOrigins(origins);
+        config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -103,6 +133,18 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint apiAuthenticationEntryPoint() {
+        return new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED);
+    }
+
+    private boolean isGoogleOauthConfigured() {
+        return StringUtils.hasText(googleClientId)
+                && StringUtils.hasText(googleClientSecret)
+                && !"not-configured".equalsIgnoreCase(googleClientId)
+                && !"not-configured".equalsIgnoreCase(googleClientSecret);
     }
 
     // ── Password Encoder ──────────────────────────────────────────────
