@@ -22,12 +22,6 @@ class PatientDashboardActivity : AppCompatActivity() {
         binding.cardAppointments.setOnClickListener {
             startActivity(Intent(this, MyAppointmentsActivity::class.java))
         }
-
-        binding.btnLogout.setOnClickListener {
-            TokenManager(applicationContext).clearSession()
-            startActivity(Intent(this, LoginActivity::class.java))
-            finishAffinity()
-        }
     }
 }
 

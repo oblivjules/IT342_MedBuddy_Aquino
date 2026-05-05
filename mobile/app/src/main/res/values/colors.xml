@@ -1,26 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="primary">#E91E8C</color>
-    <color name="primary_dark">#C2185B</color>
-    <color name="background">#F7F7F7</color>
+    <color name="primary_dark">#C21873</color>
+    <color name="background">#FFFFFF</color>
     <color name="surface">#FFFFFF</color>
+    <color name="card_surface">#F5F5F5</color>
     <color name="success">#10B981</color>
     <color name="warning">#F59E0B</color>
     <color name="error">#EF4444</color>
-    <color name="text_primary">#2D2D2D</color>
-    <color name="text_secondary">#888888</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
     <color name="border">#E0E0E0</color>
-    <color name="input_border">#C5CBD5</color>
+    <color name="input_border">#D8D8D8</color>
     <color name="input_border_focused">#E91E8C</color>
-    <color name="pink_light">#FDE8F5</color>
+    <color name="pink_light">#FCE4EF</color>
+    <color name="primary_soft">#FCE4EF</color>
+    <color name="accent_soft">#FCE4EF</color>
 
-    <color name="chip_booked_bg">#263B82F6</color>
-    <color name="chip_booked_text">#3B82F6</color>
-    <color name="chip_completed_bg">#2610B981</color>
-    <color name="chip_completed_text">#10B981</color>
-    <color name="chip_cancelled_bg">#269CA3AF</color>
-    <color name="chip_cancelled_text">#6B7280</color>
+    <color name="chip_booked_bg">#1F385BCE</color>
+    <color name="chip_booked_text">#385BCE</color>
+    <color name="chip_confirmed_bg">#2610B981</color>
+    <color name="chip_confirmed_text">#0B7D58</color>
+    <color name="chip_completed_bg">#1F9CA3AF</color>
+    <color name="chip_completed_text">#6B7280</color>
+    <color name="chip_cancelled_bg">#1FEF4444</color>
+    <color name="chip_cancelled_text">#DC2626</color>
     <color name="chip_pending_bg">#26F59E0B</color>
     <color name="chip_pending_text">#D97706</color>
+    <color name="chip_rejected_bg">#26EF4444</color>
+    <color name="chip_rejected_text">#C62828</color>
+
+    <color name="chip_filter_checked_bg">#E91E8C</color>
+    <color name="chip_filter_unchecked_bg">#FFFFFFFF</color>
+    <color name="chip_filter_checked_text">#FFFFFF</color>
+    <color name="chip_filter_unchecked_text">#757575</color>
+
+    <color name="bottom_nav_active">#E91E8C</color>
+    <color name="bottom_nav_inactive">#9E9E9E</color>
 </resources>
 
