@@ -7,12 +7,17 @@ import {
   Mail,
   MapPin,
   Phone,
+  Star,
   Users,
 } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout'
 import UserAvatar from '../../components/UserAvatar'
-import { getDoctorAvailability } from '../../api/availabilityApi'
+import { getDoctorAppointmentSlotsByDate } from '../../api/availabilityApi'
+import { getRatingsByDoctor } from '../../api/ratingApi'
 import { getDoctorById } from '../../api/userApi'
+
+const AVAILABILITY_PAGE_SIZE = 5
+const UPCOMING_SLOT_LOOKAHEAD_DAYS = 30
 
 function initials(name) {
   return (
@@ -56,31 +61,98 @@ function formatTime(value) {
   return timeStr.slice(0, 5)
 }
 
+function stars(value) {
+  const rounded = Math.max(1, Math.min(5, Math.round(value || 0)))
+  return [1, 2, 3, 4, 5].map((index) => ({
+    index,
+    active: index <= rounded,
+  }))
+}
+
+function normalizeReview(review) {
+  return {
+    ...review,
+    rating: Number(review?.rating ?? review?.ratingScore ?? 0),
+    comment:
+      review?.comment
+      || review?.feedback
+      || review?.feedbackComment
+      || review?.message
+      || '',
+  }
+}
+
+function toIsoDate(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function makeUpcomingDateWindow(days) {
+  const dates = []
+  const base = new Date()
+  base.setHours(0, 0, 0, 0)
+
+  // Booking policy starts from tomorrow.
+  base.setDate(base.getDate() + 1)
+
+  for (let i = 0; i < days; i += 1) {
+    const date = new Date(base)
+    date.setDate(base.getDate() + i)
+    dates.push(toIsoDate(date))
+  }
+
+  return dates
+}
+
 export default function PatientDoctorProfile() {
   const { doctorId } = useParams()
   const navigate = useNavigate()
   const [doctor, setDoctor] = useState(null)
-  const [availability, setAvailability] = useState([])
+  const [upcomingSlots, setUpcomingSlots] = useState([])
+  const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
+  const [slotsPage, setSlotsPage] = useState(1)
 
   useEffect(() => {
     let mounted = true
 
     async function load() {
       try {
-        const [doctors, slots] = await Promise.all([
+        const [doctors, feedback] = await Promise.all([
           getDoctorById(doctorId),
-          getDoctorAvailability(doctorId),
+          getRatingsByDoctor(doctorId).catch(() => []),
         ])
+
+        const dateWindow = makeUpcomingDateWindow(UPCOMING_SLOT_LOOKAHEAD_DAYS)
+        const slotBuckets = []
+
+        for (const slotDate of dateWindow) {
+          const slots = await getDoctorAppointmentSlotsByDate(doctorId, slotDate).catch(() => [])
+          slotBuckets.push(slots)
+        }
 
         if (!mounted) return
 
-        console.log('[DoctorProfile] Loaded doctor:', doctors)
-        console.log('[DoctorProfile] Loaded availability slots:', slots)
+        const flattenedSlots = slotBuckets
+          .flat()
+          .filter((slot) => String(slot?.status || '').toUpperCase() === 'AVAILABLE')
+          .sort((left, right) => {
+            const leftKey = `${left?.slotDate || ''} ${String(left?.slotStartTime || '')}`
+            const rightKey = `${right?.slotDate || ''} ${String(right?.slotStartTime || '')}`
+            return leftKey.localeCompare(rightKey)
+          })
+
         setDoctor(doctors || null)
-        setAvailability(Array.isArray(slots) ? slots : [])
+        setUpcomingSlots(flattenedSlots)
+        setReviews(Array.isArray(feedback) ? feedback.map(normalizeReview) : [])
       } catch (err) {
-        console.error('[DoctorProfile] Error loading data:', err)
+        if (mounted) {
+          setDoctor(null)
+          setUpcomingSlots([])
+          setReviews([])
+        }
       } finally {
         if (mounted) setLoading(false)
       }
@@ -98,46 +170,22 @@ export default function PatientDoctorProfile() {
     return [doctor.firstName, doctor.lastName].filter(Boolean).join(' ') || doctor.email || 'Doctor'
   }, [doctor])
 
-  const upcomingSlots = useMemo(() => {
-    if (!Array.isArray(availability) || availability.length === 0) {
-      console.log('[DoctorProfile] No availability data')
-      return []
-    }
+  const avgRating = useMemo(() => {
+    if (!reviews.length) return null
+    const total = reviews.reduce((sum, item) => sum + Number(item.rating || item.ratingScore || 0), 0)
+    return Number((total / reviews.length).toFixed(1))
+  }, [reviews])
 
-    console.log('[DoctorProfile] Processing %d availability slots', availability.length)
+  const totalSlotPages = Math.max(1, Math.ceil(upcomingSlots.length / AVAILABILITY_PAGE_SIZE))
 
-    // Filter and sort slots
-    const filtered = availability
-      .filter((slot) => {
-        // Ensure slot has required fields
-        const hasRequired = slot?.availableDate && slot?.startTime && slot?.endTime
-        const statusOk = String(slot?.status || '').toUpperCase() === 'AVAILABLE'
-        
-        if (!hasRequired) {
-          console.log('[DoctorProfile] Filtered out slot (missing required fields):', slot)
-        }
-        if (!statusOk) {
-          console.log('[DoctorProfile] Filtered out slot (status not AVAILABLE):', slot?.status)
-        }
-        
-        return hasRequired && statusOk
-      })
-      .sort((left, right) => {
-        const dateA = String(left.availableDate || '')
-        const dateB = String(right.availableDate || '')
-        const dateDiff = dateA.localeCompare(dateB)
-        
-        if (dateDiff !== 0) return dateDiff
-        
-        const timeA = String(left.startTime || '').slice(0, 5)
-        const timeB = String(right.startTime || '').slice(0, 5)
-        return timeA.localeCompare(timeB)
-      })
-      .slice(0, 5)
+  const paginatedSlots = useMemo(() => {
+    const start = (slotsPage - 1) * AVAILABILITY_PAGE_SIZE
+    return upcomingSlots.slice(start, start + AVAILABILITY_PAGE_SIZE)
+  }, [slotsPage, upcomingSlots])
 
-    console.log('[DoctorProfile] Filtered to %d upcoming slots:', filtered.length, filtered)
-    return filtered
-  }, [availability])
+  useEffect(() => {
+    setSlotsPage(1)
+  }, [doctorId, upcomingSlots.length])
 
   if (loading) {
     return (
@@ -197,6 +245,10 @@ export default function PatientDoctorProfile() {
 
               <div className="flex flex-wrap gap-4 text-sm">
                 <span className="flex items-center gap-1.5 text-muted-foreground">
+                  <Star className="h-4 w-4 fill-accent text-accent" />
+                  <span className="font-semibold text-foreground">{avgRating ?? 'N/A'}</span> ({reviews.length || 'No'} reviews)
+                </span>
+                <span className="flex items-center gap-1.5 text-muted-foreground">
                   <Users className="h-4 w-4" /> Verified specialist
                 </span>
                 <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -228,6 +280,30 @@ export default function PatientDoctorProfile() {
                 <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-primary" /> {doctor.email || 'Not provided'}</p>
               </div>
             </div>
+
+            <div className="rounded-2xl border border-border bg-card shadow-card">
+              <div className="border-b border-border p-5">
+                <h2 className="text-lg font-semibold">Recent Reviews</h2>
+              </div>
+              <div className="divide-y divide-border">
+                {reviews.length === 0 && (
+                  <p className="p-5 text-sm text-muted-foreground">No reviews yet.</p>
+                )}
+                {reviews.slice(0, 4).map((review) => (
+                  <div key={review.id} className="p-5">
+                    <div className="mb-2 flex items-center gap-1">
+                      {stars(Number(review.rating || review.ratingScore || 0)).map((entry) => (
+                        <Star key={entry.index} className={`h-3.5 w-3.5 ${entry.active ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`} />
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground font-body">{review.comment || 'No comment provided.'}</p>
+                    {review.createdAt && (
+                      <p className="mt-1 text-xs text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -238,12 +314,13 @@ export default function PatientDoctorProfile() {
               {upcomingSlots.length === 0 ? (
                 <p className="p-5 text-sm text-muted-foreground">No schedule published yet.</p>
               ) : (
-                <div className="divide-y divide-border">
-                  {upcomingSlots.map((slot, idx) => {
-                    const dateStr = formatDate(slot.availableDate)
-                    const startTime = formatTime(slot.startTime)
-                    const endTime = formatTime(slot.endTime)
-                    const key = `${slot.availableDate}-${slot.startTime}-${endTime}-${idx}`
+                <div>
+                  <div className="divide-y divide-border">
+                  {paginatedSlots.map((slot, idx) => {
+                    const dateStr = formatDate(slot.slotDate)
+                    const startTime = formatTime(slot.slotStartTime)
+                    const endTime = formatTime(slot.slotEndTime)
+                    const key = `${slot.slotDate}-${slot.slotStartTime}-${slot.id || idx}`
                     return (
                       <div key={key} className="flex items-center justify-between px-5 py-3 text-sm">
                         <span className="text-muted-foreground">{dateStr}</span>
@@ -254,6 +331,31 @@ export default function PatientDoctorProfile() {
                       </div>
                     )
                   })}
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-border px-5 py-3 text-xs text-muted-foreground">
+                    <span>
+                      Page {slotsPage} of {totalSlotPages}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSlotsPage((prev) => Math.max(1, prev - 1))}
+                        disabled={slotsPage === 1}
+                        className="inline-flex h-8 items-center justify-center rounded-md border border-input px-3 text-xs font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSlotsPage((prev) => Math.min(totalSlotPages, prev + 1))}
+                        disabled={slotsPage >= totalSlotPages}
+                        className="inline-flex h-8 items-center justify-center rounded-md border border-input px-3 text-xs font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

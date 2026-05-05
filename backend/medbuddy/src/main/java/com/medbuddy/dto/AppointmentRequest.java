@@ -1,6 +1,7 @@
 package com.medbuddy.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -17,6 +18,7 @@ public class AppointmentRequest {
     @NotNull(message = "Appointment slot ID is required")
     private Long slotId;
 
+    @NotBlank(message = "Notes are required")
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String notes;
 }

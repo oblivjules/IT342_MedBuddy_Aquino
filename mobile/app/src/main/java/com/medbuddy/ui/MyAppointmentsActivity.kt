@@ -1,6 +1,7 @@
 package com.medbuddy.ui
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +13,7 @@ import com.medbuddy.api.ApiErrorMapper
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.databinding.ActivityMyAppointmentsBinding
+import com.medbuddy.dto.AppointmentResponse
 import kotlinx.coroutines.launch
 
 class MyAppointmentsActivity : AppCompatActivity() {
@@ -27,11 +29,16 @@ class MyAppointmentsActivity : AppCompatActivity() {
 
         role = resolveRole()
         adapter = AppointmentAdapter(role) { appointment, targetStatus ->
-            confirmStatusChange(appointment.id, targetStatus)
+            handleAppointmentAction(appointment, targetStatus)
         }
 
         binding.recyclerAppointments.layoutManager = LinearLayoutManager(this)
         binding.recyclerAppointments.adapter = adapter
+
+        // Add item click listener to navigate to detail activity
+        adapter.setOnItemClickListener { appointment ->
+            navigateToAppointmentDetail(appointment)
+        }
 
         loadAppointments()
     }
@@ -57,6 +64,29 @@ class MyAppointmentsActivity : AppCompatActivity() {
                 binding.progressBar.visibility = View.GONE
             }
         }
+    }
+
+    private fun handleAppointmentAction(appointment: AppointmentResponse, targetStatus: String) {
+        when (targetStatus) {
+            "VIEW_RECORD" -> navigateToMedicalHistory()
+            "RESCHEDULE" -> android.widget.Toast.makeText(this, "Reschedule not yet implemented", android.widget.Toast.LENGTH_SHORT).show()
+            else -> confirmStatusChange(appointment.id, targetStatus)
+        }
+    }
+
+    private fun navigateToAppointmentDetail(appointment: AppointmentResponse) {
+        val intent = if (role == "DOCTOR") {
+            Intent(this, AppointmentDetailDoctorActivity::class.java)
+        } else {
+            Intent(this, AppointmentDetailPatientActivity::class.java)
+        }
+        intent.putExtra("appointment", appointment)
+        startActivity(intent)
+    }
+
+    private fun navigateToMedicalHistory() {
+        val intent = Intent(this, MedicalHistoryActivity::class.java)
+        startActivity(intent)
     }
 
     private fun confirmStatusChange(appointmentId: Long, targetStatus: String) {

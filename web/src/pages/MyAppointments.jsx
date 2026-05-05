@@ -53,7 +53,7 @@ export default function MyAppointments() {
                 {loading && <p className="text-muted-foreground text-sm">Loading...</p>}
                 {error && <p className="text-destructive text-sm">{error}</p>}
                 {!loading && appointments.length === 0 && (
-                    <p className="text-muted-foreground text-sm">No appointments yet.</p>
+                    <p className="text-muted-foreground text-sm">No appointments yet — book one now.</p>
                 )}
 
                 {Object.entries(grouped).map(([status, items]) =>

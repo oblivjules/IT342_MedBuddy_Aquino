@@ -3,6 +3,8 @@ package com.medbuddy.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +41,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class DoctorAvailabilityController {
+
+    private static final Logger log = LoggerFactory.getLogger(DoctorAvailabilityController.class);
 
     private final DoctorAvailabilityService availabilityService;
     private final DoctorScheduleService doctorScheduleService;
@@ -115,9 +119,25 @@ public class DoctorAvailabilityController {
     public ResponseEntity<Void> saveException(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody DoctorAvailabilityRequest request) {
-        Long doctorId = availabilityService.getAuthenticatedDoctorId(userDetails.getUsername());
-        doctorScheduleService.saveException(doctorId, request);
-        return ResponseEntity.ok().build();
+        try {
+            log.debug("[CONTROLLER] saveException endpoint called");
+            log.debug("[CONTROLLER] Authenticated user: {}", userDetails.getUsername());
+            log.debug("[CONTROLLER] Incoming request body - availableDate: {}, startTime: {}, endTime: {}, status: {}",
+                    request.getAvailableDate(), request.getStartTime(), request.getEndTime(), request.getStatus());
+            
+            Long doctorId = availabilityService.getAuthenticatedDoctorId(userDetails.getUsername());
+            log.debug("[CONTROLLER] Resolved doctor ID: {}", doctorId);
+            
+            log.debug("[CONTROLLER] Calling doctorScheduleService.saveException with doctorId: {} and request: {}",
+                    doctorId, request);
+            doctorScheduleService.saveException(doctorId, request);
+            log.debug("[CONTROLLER] saveException completed successfully for doctorId: {}", doctorId);
+            
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("[CONTROLLER] Exception occurred in saveException endpoint", e);
+            throw e;
+        }
     }
 
     @DeleteMapping("/doctor/schedule/exception/{date}")

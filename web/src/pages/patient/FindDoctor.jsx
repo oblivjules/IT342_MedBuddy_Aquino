@@ -4,29 +4,61 @@ import { Clock, MapPin, Search, Star } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout'
 import UserAvatar from '../../components/UserAvatar'
 import { getDoctors } from '../../api/userApi'
+import { getDoctorAverageRating } from '../../api/ratingApi'
 import { getSpecializations } from '../../api/specializationApi'
 
 export default function PatientFindDoctor() {
   const [doctors, setDoctors] = useState([])
   const [specializations, setSpecializations] = useState([])
+  const [averageRatingsByDoctorId, setAverageRatingsByDoctorId] = useState({})
   const [search, setSearch] = useState('')
   const [selectedSpec, setSelectedSpec] = useState('ALL')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([getDoctors(), getSpecializations()])
-      .then(([doctorData, specData]) => {
-        setDoctors(Array.isArray(doctorData) ? doctorData : [])
+    async function load() {
+      try {
+        const [doctorData, specData] = await Promise.all([getDoctors(), getSpecializations()])
+        const safeDoctors = Array.isArray(doctorData) ? doctorData : []
+
+        setDoctors(safeDoctors)
         setSpecializations(Array.isArray(specData) ? specData : [])
-      })
-      .catch(() => {
-        setDoctors([])
-        setSpecializations([])
-        setError('Unable to load doctors right now. Please try again later.')
-      })
-      .finally(() => setLoading(false))
+
+        const ratingEntries = await Promise.all(
+          safeDoctors.map(async (doctor) => {
+            try {
+              const average = await getDoctorAverageRating(doctor.id)
+              return [doctor.id, Number.isFinite(average) ? average : 0]
+            } catch {
+              return [doctor.id, 0]
+            }
+          }),
+        )
+
+        setAverageRatingsByDoctorId(Object.fromEntries(ratingEntries))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    load()
   }, [])
+
+  function renderStars(average) {
+    const rating = Number(average || 0)
+    const filled = Math.round(rating)
+
+    return (
+      <span className="flex items-center gap-0.5" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`h-3.5 w-3.5 ${star <= filled ? 'fill-accent text-accent' : 'text-muted-foreground/30'}`}
+          />
+        ))}
+      </span>
+    )
+  }
 
   const filtered = useMemo(() => {
     return doctors.filter((doctor) => {
@@ -67,8 +99,6 @@ export default function PatientFindDoctor() {
 
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading doctors...</p>
-        ) : error ? (
-          <p className="text-sm text-destructive">{error}</p>
         ) : filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground">No doctors found.</p>
         ) : (
@@ -103,10 +133,19 @@ export default function PatientFindDoctor() {
                     </div>
                   </div>
                   <div className="mb-4 space-y-2">
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                      Verified specialist profile
-                    </p>
+                    {(averageRatingsByDoctorId[doctor.id] ?? 0) > 0 ? (
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-1 text-accent">
+                          {renderStars(averageRatingsByDoctorId[doctor.id] ?? 0)}
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {(averageRatingsByDoctorId[doctor.id] ?? 0).toFixed(1)}
+                        </span>
+                        <span>average rating</span>
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">No ratings and reviews yet</p>
+                    )}
                     <p className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="h-3.5 w-3.5" />
                       Experienced clinician

@@ -10,14 +10,15 @@ import {
   Paperclip,
   Star,
   Upload,
+  X,
 } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout'
 import UserAvatar from '../../components/UserAvatar'
 import { bookAppointment } from '../../api/appointmentApi'
 import { getDoctorAppointmentSlotsByDate, getDoctorAvailability } from '../../api/availabilityApi'
-// import { uploadMyMedicalRecordFile } from '../../api/medicalRecordFileApi'
+import { uploadMyMedicalRecordFile } from '../../api/medicalRecordFileApi'
 import { getDoctorById } from '../../api/userApi'
-import { useToast } from '../../hooks/useToast'
+import { useUnsavedChangesGuard } from '../../hooks/useUnsavedChangesGuard'
 
 const weekdayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 const RESERVATION_FEE_PHP = 100
@@ -28,6 +29,15 @@ function todayIso() {
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function tomorrowIso() {
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const year = tomorrow.getFullYear()
+  const month = String(tomorrow.getMonth() + 1).padStart(2, '0')
+  const day = String(tomorrow.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
 
@@ -142,10 +152,9 @@ function doctorInitials(name) {
 export default function PatientBookAppointment() {
   const { doctorId } = useParams()
   const navigate = useNavigate()
-  const { success } = useToast()
   const [doctor, setDoctor] = useState(null)
   const [doctorAvailability, setDoctorAvailability] = useState([])
-  const [selectedDate, setSelectedDate] = useState(todayIso())
+  const [selectedDate, setSelectedDate] = useState(tomorrowIso())
   const [viewMonth, setViewMonth] = useState(() => new Date(`${todayIso()}T00:00:00`))
   const [availableSlots, setAvailableSlots] = useState([])
   const [selectedSlotId, setSelectedSlotId] = useState('')
@@ -157,6 +166,16 @@ export default function PatientBookAppointment() {
   const [doctorLoading, setDoctorLoading] = useState(true)
   const [slotsLoading, setSlotsLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [hasTouchedForm, setHasTouchedForm] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [pendingBooking, setPendingBooking] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
+
+  useUnsavedChangesGuard(
+    hasTouchedForm && !hasSubmitted && !submitting,
+    "Changes won't be saved. Are you sure you want to leave?",
+  )
 
   useEffect(() => {
     let mounted = true
@@ -258,18 +277,85 @@ export default function PatientBookAppointment() {
     [viewMonth],
   )
 
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
+  function validateBookingForm() {
+    const nextErrors = {}
+
+    if (!selectedDate) {
+      nextErrors.selectedDate = 'Please select a date.'
+    }
 
     if (!selectedSlotId) {
-      setError('Please select date and time.')
+      nextErrors.selectedSlotId = 'Please select a time slot.'
+    }
+
+    if (!notes.trim()) {
+      nextErrors.notes = 'Please enter a reason for your visit.'
+    }
+
+    if (notes.trim().length > 500) {
+      nextErrors.notes = 'Notes cannot exceed 500 characters.'
+    }
+
+    return nextErrors
+  }
+
+  function buildSelectedBookingSummary() {
+    const selectedSlot = availableSlots.find((slot) => String(slot.id) === String(selectedSlotId))
+    const selectedDateTime = selectedSlot
+      ? `${new Date(`${selectedDate}T${selectedSlot.time}:00`).toLocaleDateString()} ${selectedSlot.label}`
+      : selectedDate
+
+    return {
+      doctorId: Number(doctorId),
+      slotId: Number(selectedSlotId),
+      notes: notes.trim(),
+      selectedDateTime,
+      selectedSlotLabel: selectedSlot?.label || 'Selected slot',
+    }
+  }
+
+  function removeStagedFile(indexToRemove) {
+    setStagedFiles((prev) => prev.filter((_, index) => index !== indexToRemove))
+    setHasTouchedForm(true)
+  }
+
+  function openConfirmationModal() {
+    const nextErrors = validateBookingForm()
+    setFieldErrors(nextErrors)
+
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Please complete all required fields before continuing.')
       return
     }
 
+    setError('')
+    setPendingBooking(buildSelectedBookingSummary())
+    setShowConfirmModal(true)
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (submitting || uploadingFiles) {
+      return
+    }
+
+    setError('')
+    setHasTouchedForm(true)
+    openConfirmationModal()
+  }
+
+  async function confirmBooking() {
+    if (!pendingBooking) {
+      return
+    }
+
+    setShowConfirmModal(false)
     setSubmitting(true)
+    setError('')
+
     try {
-      await bookAppointment(Number(doctorId), Number(selectedSlotId), notes)
+      setHasSubmitted(true)
+      await bookAppointment(pendingBooking.doctorId, pendingBooking.slotId, pendingBooking.notes)
 
       if (stagedFiles.length > 0) {
         try {
@@ -291,9 +377,10 @@ export default function PatientBookAppointment() {
         }
       }
 
-      success('Appointment booked successfully.')
-      navigate('/patient/appointments', { replace: true })
+      setPendingBooking(null)
+      navigate('/patient/billing', { replace: true })
     } catch (err) {
+      setHasSubmitted(false)
       setError(
         err.response?.data?.detail ||
           err.response?.data?.message ||
@@ -309,8 +396,38 @@ export default function PatientBookAppointment() {
     const files = Array.from(event.target.files || [])
     if (files.length === 0) return
 
-    setError('')
-    setStagedFiles((prev) => [...prev, ...files])
+    const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png']
+    const allowedExtensions = ['pdf', 'png', 'jpg', 'jpeg']
+    const maxFileSize = 10 * 1024 * 1024 // 10MB
+
+    const validFiles = []
+    const invalidFiles = []
+
+    files.forEach((file) => {
+      const extension = file.name.split('.').pop()?.toLowerCase()
+      const isValidType = allowedMimeTypes.includes(file.type)
+      const isValidExtension = allowedExtensions.includes(extension)
+
+      if (!isValidType && !isValidExtension) {
+        invalidFiles.push(`${file.name} (unsupported format)`)
+      } else if (file.size > maxFileSize) {
+        invalidFiles.push(`${file.name} (exceeds 10MB limit)`)
+      } else {
+        validFiles.push(file)
+      }
+    })
+
+    if (invalidFiles.length > 0) {
+      setError(`Cannot upload: ${invalidFiles.join(', ')}. Supported formats: PDF, PNG, JPG, JPEG.`)
+    } else {
+      setError('')
+    }
+
+    if (validFiles.length > 0) {
+      setHasTouchedForm(true)
+      setStagedFiles((prev) => [...prev, ...validFiles])
+    }
+
     event.target.value = ''
   }
 
@@ -318,13 +435,20 @@ export default function PatientBookAppointment() {
   const doctorSpecialty = (doctor?.specializations || []).join(', ') || 'Not specified'
   const doctorRating = doctor?.averageRating
   const reservationFee = `₱${RESERVATION_FEE_PHP.toLocaleString()}`
+  const bookingSummary = pendingBooking || buildSelectedBookingSummary()
 
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-4xl space-y-6 px-1 py-1 sm:px-0">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (hasTouchedForm && !hasSubmitted && !submitting) {
+              const shouldLeave = window.confirm("Changes won't be saved. Are you sure you want to leave?")
+              if (!shouldLeave) return
+            }
+            navigate(-1)
+          }}
           className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" /> Back
@@ -383,7 +507,9 @@ export default function PatientBookAppointment() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-foreground">Select Date</h3>
+            <h3 className="text-base font-medium text-foreground">
+              Select Date <span className="text-destructive">*</span>
+            </h3>
             <div className="rounded-2xl border border-border bg-card p-5 shadow-card sm:p-6">
               <div className="flex items-center justify-between">
                 <button
@@ -416,23 +542,26 @@ export default function PatientBookAppointment() {
               <div className="mt-2 grid grid-cols-7 gap-y-2 text-center">
                 {calendarDays.map((cell) => {
                   const isSelected = selectedDate === cell.iso
+                  const isDisabled = cell.isPast || cell.isToday
                   return (
                     <button
                       key={cell.iso}
                       type="button"
                       onClick={() => {
+                        setHasTouchedForm(true)
+                        setFieldErrors((prev) => ({ ...prev, selectedDate: '', selectedSlotId: '' }))
                         setSelectedDate(cell.iso)
                         setViewMonth(new Date(`${cell.iso}T00:00:00`))
                         setSelectedSlotId('')
                       }}
-                      disabled={cell.isPast}
+                      disabled={isDisabled}
                       className={`mx-auto inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm transition-colors ${
                         isSelected
                           ? 'bg-primary text-primary-foreground shadow-sm'
                           : cell.inCurrentMonth
                             ? 'text-foreground hover:bg-primary-soft'
                             : 'text-muted-foreground/40'
-                      } ${cell.isToday && !isSelected ? 'ring-1 ring-border' : ''} ${cell.isPast ? 'cursor-not-allowed opacity-40 hover:bg-transparent' : ''}`}
+                      } ${cell.isToday && !isSelected ? 'ring-1 ring-border' : ''} ${isDisabled ? 'cursor-not-allowed opacity-40 hover:bg-transparent' : ''}`}
                     >
                       {cell.day}
                     </button>
@@ -440,10 +569,14 @@ export default function PatientBookAppointment() {
                 })}
               </div>
             </div>
+            <p className="text-xs text-muted-foreground">Same-day booking is not allowed. Please choose tomorrow or a later date.</p>
+            {fieldErrors.selectedDate && <p className="text-sm text-destructive">{fieldErrors.selectedDate}</p>}
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-foreground">Select Time Slot</h3>
+            <h3 className="text-base font-medium text-foreground">
+              Select Time Slot <span className="text-destructive">*</span>
+            </h3>
             <div className="rounded-2xl border border-border bg-card p-5 shadow-card sm:p-6">
               {slotsLoading ? (
                 <p className="text-sm text-muted-foreground">Loading schedule...</p>
@@ -461,7 +594,11 @@ export default function PatientBookAppointment() {
                     <button
                       key={slot.id}
                       type="button"
-                      onClick={() => setSelectedSlotId(String(slot.id))}
+                      onClick={() => {
+                        setHasTouchedForm(true)
+                        setFieldErrors((prev) => ({ ...prev, selectedSlotId: '' }))
+                        setSelectedSlotId(String(slot.id))
+                      }}
                       className={`h-11 rounded-xl border px-4 text-base font-medium transition-colors ${
                         String(selectedSlotId) === String(slot.id)
                           ? 'border-primary bg-primary text-primary-foreground'
@@ -476,19 +613,30 @@ export default function PatientBookAppointment() {
                 <p className="text-sm text-muted-foreground">No available time slots for this date.</p>
               )}
             </div>
+            {fieldErrors.selectedSlotId && <p className="text-sm text-destructive">{fieldErrors.selectedSlotId}</p>}
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-foreground">Reason for Visit / Notes</h3>
+            <h3 className="text-base font-medium text-foreground">
+              Reason for Visit / Notes <span className="text-destructive">*</span>
+            </h3>
             <textarea
               id="notes"
               placeholder="Describe your symptoms or reason for the visit..."
               rows={4}
               value={notes}
-              onChange={(event) => setNotes(event.target.value)}
+              onChange={(event) => {
+                setHasTouchedForm(true)
+                setNotes(event.target.value)
+                setFieldErrors((prev) => ({ ...prev, notes: '' }))
+              }}
               maxLength={500}
-              className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm shadow-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-invalid={Boolean(fieldErrors.notes)}
+              className={`w-full rounded-2xl border bg-background px-4 py-3 text-sm shadow-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                fieldErrors.notes ? 'border-destructive' : 'border-input'
+              }`}
             />
+            {fieldErrors.notes ? <p className="text-sm text-destructive">{fieldErrors.notes}</p> : null}
           </div>
 
           <div className="space-y-3">
@@ -517,9 +665,19 @@ export default function PatientBookAppointment() {
             {stagedFiles.length > 0 && (
               <div className="space-y-2">
                 {stagedFiles.map((file, index) => (
-                  <div key={`${file.name}-${index}`} className="flex items-center gap-2 rounded-lg bg-primary-soft/40 px-3 py-2 text-xs text-foreground">
-                    <FileText className="h-3.5 w-3.5 text-primary" />
-                    <span>{file.name}</span>
+                  <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-lg bg-primary-soft/40 px-3 py-2 text-xs text-foreground">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <FileText className="h-3.5 w-3.5 shrink-0 text-primary" />
+                      <span className="truncate">{file.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeStagedFile(index)}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-background hover:text-foreground"
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -537,6 +695,81 @@ export default function PatientBookAppointment() {
           </button>
         </form>
       </div>
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card shadow-2xl">
+            <div className="border-b border-border px-6 py-4">
+              <h3 className="text-lg font-semibold">Confirm Appointment</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Review the details below before proceeding.</p>
+            </div>
+
+            <div className="space-y-4 px-6 py-5 text-sm">
+              <div className="flex items-start gap-3 rounded-xl bg-muted/40 p-4">
+                <Calendar className="mt-0.5 h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-medium text-foreground">Dr. {doctorName}</p>
+                  <p className="text-muted-foreground">{bookingSummary.selectedDateTime}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-border p-4">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Doctor</p>
+                  <p className="mt-1 font-medium text-foreground">Dr. {doctorName}</p>
+                </div>
+                <div className="rounded-xl border border-border p-4">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Time Slot</p>
+                  <p className="mt-1 font-medium text-foreground">{bookingSummary.selectedSlotLabel}</p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Notes</p>
+                <p className="mt-1 whitespace-pre-wrap text-foreground">{bookingSummary.notes}</p>
+              </div>
+
+              <div className="rounded-xl border border-border p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Attached Files</p>
+                {stagedFiles.length === 0 ? (
+                  <p className="mt-1 text-foreground">No files attached.</p>
+                ) : (
+                  <div className="mt-2 space-y-2">
+                    {stagedFiles.map((file, index) => (
+                      <div key={`${file.name}-${index}`} className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <span className="text-foreground">{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-border bg-primary-soft/30 p-4 text-sm text-muted-foreground">
+                Proceeding will reserve your selected slot and move you to payment.
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-border px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-input bg-background px-4 text-sm font-medium hover:bg-muted"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmBooking}
+                disabled={submitting || uploadingFiles}
+                className="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Proceed
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   )
 }

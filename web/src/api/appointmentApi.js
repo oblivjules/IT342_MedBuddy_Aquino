@@ -28,9 +28,16 @@ export async function getMyAppointments() {
  * @param {number} id
  * @param {'CONFIRMED'|'CANCELLED'|'COMPLETED'} status
  */
-export async function updateAppointmentStatus(id, status) {
-    const { data } = await axiosInstance.patch(`/api/appointments/${id}/status`, {
+export async function updateAppointmentStatus(id, status, rejectionReason = null) {
+    const payload = {
         status,
+    }
+    if (rejectionReason) {
+        payload.rejectionReason = rejectionReason
+    }
+
+    const { data } = await axiosInstance.patch(`/api/appointments/${id}/status`, {
+        ...payload,
     })
     return data
 }

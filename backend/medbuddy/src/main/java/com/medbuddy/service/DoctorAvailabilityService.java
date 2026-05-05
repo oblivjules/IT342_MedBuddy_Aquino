@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,9 +22,12 @@ import com.medbuddy.model.AppointmentSlotStatus;
 import com.medbuddy.model.AvailabilityStatus;
 import com.medbuddy.model.Doctor;
 import com.medbuddy.model.DoctorAvailability;
+import com.medbuddy.model.Role;
+import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorAvailabilityRepository;
-import com.medbuddy.service.facade.UserAccessFacade;
+import com.medbuddy.repository.DoctorRepository;
+import com.medbuddy.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,52 +35,50 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DoctorAvailabilityService {
 
+    private static final Logger log = LoggerFactory.getLogger(DoctorAvailabilityService.class);
     private static final int SLOT_DURATION_MINUTES = 30;
     private static final int CLINIC_CUTOFF_MINUTES = 30;
-    private static final LocalTime UNAVAILABLE_DEFAULT_START = LocalTime.MIDNIGHT;
-    private static final LocalTime UNAVAILABLE_DEFAULT_END = LocalTime.of(0, 30);
 
     private final DoctorAvailabilityRepository availabilityRepository;
     private final AppointmentSlotRepository appointmentSlotRepository;
-    private final UserAccessFacade userAccessFacade;
+    private final DoctorRepository doctorRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public DoctorAvailabilityResponse upsert(String doctorEmail,
                                              DoctorAvailabilityRequest request) {
-        Doctor doctor = getDoctorProfile(doctorEmail);
+        try {
+            log.debug("[SERVICE] upsert called for doctor email: {}", doctorEmail);
+            log.debug("[SERVICE] Request - availableDate: {}, startTime: {}, endTime: {}, status: {}",
+                    request.getAvailableDate(), request.getStartTime(), request.getEndTime(), request.getStatus());
+            
+            Doctor doctor = getDoctorProfile(doctorEmail);
+            log.debug("[SERVICE] Doctor profile retrieved - id: {}, name: {} {}", 
+                    doctor.getId(), doctor.getFirstName(), doctor.getLastName());
 
-        if (request.getAvailableDate().isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Cannot set availability for a past date.");
+            if (request.getAvailableDate().isBefore(LocalDate.now())) {
+                log.warn("[SERVICE] Attempted to set availability for past date: {}", request.getAvailableDate());
+                throw new IllegalArgumentException("Cannot set availability for a past date.");
+            }
+
+            if (!request.getStartTime().isBefore(request.getEndTime())) {
+                log.warn("[SERVICE] Invalid time range - start: {}, end: {}", request.getStartTime(), request.getEndTime());
+                throw new IllegalArgumentException("End time must be after start time.");
+            }
+
+            DoctorAvailability saved = upsertSingleDate(
+                    doctor,
+                    request.getAvailableDate(),
+                    request.getStartTime(),
+                    request.getEndTime(),
+                    request.getStatus());
+            
+            log.debug("[SERVICE] upsert completed - availability id: {}", saved.getId());
+            return toResponse(saved);
+        } catch (Exception e) {
+            log.error("[SERVICE] Exception in upsert for doctor: {}", doctorEmail, e);
+            throw e;
         }
-
-        AvailabilityStatus resolvedStatus = request.getStatus() != null
-                ? request.getStatus()
-                : AvailabilityStatus.AVAILABLE;
-
-        LocalTime startTime = request.getStartTime();
-        LocalTime endTime = request.getEndTime();
-
-        if (resolvedStatus == AvailabilityStatus.UNAVAILABLE && (startTime == null || endTime == null)) {
-            startTime = UNAVAILABLE_DEFAULT_START;
-            endTime = UNAVAILABLE_DEFAULT_END;
-        }
-
-        if (startTime == null || endTime == null) {
-            throw new IllegalArgumentException("Start time and end time are required for available slots.");
-        }
-
-        if (!startTime.isBefore(endTime)) {
-            throw new IllegalArgumentException("End time must be after start time.");
-        }
-
-        DoctorAvailability saved = upsertSingleDate(
-                doctor,
-                request.getAvailableDate(),
-                startTime,
-                endTime,
-                resolvedStatus);
-
-        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -126,7 +131,15 @@ public class DoctorAvailabilityService {
     }
 
     private Doctor getDoctorProfile(String email) {
-        return userAccessFacade.getDoctorByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "No account found with email: " + email));
+        if (user.getRole() != Role.DOCTOR) {
+            throw new AccessDeniedException("Only doctors can manage availability slots.");
+        }
+        return doctorRepository.findByUser_Id(user.getId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Doctor profile not found for user: " + email));
     }
 
     private DoctorAvailabilityResponse toResponse(DoctorAvailability slot) {
@@ -146,24 +159,45 @@ public class DoctorAvailabilityService {
                                                 LocalTime startTime,
                                                 LocalTime endTime,
                                                 AvailabilityStatus status) {
-        AvailabilityStatus resolvedStatus = status != null ? status : AvailabilityStatus.AVAILABLE;
+        try {
+            log.debug("[SERVICE.upsertSingleDate] Called for doctor: {}, date: {}", doctor.getId(), date);
+            
+            AvailabilityStatus resolvedStatus = status != null ? status : AvailabilityStatus.AVAILABLE;
+            log.debug("[SERVICE.upsertSingleDate] Resolved status: {}", resolvedStatus);
 
-        DoctorAvailability saved = availabilityRepository
-                .findByDoctor_IdAndAvailableDate(doctor.getId(), date)
-                .orElseGet(() -> DoctorAvailability.builder()
-                        .doctor(doctor)
-                        .availableDate(date)
-                        .build());
+            DoctorAvailability saved = availabilityRepository
+                    .findByDoctor_IdAndAvailableDate(doctor.getId(), date)
+                    .orElseGet(() -> {
+                        log.debug("[SERVICE.upsertSingleDate] No existing availability, creating new entity");
+                        return DoctorAvailability.builder()
+                                .doctor(doctor)
+                                .availableDate(date)
+                                .build();
+                    });
 
-        saved.setDoctor(doctor);
-        saved.setAvailableDate(date);
-        saved.setStartTime(startTime);
-        saved.setEndTime(endTime);
-        saved.setStatus(resolvedStatus);
+            log.debug("[SERVICE.upsertSingleDate] Setting entity fields - id: {}, isNew: {}", 
+                    saved.getId(), saved.getId() == null);
 
-        saved = availabilityRepository.saveAndFlush(saved);
-        syncThirtyMinuteSlots(saved);
-        return saved;
+            saved.setDoctor(doctor);
+            saved.setAvailableDate(date);
+            saved.setStartTime(startTime);
+            saved.setEndTime(endTime);
+            saved.setStatus(resolvedStatus);
+
+            log.debug("[SERVICE.upsertSingleDate] Entity prepared - id: {}, date: {}, start: {}, end: {}, status: {}",
+                    saved.getId(), saved.getAvailableDate(), saved.getStartTime(), saved.getEndTime(), saved.getStatus());
+
+            saved = availabilityRepository.saveAndFlush(saved);
+            log.debug("[SERVICE.upsertSingleDate] Entity persisted - id: {}", saved.getId());
+
+            syncThirtyMinuteSlots(saved);
+            log.debug("[SERVICE.upsertSingleDate] Slot sync completed for availability id: {}", saved.getId());
+            
+            return saved;
+        } catch (Exception e) {
+            log.error("[SERVICE.upsertSingleDate] Exception occurred", e);
+            throw e;
+        }
     }
 
     private void syncThirtyMinuteSlots(DoctorAvailability availability) {

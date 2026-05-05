@@ -1,38 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.MedBuddy.Card.Surface"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/surface"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:layout_marginBottom="@dimen/space_1_5">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/space_2">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <TextView
-                android:id="@+id/tvTitle"
+                android:id="@+id/tvAvatar"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_avatar_circle"
+                android:gravity="center"
+                android:text="SJ"
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
+
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/space_1"
                 android:layout_weight="1"
-                android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+                <TextView
+                    android:id="@+id/tvSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.Caption" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/tvStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
+                android:layout_marginStart="@dimen/space_1"
+                android:background="@drawable/bg_status_badge"
+                android:paddingHorizontal="@dimen/space_1"
+                android:paddingVertical="@dimen/space_0_5"
                 android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -41,36 +72,45 @@
             android:id="@+id/tvDateTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/space_1"
             android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
 
         <TextView
             android:id="@+id/tvNotes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/space_0_5"
             android:textAppearance="@style/TextAppearance.MedBuddy.Caption" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="@dimen/space_1_5"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPrimaryAction"
-                style="@style/Widget.MedBuddy.Button.Secondary"
+                style="@style/Widget.MedBuddy.Button.Primary"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:layout_weight="1"
                 android:visibility="gone" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSecondaryAction"
-                style="@style/Widget.MedBuddy.Button.Destructive"
+                style="@style/Widget.MedBuddy.Button.Secondary"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="@dimen/space_1"
+                android:layout_weight="1"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTertiaryAction"
+                style="@style/Widget.MedBuddy.Button.Secondary"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="@dimen/space_1"
                 android:layout_weight="1"
                 android:visibility="gone" />
         </LinearLayout>

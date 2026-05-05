@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -46,6 +47,7 @@ public class AppointmentController {
      * POST /api/appointments
      */
     @PostMapping
+    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<AppointmentResponse> book(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody AppointmentRequest request) {
@@ -61,6 +63,7 @@ public class AppointmentController {
      * GET /api/appointments/my
      */
     @GetMapping("/my")
+    @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
     public ResponseEntity<List<AppointmentResponse>> getMyAppointments(
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -74,6 +77,7 @@ public class AppointmentController {
      * GET /api/appointments
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
     public ResponseEntity<List<AppointmentResponse>> getAppointments(
             @AuthenticationPrincipal UserDetails userDetails) {
         return getMyAppointments(userDetails);
@@ -84,6 +88,7 @@ public class AppointmentController {
      * GET /api/appointments/{id}
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
     public ResponseEntity<AppointmentResponse> getById(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
@@ -97,6 +102,7 @@ public class AppointmentController {
      * PATCH /api/appointments/{id}/status
      */
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
     public ResponseEntity<AppointmentResponse> updateStatus(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id,

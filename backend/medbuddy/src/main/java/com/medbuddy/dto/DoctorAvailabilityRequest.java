@@ -14,16 +14,10 @@ public class DoctorAvailabilityRequest {
     @NotNull(message = "Available date is required")
     private LocalDate availableDate;
 
-    /**
-     * Required for AVAILABLE entries.
-     * Optional for UNAVAILABLE entries (service applies defaults).
-     */
+    @NotNull(message = "Start time is required")
     private LocalTime startTime;
 
-    /**
-     * Required for AVAILABLE entries.
-     * Optional for UNAVAILABLE entries (service applies defaults).
-     */
+    @NotNull(message = "End time is required")
     private LocalTime endTime;
 
     /** Optional — defaults to AVAILABLE if not supplied. */

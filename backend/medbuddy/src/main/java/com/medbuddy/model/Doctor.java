@@ -57,10 +57,10 @@ public class Doctor {
     @Builder.Default
     private Set<Specialization> specializations = new HashSet<>();
 
+    // Backward-compatible denormalized copy for legacy DB viewers/reports.
     @Column(name = "specializations", length = 500)
     private String specializationsSummary;
 
-    /** The auth user linked to this doctor profile (one-to-one). */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;

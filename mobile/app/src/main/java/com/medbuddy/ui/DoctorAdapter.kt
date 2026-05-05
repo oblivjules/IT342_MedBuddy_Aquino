@@ -2,20 +2,19 @@ package com.medbuddy.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.DiffUtil
 import com.medbuddy.databinding.ItemDoctorBinding
 import com.medbuddy.dto.DoctorDto
+import java.util.Locale
 
 class DoctorAdapter(
     private val onBookClick: (DoctorDto) -> Unit
-) : RecyclerView.Adapter<DoctorAdapter.DoctorViewHolder>() {
-
-    private val doctors = mutableListOf<DoctorDto>()
+) : ListAdapter<DoctorDto, DoctorAdapter.DoctorViewHolder>(DiffCallback()) {
 
     fun submitList(items: List<DoctorDto>) {
-        doctors.clear()
-        doctors.addAll(items)
-        notifyDataSetChanged()
+        super.submitList(items)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoctorViewHolder {
@@ -24,10 +23,10 @@ class DoctorAdapter(
     }
 
     override fun onBindViewHolder(holder: DoctorViewHolder, position: Int) {
-        holder.bind(doctors[position])
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = doctors.size
+    override fun getItemCount(): Int = super.getItemCount()
 
     inner class DoctorViewHolder(
         private val binding: ItemDoctorBinding
@@ -41,8 +40,23 @@ class DoctorAdapter(
                 else -> "General Practice"
             }
             binding.tvSpecialization.text = specializationText
-            binding.tvEmail.text = item.email
+            val initials = listOf(item.firstName, item.lastName)
+                .mapNotNull { it.firstOrNull()?.toString() }
+                .joinToString("")
+                .uppercase(Locale.getDefault())
+            binding.tvAvatar.text = initials.ifBlank { "DR" }
+            binding.tvEmail.text = "★ 4.8 (127)"
             binding.btnBook.setOnClickListener { onBookClick(item) }
+        }
+    }
+
+    private class DiffCallback : DiffUtil.ItemCallback<DoctorDto>() {
+        override fun areItemsTheSame(oldItem: DoctorDto, newItem: DoctorDto): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: DoctorDto, newItem: DoctorDto): Boolean {
+            return oldItem == newItem
         }
     }
 }

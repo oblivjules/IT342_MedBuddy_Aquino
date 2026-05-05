@@ -1,6 +1,5 @@
 package com.medbuddy.model;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 
 import jakarta.persistence.Column;
@@ -38,7 +37,7 @@ public class DoctorAvailability {
     private Long id;
 
     @Column(name = "available_date", nullable = false)
-    private LocalDate availableDate;
+    private java.time.LocalDate availableDate;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "doctor_id", nullable = false)
