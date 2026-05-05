@@ -1,7 +1,7 @@
 import axiosInstance from './axiosInstance'
 
 export async function getDoctorAvailability(doctorId) {
-  const { data } = await axiosInstance.get(`/api/availability/doctor/${doctorId}`)
+  const { data } = await axiosInstance.get(`/api/doctors/${doctorId}/availability`)
   return data
 }
 

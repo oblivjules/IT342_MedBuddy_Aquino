@@ -87,11 +87,10 @@ function normalizeExceptions(data) {
 
 export default function DoctorSchedule() {
   const { user } = useAuth()
-  const { success, error: showError, showToast } = useToast()
+  const { success } = useToast()
   const [schedule, setSchedule] = useState(initialSchedule)
   const [exceptions, setExceptions] = useState([])
   const [savedExceptionDates, setSavedExceptionDates] = useState(new Set())
-  const [savedExceptionsByDate, setSavedExceptionsByDate] = useState({})
   const [newException, setNewException] = useState({
     date: '',
     status: 'UNAVAILABLE',
@@ -99,9 +98,20 @@ export default function DoctorSchedule() {
     endTime: '17:00',
   })
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+  // Template save state
+  const [templateSaving, setTemplateSaving] = useState(false)
+  const [templateError, setTemplateError] = useState('')
+  const [templateSuccess, setTemplateSuccess] = useState('')
+
+  // Exception save state
+  const [exceptionSaving, setExceptionSaving] = useState(false)
+  const [exceptionError, setExceptionError] = useState('')
+  const [exceptionSuccess, setExceptionSuccess] = useState('')
+
+  // General form validation error
+  const [formError, setFormError] = useState('')
 
   const handleBeforeUnload = useCallback((event) => {
     if (hasUnsavedChanges) {
@@ -162,12 +172,12 @@ export default function DoctorSchedule() {
   async function loadScheduleData() {
     if (!user?.profileId) {
       setLoading(false)
-      setError('Doctor profile not available.')
+      setFormError('Doctor profile not available.')
       return
     }
 
     setLoading(true)
-    setError('')
+    setFormError('')
 
     try {
       const [templateData, availabilityData] = await Promise.all([
@@ -181,13 +191,10 @@ export default function DoctorSchedule() {
       setSchedule(normalizedTemplates)
       setExceptions(normalizedExceptions)
       setSavedExceptionDates(new Set(normalizedExceptions.map((item) => item.date)))
-      setSavedExceptionsByDate(
-        Object.fromEntries(normalizedExceptions.map((item) => [item.date, item]))
-      )
 
       setHasUnsavedChanges(false)
     } catch {
-      setError('Failed to load schedule settings.')
+      setFormError('Failed to load schedule settings.')
     } finally {
       setLoading(false)
     }
@@ -236,21 +243,21 @@ export default function DoctorSchedule() {
 
   function addException() {
     if (!newException.date) {
-      setError('Please choose a date for the exception.')
+      setExceptionError('Please choose a date for the exception.')
       return
     }
 
     if (newException.date < todayIso()) {
-      setError('You cannot add an exception in the past.')
+      setExceptionError('You cannot add an exception in the past.')
       return
     }
 
     if (newException.status === 'AVAILABLE' && newException.endTime <= newException.startTime) {
-      setError('Exception end time must be after start time.')
+      setExceptionError('Exception end time must be after start time.')
       return
     }
 
-    setError('')
+    setExceptionError('')
     setHasUnsavedChanges(true)
 
     upsertExceptionToList({
@@ -273,18 +280,18 @@ export default function DoctorSchedule() {
     setExceptions((prev) => prev.filter((item) => item.date !== date))
   }
 
-  async function handleSave() {
-    setError('')
+  async function handleSaveWeeklyTemplate() {
+    setTemplateError('')
+    setTemplateSuccess('')
 
     for (const day of schedule) {
       if (day.enabled && day.endTime <= day.startTime) {
-        setError(`End time must be after start time for ${day.day}.`)
+        setTemplateError(`End time must be after start time for ${day.day}.`)
         return
       }
     }
 
-    setSaving(true)
-    showToast({ message: 'Saving schedule changes...', type: 'info', durationMs: 1800 })
+    setTemplateSaving(true)
 
     try {
       const activeTemplateDays = schedule
@@ -297,24 +304,42 @@ export default function DoctorSchedule() {
 
       await saveMyScheduleTemplate(activeTemplateDays)
 
+      setTemplateSuccess('Weekly template saved successfully. Slot regeneration is running in the background.')
+      setHasUnsavedChanges(false)
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setTemplateSuccess(''), 5000)
+    } catch (err) {
+      setTemplateError(
+        err.response?.data?.detail || err.response?.data?.message || 'Failed to save weekly template.'
+      )
+    } finally {
+      setTemplateSaving(false)
+    }
+  }
+
+  async function handleSaveException() {
+    setExceptionError('')
+    setExceptionSuccess('')
+
+    if (exceptions.length === 0) {
+      setExceptionError('No exceptions to save.')
+      return
+    }
+
+    setExceptionSaving(true)
+
+    try {
       const currentDates = new Set(exceptions.map((item) => item.date))
       const removedDates = [...savedExceptionDates].filter((date) => !currentDates.has(date))
-      const changedOrNewExceptions = exceptions.filter((exception) => {
-        const previous = savedExceptionsByDate[exception.date]
-        if (!previous) return true
 
-        return (
-          previous.status !== exception.status ||
-          previous.startTime !== exception.startTime ||
-          previous.endTime !== exception.endTime
-        )
-      })
-
+      // Delete removed exceptions
       for (const removedDate of removedDates) {
         await deleteMyScheduleException(removedDate)
       }
 
-      for (const exception of changedOrNewExceptions) {
+      // Save all current exceptions
+      for (const exception of exceptions) {
         const isAvailable = exception.status === 'AVAILABLE'
         await saveMyScheduleException({
           availableDate: exception.date,
@@ -324,15 +349,23 @@ export default function DoctorSchedule() {
         })
       }
 
-      success('Saved. Slot regeneration is running in the background.')
+      // Reload to get fresh data
+      const availabilityData = await getDoctorAvailability(user.profileId)
+      const normalizedExceptions = normalizeExceptions(availabilityData)
+      setExceptions(normalizedExceptions)
+      setSavedExceptionDates(new Set(normalizedExceptions.map((item) => item.date)))
+
+      setExceptionSuccess('Exceptions saved successfully.')
       setHasUnsavedChanges(false)
-      loadScheduleData()
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setExceptionSuccess(''), 5000)
     } catch (err) {
-      const message = err.response?.data?.detail || err.response?.data?.message || 'Failed to save schedule settings.'
-      setError(message)
-      showError(message)
+      setExceptionError(
+        err.response?.data?.detail || err.response?.data?.message || 'Failed to save exceptions.'
+      )
     } finally {
-      setSaving(false)
+      setExceptionSaving(false)
     }
   }
 
@@ -346,14 +379,6 @@ export default function DoctorSchedule() {
               Set your weekly availability and time slots
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving || loading}
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90 disabled:opacity-60"
-          >
-            <Save className="mr-2 h-4 w-4" /> {saving ? 'Saving...' : 'Save Changes'}
-          </button>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
@@ -380,7 +405,11 @@ export default function DoctorSchedule() {
           </div>
         </div>
 
-        {error && <p className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+        {formError && (
+          <p className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+            {formError}
+          </p>
+        )}
 
         <div className="rounded-2xl border border-border bg-card shadow-card">
           <div className="border-b border-border p-5">
@@ -437,6 +466,26 @@ export default function DoctorSchedule() {
               ))}
             </div>
           )}
+          <div className="border-t border-border bg-muted/30 px-5 py-4 flex flex-col gap-3">
+            {templateError && (
+              <p className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                {templateError}
+              </p>
+            )}
+            {templateSuccess && (
+              <p className="rounded-md border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-600">
+                {templateSuccess}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={handleSaveWeeklyTemplate}
+              disabled={templateSaving || loading}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90 disabled:opacity-60"
+            >
+              <Save className="mr-2 h-4 w-4" /> {templateSaving ? 'Saving...' : 'Save Template'}
+            </button>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-border bg-card shadow-card">
@@ -506,6 +555,26 @@ export default function DoctorSchedule() {
               ))}
               {exceptions.length === 0 && <p className="text-sm text-muted-foreground">No exceptions added</p>}
             </div>
+          </div>
+          <div className="border-t border-border bg-muted/30 px-5 py-4 flex flex-col gap-3">
+            {exceptionError && (
+              <p className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                {exceptionError}
+              </p>
+            )}
+            {exceptionSuccess && (
+              <p className="rounded-md border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-600">
+                {exceptionSuccess}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={handleSaveException}
+              disabled={exceptionSaving || loading || exceptions.length === 0}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90 disabled:opacity-60"
+            >
+              <Save className="mr-2 h-4 w-4" /> {exceptionSaving ? 'Saving...' : 'Save Exceptions'}
+            </button>
           </div>
         </div>
       </div>

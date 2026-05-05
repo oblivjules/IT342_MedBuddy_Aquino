@@ -18,8 +18,5 @@ public class DoctorDto {
     private String phoneNumber;
     private java.util.List<String> specializations;
     private String profileImageUrl;
-
-    // Backward-compatible field for older clients.
-    private String specialization;
     private String email;       // from User
 }

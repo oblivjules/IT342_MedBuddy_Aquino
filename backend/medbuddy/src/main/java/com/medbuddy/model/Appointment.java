@@ -71,6 +71,9 @@ public class Appointment {
     @Column(length = 500)
     private String notes;
 
+    @Column(length = 500)
+    private String rejectionReason;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

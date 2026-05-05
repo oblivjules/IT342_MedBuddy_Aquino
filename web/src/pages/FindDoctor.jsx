@@ -1,25 +1,58 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Star } from 'lucide-react';
 import { getDoctors } from '../api/userApi';
+import { getDoctorAverageRating } from '../api/ratingApi';
 
 export default function FindDoctor() {
     const [doctors, setDoctors] = useState([]);
+    const [ratingsByDoctorId, setRatingsByDoctorId] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
-        getDoctors()
-            .then(data => setDoctors(Array.isArray(data) ? data : []))
-            .catch(() => setError('Failed to load doctors.'))
-            .finally(() => setLoading(false));
+        async function loadDoctors() {
+            try {
+                const data = await getDoctors();
+                const safeDoctors = Array.isArray(data) ? data : [];
+                setDoctors(safeDoctors);
+
+                const ratingEntries = await Promise.all(
+                    safeDoctors.map(async (doctor) => {
+                        try {
+                            const average = await getDoctorAverageRating(doctor.id);
+                            return [doctor.id, Number.isFinite(average) ? average : 0];
+                        } catch {
+                            return [doctor.id, 0];
+                        }
+                    })
+                );
+
+                setRatingsByDoctorId(Object.fromEntries(ratingEntries));
+            } catch {
+                setError('Failed to load doctors.');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadDoctors();
     }, []);
 
-    function formatSpecializations(doc) {
-        if (Array.isArray(doc.specializations) && doc.specializations.length > 0) {
-            return doc.specializations.join(', ')
-        }
-        return doc.specialization || ''
+    function renderStars(average) {
+        const rounded = Math.round(Number(average || 0));
+
+        return (
+            <span className="flex items-center gap-0.5 text-accent" aria-hidden="true">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                        key={star}
+                        className={`h-4 w-4 ${star <= rounded ? 'fill-current' : 'text-muted-foreground/30'}`}
+                    />
+                ))}
+            </span>
+        );
     }
 
     return (
@@ -50,9 +83,15 @@ export default function FindDoctor() {
                                 <p className="truncate font-semibold text-sm text-foreground">
                                     Dr. {[doc.firstName, doc.lastName].filter(Boolean).join(' ') || doc.email}
                                 </p>
-                                {formatSpecializations(doc) && (
-                                    <p className="text-xs text-muted-foreground font-body mt-0.5">{formatSpecializations(doc)}</p>
+                                {doc.specialization && (
+                                    <p className="text-xs text-muted-foreground font-body mt-0.5">{doc.specialization}</p>
                                 )}
+                                <div className="mt-2 flex items-center gap-2">
+                                    {renderStars(ratingsByDoctorId[doc.id] ?? 0)}
+                                    <span className="text-xs font-semibold text-muted-foreground">
+                                        {(ratingsByDoctorId[doc.id] ?? 0).toFixed(1)} average
+                                    </span>
+                                </div>
                                 <span className="mt-1 inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">Doctor</span>
                             </div>
 

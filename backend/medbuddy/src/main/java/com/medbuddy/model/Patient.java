@@ -39,7 +39,7 @@ public class Patient {
     @Column(nullable = false, length = 100)
     private String lastName;
 
-    @Column(length = 20)
+    @Column(nullable = false, length = 20)
     private String phoneNumber;
 
     /** The auth user linked to this patient profile (one-to-one). */
@@ -54,4 +54,9 @@ public class Patient {
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = false)
     @Builder.Default
     private List<RatingAndFeedback> ratings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = false)
+    @Builder.Default
+    private List<MedicalRecordFile> medicalRecordFiles = new ArrayList<>();
+
 }

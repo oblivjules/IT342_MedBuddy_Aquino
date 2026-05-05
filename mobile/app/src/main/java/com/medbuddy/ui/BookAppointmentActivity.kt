@@ -19,6 +19,7 @@ class BookAppointmentActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBookAppointmentBinding
     private var doctorId: Long = -1L
+    private val slotIdByTime = mutableMapOf<String, Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,12 +57,17 @@ class BookAppointmentActivity : AppCompatActivity() {
             return
         }
 
-        val dateTime = "${date}T${time}:00"
+        val slotId = slotIdByTime[time]
+        if (slotId == null || slotId <= 0) {
+            showError("Please load slots and pick an available time")
+            return
+        }
+
         setLoading(true)
         lifecycleScope.launch {
             try {
                 RetrofitClient.getInstance(applicationContext).apiService.bookAppointment(
-                    AppointmentRequest(doctorId, dateTime, notes)
+                    AppointmentRequest(doctorId, slotId, notes)
                 )
                 AlertDialog.Builder(this@BookAppointmentActivity)
                     .setMessage(getString(R.string.success_booked))
@@ -134,11 +140,21 @@ class BookAppointmentActivity : AppCompatActivity() {
             try {
                 val slots = RetrofitClient.getInstance(applicationContext)
                     .apiService
-                    .getDoctorAvailabilityByDate(targetDoctorId, date)
+                    .getDoctorAppointmentSlotsByDate(targetDoctorId, date)
+
+                slotIdByTime.clear()
+                slots.forEach { slot ->
+                    val value = slot.slotStartTime?.take(5).orEmpty()
+                    if (value.isNotBlank()) {
+                        slotIdByTime[value] = slot.id
+                    }
+                }
                 binding.tvSlots.text = if (slots.isEmpty()) {
                     getString(R.string.label_no_data)
                 } else {
-                    slots.joinToString("\n") { "${it.startTime} - ${it.endTime} (${it.status})" }
+                    slots.joinToString("\n") {
+                        "${it.slotStartTime?.take(5)} - ${it.slotEndTime?.take(5)} (${it.status})"
+                    }
                 }
             } catch (e: Throwable) {
                 binding.tvSlots.text = ApiErrorMapper.toUserMessage(this@BookAppointmentActivity, e)
