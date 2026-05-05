@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:padding="@dimen/space_2">
+
+    <!-- Logo -->
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:adjustViewBounds="true"
+        android:maxHeight="80dp"
+        android:src="@drawable/medbuddy_logo_removebg_preview" />
+
+    <!-- ✅ HERO CARD (same as patient) -->
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.MedBuddy.Card.Surface"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_2"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="@color/primary"
+        app:cardElevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/space_2">
+
+            <TextView
+                android:id="@+id/tvWelcome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Welcome, Dr. Chen 👋"
+                android:textAppearance="@style/TextAppearance.MedBuddy.H1"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Today is April 12"
+                android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                android:textColor="#CCffffff" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- CONTENT -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/space_1_5">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ✅ TODAY OVERVIEW CARD -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.MedBuddy.Card.Surface"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_1_5">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/space_2">
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:text="Today's Overview"
+                        android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:id="@+id/tvOverview"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:text="Appointments: 0 | Completed: 0"
+                        android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:id="@+id/tvNextPatient"
+                        android:layout_marginTop="@dimen/space_0_5"
+                        android:text="Next Patient: -"
+                        android:textAppearance="@style/TextAppearance.MedBuddy.Caption" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnStartConsultation"
+                        style="@style/Widget.MedBuddy.Button.Primary"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:text="Start Consultation" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ✅ UPCOMING TODAY (like patient appointment card) -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.MedBuddy.Card.Surface"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_1_5">
+
+                <LinearLayout
+                    android:padding="@dimen/space_2"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:text="Upcoming Today"
+                        android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+                    <TextView
+                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:id="@+id/tvUpcomingList"
+                        android:layout_marginTop="@dimen/space_1"
+                        android:text="No upcoming appointments"
+                        android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ✅ QUICK ACTIONS (match patient style cards) -->
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:text="Quick Actions"
+                android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+            <LinearLayout
+                android:layout_marginTop="@dimen/space_1"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- View Schedule -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.MedBuddy.Card.Surface"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:padding="@dimen/space_2"
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_avatar_circle"
+                            android:gravity="center"
+                            android:text="📅"
+                            android:textColor="@android:color/white" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnViewSchedule"
+                            style="@style/Widget.MedBuddy.Button.Secondary"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:layout_marginTop="@dimen/space_1"
+                            android:text="View Schedule" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Add Availability -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/Widget.MedBuddy.Card.Surface"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_1"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:padding="@dimen/space_2"
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_avatar_circle"
+                            android:gravity="center"
+                            android:text="+"
+                            android:textColor="@android:color/white" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddAvailability"
+                            style="@style/Widget.MedBuddy.Button.Secondary"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:layout_marginTop="@dimen/space_1"
+                            android:text="Add Availability" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

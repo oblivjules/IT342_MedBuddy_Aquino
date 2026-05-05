@@ -25,12 +25,6 @@ class DoctorDashboardActivity : AppCompatActivity() {
                 putExtra("doctorName", "My Availability")
             })
         }
-
-        binding.btnLogout.setOnClickListener {
-            TokenManager(applicationContext).clearSession()
-            startActivity(Intent(this, LoginActivity::class.java))
-            finishAffinity()
-        }
     }
 }
 

@@ -103,6 +103,25 @@
     <string name="status_completed">COMPLETED</string>
 
     <string name="label_no_data">No data yet.</string>
+    <string name="schedule_filter_all">All</string>
+    <string name="schedule_filter_today">Today</string>
+    <string name="schedule_filter_upcoming">Upcoming</string>
+    <string name="schedule_filter_past">Past</string>
+    <string name="schedule_empty_state">No appointments</string>
+    <string name="appointments_empty_state">No appointments found</string>
+    <string name="doctors_empty_state">No doctors found</string>
+    <string name="doctor_appointments_empty_state">No appointments to manage</string>
+    <string name="doctor_home_title">Doctor Home</string>
+    <string name="doctor_home_welcome">Welcome, Doctor!</string>
+    <string name="doctor_profile_title">Doctor Profile</string>
+    <string name="patient_profile_title">Patient Profile</string>
+    <string name="profile_loading">Loading profile...</string>
+    <string name="patient_home_welcome">Welcome to MedBuddy</string>
+    <string name="patient_home_upcoming">Upcoming Appointments</string>
+    <string name="patient_home_no_upcoming">You have no upcoming appointments</string>
+    <string name="patient_home_quick_actions">Quick Actions</string>
+    <string name="book_appointment_title">Book Appointment</string>
+    <string name="phone_country_code">+63</string>
     <string name="patient">Patient</string>
     <string name="doctor">Doctor</string>
     <string name="specializations">Specializations</string>

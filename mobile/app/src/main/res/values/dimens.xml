@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="space_0_5">4dp</dimen>
     <dimen name="space_1">8dp</dimen>
+    <dimen name="space_1_5">12dp</dimen>
     <dimen name="space_2">16dp</dimen>
     <dimen name="space_3">24dp</dimen>
     <dimen name="space_4">32dp</dimen>
 
     <dimen name="radius_input">8dp</dimen>
     <dimen name="radius_button">8dp</dimen>
-    <dimen name="radius_card">12dp</dimen>
-    <dimen name="radius_chip">6dp</dimen>
+    <dimen name="radius_card">8dp</dimen>
+    <dimen name="radius_chip">10dp</dimen>
+
+    <dimen name="elevation_card">2dp</dimen>
+    <dimen name="elevation_card_pressed">8dp</dimen>
 
     <dimen name="touch_target_min">48dp</dimen>
 </resources>
