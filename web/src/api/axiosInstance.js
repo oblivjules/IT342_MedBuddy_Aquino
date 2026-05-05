@@ -34,10 +34,23 @@ const axiosInstance = axios.create({
   },
 })
 
+
+// Simple global loading event emitter for UI overlay
+let __pendingRequests = 0
+function emitLoading(active) {
+  try {
+    window.dispatchEvent(new CustomEvent('medbuddy:loading', { detail: { active } }))
+  } catch (e) {
+    // ignore in non-browser environments
+  }
+}
+
 // ── Request Interceptor ─────────────────────────────────────────
 // Attaches JWT token ONLY when appropriate
 axiosInstance.interceptors.request.use(
   (config) => {
+    __pendingRequests += 1
+    emitLoading(true)
     const token = localStorage.getItem('medbuddy_token')
 
     // Keep default timeout, but allow callers to request longer/shorter durations per call.
@@ -84,6 +97,8 @@ axiosInstance.interceptors.request.use(
 // Handles 401 globally (except auth endpoints)
 axiosInstance.interceptors.response.use(
   (response) => {
+    __pendingRequests = Math.max(0, __pendingRequests - 1)
+    if (__pendingRequests === 0) emitLoading(false)
     const method = String(response.config?.method || 'get').toLowerCase()
     if (method === 'get' && shouldUseGetCache(response.config)) {
       const cacheKey = buildCacheKey(response.config)
@@ -92,6 +107,8 @@ axiosInstance.interceptors.response.use(
     return response
   },
   (error) => {
+    __pendingRequests = Math.max(0, __pendingRequests - 1)
+    if (__pendingRequests === 0) emitLoading(false)
     if (error.code === 'ECONNABORTED') {
       const timeoutMs = error.config?.timeout || DEFAULT_API_WAIT_MS
       const seconds = Math.max(1, Math.round(timeoutMs / 1000))

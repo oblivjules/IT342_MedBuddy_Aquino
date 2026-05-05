@@ -1,6 +1,7 @@
 package com.medbuddy.dto;
 
 import com.medbuddy.model.Role;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

@@ -15,6 +15,7 @@ import { createContext, useCallback, useEffect, useMemo, useState } from 'react'
  *     user: object | null,
  *     token: string | null,
  *     login: (token: string, user: object) => void,
+ *     updateUser: (nextUser: object) => void,
  *     logout: () => void,
  *     isAuthenticated: boolean,
  *   }
@@ -62,6 +63,10 @@ export function AuthProvider({ children }) {
     setUser(newUser)
   }, [])
 
+  const updateUser = useCallback((nextUser) => {
+    setUser(nextUser)
+  }, [])
+
   /** Clear session and redirect to /login */
   const logout = useCallback(() => {
     setToken(null)
@@ -73,10 +78,11 @@ export function AuthProvider({ children }) {
       user,
       token,
       login,
+      updateUser,
       logout,
       isAuthenticated: Boolean(token),
     }),
-    [user, token, login, logout],
+    [user, token, login, updateUser, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

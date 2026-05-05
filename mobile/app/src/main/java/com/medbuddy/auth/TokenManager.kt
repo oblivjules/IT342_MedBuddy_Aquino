@@ -26,10 +26,17 @@ class TokenManager(context: Context) {
     }
 
     fun saveToken(token: String) {
-        prefs.edit().putString(KEY_TOKEN, token).apply()
+        prefs.edit()
+            .putString(KEY_TOKEN, token)
+            .putString(KEY_TOKEN_LEGACY, token)
+            .apply()
     }
 
-    fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
+    fun getToken(): String? {
+        val current = prefs.getString(KEY_TOKEN, null)
+        if (!current.isNullOrBlank()) return current
+        return prefs.getString(KEY_TOKEN_LEGACY, null)
+    }
 
     fun saveUserJson(userJson: String) {
         prefs.edit().putString(KEY_USER_JSON, userJson).apply()
@@ -46,6 +53,7 @@ class TokenManager(context: Context) {
     companion object {
         private const val PREF_NAME = "medbuddy_secure_prefs"
         private const val KEY_TOKEN = "token"
+        private const val KEY_TOKEN_LEGACY = "jwt_token"
         private const val KEY_USER_JSON = "user_json"
     }
 }

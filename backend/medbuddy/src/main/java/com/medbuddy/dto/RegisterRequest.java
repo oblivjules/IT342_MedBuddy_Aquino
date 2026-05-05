@@ -3,11 +3,12 @@ package com.medbuddy.dto;
 import java.util.List;
 
 import com.medbuddy.model.Role;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -25,7 +26,6 @@ public class RegisterRequest {
     @NotNull(message = "Role is required (PATIENT or DOCTOR)")
     private Role role;
 
-    // ── Profile fields ────────────────────────────────────────────────
     @NotBlank(message = "First name is required")
     @Size(max = 100, message = "First name cannot exceed 100 characters")
     private String firstName;
@@ -36,18 +36,11 @@ public class RegisterRequest {
 
     @Size(max = 20, message = "Phone number cannot exceed 20 characters")
     @Pattern(
-            regexp = "^\\+?[0-9]{7,15}$",
-            message = "Phone number must contain 7 to 15 digits and may start with +")
+            regexp = "^\\+63\\d{10}$",
+            message = "Phone number must start with +63 and contain exactly 10 digits")
     private String phoneNumber;
 
-    /** Legacy single specialization text. */
-    @Size(max = 1000, message = "Specialization cannot exceed 1000 characters")
-    private String specialization;
-
-    /** Legacy list of specialization names from older web clients. */
-    private List<String> specializations;
-
-    /** Preferred normalized IDs for doctor_specializations join table. */
+    /** Required when role == DOCTOR. */
     private List<@NotNull(message = "Specialization ID is required")
             @Positive(message = "Specialization ID must be greater than 0") Long> specializationIds;
 }

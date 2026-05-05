@@ -27,10 +27,6 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private String phoneNumber;
-
     /** Only populated when role == DOCTOR. */
     private java.util.List<String> specializations;
-
-    /** Backward-compatible field for older clients. */
-    private String specialization;
 }

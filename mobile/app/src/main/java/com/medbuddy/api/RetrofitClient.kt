@@ -2,6 +2,7 @@ package com.medbuddy.api
 
 import android.content.Context
 import com.google.gson.GsonBuilder
+import com.medbuddy.BuildConfig
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.constants.AppConstants
 import java.util.concurrent.TimeUnit
@@ -24,8 +25,12 @@ class RetrofitClient private constructor(context: Context) {
             "/api/specializations"
         )
 
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.HEADERS
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
         }
 
         val client = OkHttpClient.Builder()
@@ -43,15 +48,23 @@ class RetrofitClient private constructor(context: Context) {
                         builder.addHeader("Authorization", "Bearer $token")
                     }
                 }
-                chain.proceed(builder.build())
+
+                val response = chain.proceed(builder.build())
+                if (response.code == 401 && !isPublic) {
+                    tokenManager.clearSession()
+                    context.sendBroadcast(android.content.Intent(AppConstants.Auth.ACTION_SESSION_EXPIRED).apply {
+                        setPackage(context.packageName)
+                    })
+                }
+                response
             }
-            .addInterceptor(logging)
+            .addInterceptor(loggingInterceptor)
             .build()
 
         val gson = GsonBuilder().create()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(AppConstants.apiBaseUrl())
+            .baseUrl(BuildConfig.BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
