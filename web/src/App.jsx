@@ -14,26 +14,32 @@ import PatientDoctorProfile from './pages/patient/DoctorProfile'
 import PatientAppointments from './pages/patient/Appointments'
 import PatientMedicalRecords from './pages/patient/MedicalRecords'
 import PatientBilling from './pages/patient/Billing'
+import PaymentSuccess from './pages/PaymentSuccess'
+import PaymentCancel from './pages/PaymentCancel'
+import PaymentFailed from './pages/PaymentFailed'
 import PatientFeedback from './pages/patient/Feedback'
 import PatientSettings from './pages/patient/Settings'
 import DoctorAppointments from './pages/doctor/Appointments'
+import DoctorRatingsFeedback from './pages/doctor/RatingsFeedback'
 import DoctorSchedule from './pages/doctor/Schedule'
 import DoctorPatientRecords from './pages/doctor/PatientRecords'
 import DoctorSettings from './pages/doctor/Settings'
 import LandingPage from './pages/LandingPage'
 import OAuthCallback from './pages/OAuthCallback'
+import LoadingOverlay from './components/LoadingOverlay'
 
 function App() {
-  // Ping the backend on load so Render's free-tier instance wakes up
-  // before the user makes their first real request.
   useEffect(() => {
-    axiosInstance.get('/api/auth/health').catch(() => { })
+    if (import.meta.env.PROD) {
+      axiosInstance.get('/api/auth/health').catch(() => { })
+    }
   }, [])
 
   return (
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
+          <LoadingOverlay />
           <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -133,6 +139,14 @@ function App() {
             }
           />
           <Route
+            path="/doctor/ratings"
+            element={
+              <ProtectedRoute allowedRoles={['DOCTOR']}>
+                <DoctorRatingsFeedback />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/doctor/schedule"
             element={
               <ProtectedRoute allowedRoles={['DOCTOR']}>
@@ -164,6 +178,9 @@ function App() {
           <Route path="/oauth-callback" element={<OAuthCallback />} />
 
           {/* Catch-all */}
+          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/cancel" element={<PaymentCancel />} />
+          <Route path="/payment/failed" element={<PaymentFailed />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </ToastProvider>

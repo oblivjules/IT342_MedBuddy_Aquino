@@ -111,13 +111,8 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        val destination = if (resolvedRole == AppConstants.Role.DOCTOR) {
-            DoctorDashboardActivity::class.java
-        } else {
-            PatientDashboardActivity::class.java
-        }
-
-        startActivity(Intent(this, destination))
+        // Navigate to MainActivity which handles fragment-based navigation
+        startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
 

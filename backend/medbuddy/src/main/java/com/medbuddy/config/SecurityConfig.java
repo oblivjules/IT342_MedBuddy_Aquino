@@ -74,7 +74,9 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/**",
                     "/oauth2/**",
-                    "/login/oauth2/**"
+                    "/login/oauth2/**",
+                    // PayMongo webhook must be public (no JWT)
+                    "/api/payments/webhook"
                 ).permitAll()
                 // Protected endpoints
                 .anyRequest().authenticated()
@@ -106,10 +108,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Parse comma-separated origins from env var (default: * for local dev)
+        // Parse comma-separated origins from env var (should list allowed origins, e.g. https://myapp.onrender.com)
         List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .toList();
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .toList();
+        if (origins.isEmpty()) {
+            origins = List.of("http://localhost:5173", "http://127.0.0.1:5173");
+        }
+        // Use origin patterns so localhost and deployment domains can be handled consistently.
         config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

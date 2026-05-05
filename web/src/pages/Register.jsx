@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Stethoscope, User } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
 import axiosInstance from '../api/axiosInstance'
 import { getSpecializations } from '../api/specializationApi'
 import logo from '../assets/medbuddy-logo-removebg-preview.png'
@@ -18,6 +20,7 @@ import logo from '../assets/medbuddy-logo-removebg-preview.png'
 function Register() {
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { success } = useToast()
   const [specializations, setSpecializations] = useState([])
 
   const [form, setForm] = useState({
@@ -35,22 +38,7 @@ function Register() {
 
   useEffect(() => {
     getSpecializations()
-      .then((data) => {
-        if (!Array.isArray(data)) {
-          setSpecializations([])
-          return
-        }
-
-        // Normalize backend payload to ensure IDs are numeric and stable for checkbox selection.
-        const normalized = data
-          .map((spec) => ({
-            id: Number(spec?.id),
-            name: String(spec?.name ?? '').trim(),
-          }))
-          .filter((spec) => Number.isFinite(spec.id) && spec.id > 0 && spec.name.length > 0)
-
-        setSpecializations(normalized)
-      })
+      .then((data) => setSpecializations(Array.isArray(data) ? data : []))
       .catch(() => setSpecializations([]))
   }, [])
 
@@ -68,6 +56,7 @@ function Register() {
 
   function handleSpecializationChange(e) {
     const id = Number(e.target.value)
+
     setForm((prev) => {
       const selected = prev.specializationIds.includes(id)
         ? prev.specializationIds.filter((s) => s !== id)
@@ -76,16 +65,73 @@ function Register() {
     })
   }
 
+  function getApiErrorMessage(err) {
+    const fieldErrors = err.response?.data?.errors
+
+    if (fieldErrors && typeof fieldErrors === 'object') {
+      const firstFieldMessage = Object.values(fieldErrors).find(
+        (message) => typeof message === 'string' && message.trim().length > 0,
+      )
+
+      if (firstFieldMessage) {
+        return firstFieldMessage
+      }
+    }
+
+    return (
+      err.response?.data?.detail ||
+      err.response?.data?.message ||
+      'Registration failed. Please try again.'
+    )
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
 
-    if (form.password !== form.confirmPassword) {
+    const firstName = form.firstName.trim()
+    const lastName = form.lastName.trim()
+    const email = form.email.trim().toLowerCase()
+    const password = form.password
+    const confirmPassword = form.confirmPassword
+    const phoneNumber = form.phoneNumber.trim()
+
+    if (!firstName || !lastName) {
+      setError('First name and last name are required.')
+      return
+    }
+
+    if (!email) {
+      setError('Email is required.')
+      return
+    }
+
+    // Require an email with a top-level domain (e.g., .com, .ph)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address including a domain (for example: you@example.com).')
+      return
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.')
+      return
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).+$/
+    if (!passwordRegex.test(password)) {
+      setError(
+        'Password must include an uppercase letter, a number, and a special character.',
+      )
+      return
+    }
+
+    if (password !== confirmPassword) {
       setError('Passwords do not match.')
       return
     }
 
-    if (form.phoneNumber.length !== 10) {
+    if (phoneNumber.length !== 10) {
       setError('Phone number must contain exactly 10 digits after +63.')
       return
     }
@@ -103,29 +149,25 @@ function Register() {
 
     try {
       const payload = {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        password: form.password,
+        firstName,
+        lastName,
+        email,
+        password,
         role: form.role,
-        phoneNumber: `+63${form.phoneNumber}`,
-        ...(form.role === 'DOCTOR' && { specializationIds }),
+        phoneNumber: `+63${phoneNumber}`,
       }
+
+      if (form.role === 'DOCTOR') {
+        payload.specializationIds = specializationIds
+      }
+
       const { data } = await axiosInstance.post('/api/auth/register', payload)
 
-      login(data.token, data.user)
-
-      if (data.user.role === 'DOCTOR') {
-        navigate('/doctor/dashboard', { replace: true })
-      } else {
-        navigate('/patient/dashboard', { replace: true })
-      }
+      // Do not auto-login. Redirect user to login page after successful registration.
+      success('Account created. Please sign in to continue.')
+      navigate('/login', { replace: true })
     } catch (err) {
-      setError(
-        err.response?.data?.detail ||
-        err.response?.data?.message ||
-        'Registration failed. Please try again.',
-      )
+      setError(getApiErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -142,6 +184,31 @@ function Register() {
           <img src={logo} alt="MedBuddy" className="mx-auto mb-1 h-20 w-auto" />
           <h2 className="text-2xl font-bold mt-2">Create Account</h2>
           <p className="text-sm text-muted-foreground font-body mt-1">Join MedBuddy to manage your healthcare</p>
+        </div>
+
+        <div className="flex rounded-lg border border-border bg-muted p-1">
+          <button
+            type="button"
+            onClick={() => setForm((prev) => ({ ...prev, role: 'PATIENT', specializationIds: [] }))}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors ${
+              form.role === 'PATIENT'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <User className="h-4 w-4" /> Patient
+          </button>
+          <button
+            type="button"
+            onClick={() => setForm((prev) => ({ ...prev, role: 'DOCTOR' }))}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors ${
+              form.role === 'DOCTOR'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Stethoscope className="h-4 w-4" /> Doctor
+          </button>
         </div>
 
         {error && (
@@ -201,10 +268,12 @@ function Register() {
               value={form.password}
               onChange={handleChange}
               required
-              minLength={8}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="Min. 8 characters"
+              placeholder="Enter password"
             />
+            <p className="text-[10px] text-muted-foreground leading-tight">
+              Must include 8+ characters, a capital letter, a number, and a symbol.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -242,31 +311,6 @@ function Register() {
               />
             </div>
             <p className="text-xs text-muted-foreground">Enter exactly 10 digits after +63.</p>
-          </div>
-
-          <div className="flex rounded-lg border border-border bg-muted p-1">
-            <button
-              type="button"
-              onClick={() => setForm((prev) => ({ ...prev, role: 'PATIENT', specializationIds: [] }))}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors ${
-                form.role === 'PATIENT'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <User className="h-4 w-4" /> Patient
-            </button>
-            <button
-              type="button"
-              onClick={() => setForm((prev) => ({ ...prev, role: 'DOCTOR' }))}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-colors ${
-                form.role === 'DOCTOR'
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Stethoscope className="h-4 w-4" /> Doctor
-            </button>
           </div>
 
           {form.role === 'DOCTOR' && (
