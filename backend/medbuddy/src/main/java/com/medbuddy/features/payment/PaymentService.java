@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.payment;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -11,11 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.medbuddy.dto.PaymentRequest;
-import com.medbuddy.dto.PaymentResponse;
 import com.medbuddy.features.appointment.AppointmentRepository;
-import com.medbuddy.repository.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.service.EmailService;
 import com.medbuddy.shared.model.Appointment;
 import com.medbuddy.shared.model.Payment;
 import com.medbuddy.shared.model.PaymentStatus;
@@ -72,7 +70,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public com.medbuddy.dto.PaymentInitiateResponse initiatePayment(String userEmail, com.medbuddy.dto.PaymentInitiateRequest request) {
+    public PaymentInitiateResponse initiatePayment(String userEmail, PaymentInitiateRequest request) {
         User user = findUserByEmail(userEmail);
         if (user.getRole() != Role.PATIENT) {
             throw new org.springframework.security.access.AccessDeniedException("Only patients can initiate payments");
@@ -156,7 +154,7 @@ public class PaymentService {
         payment.setPaymentStatus(PaymentStatus.PENDING);
         paymentRepository.save(payment);
 
-        return new com.medbuddy.dto.PaymentInitiateResponse(checkoutUrl, payment.getId());
+        return new PaymentInitiateResponse(checkoutUrl, payment.getId());
     }
 
     @Async

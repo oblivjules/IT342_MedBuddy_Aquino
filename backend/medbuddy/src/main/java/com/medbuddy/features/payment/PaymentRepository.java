@@ -1,4 +1,4 @@
-package com.medbuddy.repository;
+package com.medbuddy.features.payment;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.payment;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;

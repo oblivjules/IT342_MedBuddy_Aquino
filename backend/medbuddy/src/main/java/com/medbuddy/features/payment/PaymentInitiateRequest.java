@@ -1,4 +1,4 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.payment;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.DecimalMin;

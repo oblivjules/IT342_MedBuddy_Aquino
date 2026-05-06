@@ -23,7 +23,7 @@ import com.medbuddy.features.appointment.AppointmentSlotRepository;
 import com.medbuddy.features.appointment.AppointmentStatusRequest;
 import com.medbuddy.service.EmailService;
 import com.medbuddy.features.medicalrecords.FileStorageService;
-import com.medbuddy.service.PaymentService;
+import com.medbuddy.features.payment.PaymentService;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.UserRepository;

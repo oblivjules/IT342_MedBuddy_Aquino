@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.medbuddy.features.medicalrecords.FileUploadResponse;
 import com.medbuddy.features.medicalrecords.FileUploadRepository;
 import com.medbuddy.features.medicalrecords.MedicalRecordRepository;
-import com.medbuddy.repository.PaymentRepository;
+import com.medbuddy.features.payment.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
 import com.medbuddy.shared.model.Appointment;
 import com.medbuddy.shared.model.FileUpload;

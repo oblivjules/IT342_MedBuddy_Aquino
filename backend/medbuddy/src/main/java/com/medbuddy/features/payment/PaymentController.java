@@ -1,4 +1,4 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.payment;
 
 import java.util.Map;
 
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.medbuddy.dto.PaymentRequest;
-import com.medbuddy.dto.PaymentResponse;
-import com.medbuddy.dto.PaymentTotalUpdateRequest;
-import com.medbuddy.service.PaymentService;
+import com.medbuddy.features.payment.PaymentRequest;
+import com.medbuddy.features.payment.PaymentResponse;
+import com.medbuddy.features.payment.PaymentTotalUpdateRequest;
+import com.medbuddy.features.payment.PaymentService;
 import com.medbuddy.shared.model.PaymentStatus;
 
 import jakarta.validation.Valid;
@@ -55,9 +55,9 @@ public class PaymentController {
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<?> initiate(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody com.medbuddy.dto.PaymentInitiateRequest request) {
+            @Valid @RequestBody com.medbuddy.features.payment.PaymentInitiateRequest request) {
         try {
-            com.medbuddy.dto.PaymentInitiateResponse resp = paymentService.initiatePayment(userDetails.getUsername(), request);
+            com.medbuddy.features.payment.PaymentInitiateResponse resp = paymentService.initiatePayment(userDetails.getUsername(), request);
             if (resp == null || resp.getCheckoutUrl() == null) {
                 return ResponseEntity.badRequest().body(
                     Map.of("error", "Failed to create PayMongo checkout session. Please try again."));

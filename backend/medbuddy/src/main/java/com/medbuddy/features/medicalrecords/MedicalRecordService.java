@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.medbuddy.features.medicalrecords.MedicalRecordRequest;
 import com.medbuddy.features.medicalrecords.MedicalRecordResponse;
 import com.medbuddy.features.appointment.AppointmentRepository;
-import com.medbuddy.repository.PaymentRepository;
+import com.medbuddy.features.payment.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
 import com.medbuddy.features.medicalrecords.MedicalRecordRepository;
 import com.medbuddy.shared.model.Appointment;
