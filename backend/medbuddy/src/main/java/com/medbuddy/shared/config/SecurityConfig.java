@@ -30,9 +30,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.medbuddy.service.OAuth2UserService;
-import com.medbuddy.shared.security.JwtAuthFilter;
 import com.medbuddy.features.auth.OAuth2SuccessHandler;
+import com.medbuddy.features.auth.OAuth2UserService;
+import com.medbuddy.shared.security.JwtAuthFilter;
 
 import lombok.RequiredArgsConstructor;
 
