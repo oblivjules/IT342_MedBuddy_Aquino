@@ -2,10 +2,10 @@ package com.medbuddy.service.appointment.strategy;
 
 import java.util.List;
 
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.AppointmentStatus;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.User;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.AppointmentStatus;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.User;
 
 public interface AppointmentAccessStrategy {
 

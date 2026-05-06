@@ -2,7 +2,7 @@ package com.medbuddy.dto;
 
 import java.util.List;
 
-import com.medbuddy.model.Role;
+import com.medbuddy.shared.model.Role;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

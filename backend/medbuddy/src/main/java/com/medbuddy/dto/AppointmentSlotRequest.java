@@ -3,7 +3,7 @@ package com.medbuddy.dto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import com.medbuddy.model.AppointmentSlotStatus;
+import com.medbuddy.shared.model.AppointmentSlotStatus;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

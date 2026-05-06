@@ -12,18 +12,18 @@ import com.medbuddy.dto.DoctorDto;
 import com.medbuddy.dto.PatientDto;
 import com.medbuddy.dto.RatingFeedbackRequest;
 import com.medbuddy.dto.RatingFeedbackResponse;
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.AppointmentStatus;
-import com.medbuddy.model.Doctor;
-import com.medbuddy.model.Patient;
-import com.medbuddy.model.RatingAndFeedback;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.Specialization;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.RatingAndFeedbackRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.AppointmentStatus;
+import com.medbuddy.shared.model.Doctor;
+import com.medbuddy.shared.model.Patient;
+import com.medbuddy.shared.model.RatingAndFeedback;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.Specialization;
+import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;
 

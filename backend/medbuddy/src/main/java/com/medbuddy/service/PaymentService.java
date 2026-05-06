@@ -13,14 +13,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medbuddy.dto.PaymentRequest;
 import com.medbuddy.dto.PaymentResponse;
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.Payment;
-import com.medbuddy.model.PaymentStatus;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentRepository;
 import com.medbuddy.repository.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.Payment;
+import com.medbuddy.shared.model.PaymentStatus;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -102,9 +102,9 @@ public class PaymentService {
         }
 
         // Payment can be initiated for PENDING, CONFIRMED, or COMPLETED appointments
-        if (appointment.getStatus() != com.medbuddy.model.AppointmentStatus.PENDING && 
-            appointment.getStatus() != com.medbuddy.model.AppointmentStatus.CONFIRMED &&
-            appointment.getStatus() != com.medbuddy.model.AppointmentStatus.COMPLETED) {
+        if (appointment.getStatus() != com.medbuddy.shared.model.AppointmentStatus.PENDING && 
+            appointment.getStatus() != com.medbuddy.shared.model.AppointmentStatus.CONFIRMED &&
+            appointment.getStatus() != com.medbuddy.shared.model.AppointmentStatus.COMPLETED) {
             String error = "Appointment must be PENDING, CONFIRMED, or COMPLETED to initiate payment. Current status: " + appointment.getStatus();
             log.error(error);
             throw new IllegalArgumentException(error);

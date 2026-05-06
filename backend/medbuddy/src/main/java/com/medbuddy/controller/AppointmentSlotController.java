@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.medbuddy.dto.AppointmentSlotRequest;
 import com.medbuddy.dto.AppointmentSlotResponse;
-import com.medbuddy.model.AppointmentSlotStatus;
 import com.medbuddy.service.AppointmentSlotService;
+import com.medbuddy.shared.model.AppointmentSlotStatus;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

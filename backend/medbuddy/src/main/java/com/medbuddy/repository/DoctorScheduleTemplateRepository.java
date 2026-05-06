@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.medbuddy.model.DoctorScheduleTemplate;
+import com.medbuddy.shared.model.DoctorScheduleTemplate;
 
 @Repository
 public interface DoctorScheduleTemplateRepository extends JpaRepository<DoctorScheduleTemplate, Long> {

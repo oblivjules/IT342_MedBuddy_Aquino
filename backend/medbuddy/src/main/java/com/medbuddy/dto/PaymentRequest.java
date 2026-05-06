@@ -1,11 +1,12 @@
 package com.medbuddy.dto;
 
-import com.medbuddy.model.PaymentStatus;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+
+import com.medbuddy.shared.model.PaymentStatus;
 
 @Data
 public class PaymentRequest {

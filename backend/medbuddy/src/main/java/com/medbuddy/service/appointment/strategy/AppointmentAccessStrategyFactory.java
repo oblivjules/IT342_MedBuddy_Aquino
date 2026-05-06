@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.model.Role;
+import com.medbuddy.shared.model.Role;
 
 import lombok.RequiredArgsConstructor;
 

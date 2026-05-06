@@ -2,7 +2,7 @@ package com.medbuddy.dto;
 
 import java.time.LocalDateTime;
 
-import com.medbuddy.model.AppointmentStatus;
+import com.medbuddy.shared.model.AppointmentStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

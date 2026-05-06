@@ -2,8 +2,8 @@ package com.medbuddy.service.appointment.booking;
 
 import java.time.LocalDateTime;
 
-import com.medbuddy.model.AppointmentSlot;
-import com.medbuddy.model.Doctor;
+import com.medbuddy.shared.model.AppointmentSlot;
+import com.medbuddy.shared.model.Doctor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

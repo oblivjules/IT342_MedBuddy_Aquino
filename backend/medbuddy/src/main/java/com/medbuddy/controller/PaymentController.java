@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.medbuddy.dto.PaymentRequest;
 import com.medbuddy.dto.PaymentResponse;
 import com.medbuddy.dto.PaymentTotalUpdateRequest;
-import com.medbuddy.model.PaymentStatus;
 import com.medbuddy.service.PaymentService;
+import com.medbuddy.shared.model.PaymentStatus;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

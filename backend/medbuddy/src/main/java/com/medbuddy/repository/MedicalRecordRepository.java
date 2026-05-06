@@ -1,8 +1,10 @@
 package com.medbuddy.repository;
 
-import com.medbuddy.model.MedicalRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.medbuddy.shared.model.MedicalRecord;
+
 import org.springframework.data.jpa.repository.EntityGraph;
 
 import java.util.List;

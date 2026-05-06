@@ -4,10 +4,11 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.data.jpa.repository.EntityGraph;
 
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.AppointmentStatus;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.AppointmentStatus;
+
+import org.springframework.data.jpa.repository.EntityGraph;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {

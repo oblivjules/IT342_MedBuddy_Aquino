@@ -12,15 +12,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.medbuddy.dto.FileUploadResponse;
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.FileUpload;
-import com.medbuddy.model.MedicalRecord;
-import com.medbuddy.model.PaymentStatus;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.FileUploadRepository;
 import com.medbuddy.repository.MedicalRecordRepository;
 import com.medbuddy.repository.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.FileUpload;
+import com.medbuddy.shared.model.MedicalRecord;
+import com.medbuddy.shared.model.PaymentStatus;
+import com.medbuddy.shared.model.User;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +63,7 @@ public class FileUploadService {
         log.debug("[FILE_UPLOAD][RECORD] Authorization passed for user {} on appointment {}", user.getId(), appointment.getId());
         
         // Prevent file uploads to completed appointments
-        if (appointment.getStatus() == com.medbuddy.model.AppointmentStatus.COMPLETED) {
+        if (appointment.getStatus() == com.medbuddy.shared.model.AppointmentStatus.COMPLETED) {
             throw new IllegalStateException("Cannot attach files to a completed appointment.");
         }
         log.debug("[FILE_UPLOAD][RECORD] Appointment status validated: status={}", appointment.getStatus());

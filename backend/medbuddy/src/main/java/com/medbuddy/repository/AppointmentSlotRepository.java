@@ -11,8 +11,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.medbuddy.model.AppointmentSlot;
-import com.medbuddy.model.AppointmentSlotStatus;
+import com.medbuddy.shared.model.AppointmentSlot;
+import com.medbuddy.shared.model.AppointmentSlotStatus;
 
 @Repository
 public interface AppointmentSlotRepository extends JpaRepository<AppointmentSlot, Long> {

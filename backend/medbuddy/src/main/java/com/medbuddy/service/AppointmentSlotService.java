@@ -10,15 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.medbuddy.dto.AppointmentSlotRequest;
 import com.medbuddy.dto.AppointmentSlotResponse;
-import com.medbuddy.model.AppointmentSlot;
-import com.medbuddy.model.AppointmentSlotStatus;
-import com.medbuddy.model.DoctorAvailability;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorAvailabilityRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.shared.model.AppointmentSlot;
+import com.medbuddy.shared.model.AppointmentSlotStatus;
+import com.medbuddy.shared.model.DoctorAvailability;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;
 

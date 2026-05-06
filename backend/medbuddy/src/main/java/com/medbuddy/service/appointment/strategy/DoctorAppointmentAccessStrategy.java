@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.AppointmentStatus;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentRepository;
 import com.medbuddy.repository.DoctorRepository;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.AppointmentStatus;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;
 

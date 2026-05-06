@@ -3,9 +3,9 @@ package com.medbuddy.service.registration;
 import java.util.Set;
 
 import com.medbuddy.dto.RegisterRequest;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.Specialization;
-import com.medbuddy.model.User;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.Specialization;
+import com.medbuddy.shared.model.User;
 
 public interface UserProfileCreator {
 

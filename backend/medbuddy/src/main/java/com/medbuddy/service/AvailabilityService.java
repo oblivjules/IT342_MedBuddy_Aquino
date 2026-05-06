@@ -2,14 +2,15 @@ package com.medbuddy.service;
 
 import com.medbuddy.dto.DoctorAvailabilityRequest;
 import com.medbuddy.dto.DoctorAvailabilityResponse;
-import com.medbuddy.model.AvailabilityStatus;
-import com.medbuddy.model.Doctor;
-import com.medbuddy.model.DoctorAvailability;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.DoctorAvailabilityRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.shared.model.AvailabilityStatus;
+import com.medbuddy.shared.model.Doctor;
+import com.medbuddy.shared.model.DoctorAvailability;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.User;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;

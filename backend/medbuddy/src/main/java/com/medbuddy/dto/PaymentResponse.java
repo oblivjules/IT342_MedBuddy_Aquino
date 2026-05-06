@@ -1,12 +1,13 @@
 package com.medbuddy.dto;
 
-import com.medbuddy.model.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+
+import com.medbuddy.shared.model.PaymentStatus;
 
 @Data
 @Builder

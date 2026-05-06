@@ -6,8 +6,8 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import com.medbuddy.dto.RegisterRequest;
-import com.medbuddy.model.Specialization;
-import com.medbuddy.model.User;
+import com.medbuddy.shared.model.Specialization;
+import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;
 

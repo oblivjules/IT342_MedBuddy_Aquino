@@ -1,6 +1,6 @@
 package com.medbuddy.dto;
 
-import com.medbuddy.model.AppointmentStatus;
+import com.medbuddy.shared.model.AppointmentStatus;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

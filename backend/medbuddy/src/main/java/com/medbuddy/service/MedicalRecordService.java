@@ -9,15 +9,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.medbuddy.dto.MedicalRecordRequest;
 import com.medbuddy.dto.MedicalRecordResponse;
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.MedicalRecord;
-import com.medbuddy.model.PaymentStatus;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentRepository;
 import com.medbuddy.repository.MedicalRecordRepository;
 import com.medbuddy.repository.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.MedicalRecord;
+import com.medbuddy.shared.model.PaymentStatus;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;
 

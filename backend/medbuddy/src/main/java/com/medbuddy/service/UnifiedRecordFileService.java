@@ -12,17 +12,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.medbuddy.dto.UnifiedRecordFileResponse;
-import com.medbuddy.model.Doctor;
-import com.medbuddy.model.MedicalRecordFile;
-import com.medbuddy.model.Patient;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.AppointmentRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.FileUploadRepository;
 import com.medbuddy.repository.MedicalRecordFileRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.shared.model.Doctor;
+import com.medbuddy.shared.model.MedicalRecordFile;
+import com.medbuddy.shared.model.Patient;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;
 

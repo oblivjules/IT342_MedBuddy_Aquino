@@ -5,11 +5,11 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import com.medbuddy.dto.RegisterRequest;
-import com.medbuddy.model.Patient;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.Specialization;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.PatientRepository;
+import com.medbuddy.shared.model.Patient;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.Specialization;
+import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;
 

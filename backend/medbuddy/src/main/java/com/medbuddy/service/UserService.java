@@ -28,17 +28,17 @@ import com.medbuddy.dto.LoginRequest;
 import com.medbuddy.dto.RegisterRequest;
 import com.medbuddy.dto.UpdateProfileRequest;
 import com.medbuddy.dto.UserDto;
-import com.medbuddy.model.Doctor;
-import com.medbuddy.model.Patient;
-import com.medbuddy.model.Provider;
-import com.medbuddy.model.Role;
-import com.medbuddy.model.Specialization;
-import com.medbuddy.model.User;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.SpecializationRepository;
 import com.medbuddy.repository.UserRepository;
-import com.medbuddy.security.JwtUtil;
+import com.medbuddy.shared.model.Doctor;
+import com.medbuddy.shared.model.Patient;
+import com.medbuddy.shared.model.Provider;
+import com.medbuddy.shared.model.Role;
+import com.medbuddy.shared.model.Specialization;
+import com.medbuddy.shared.model.User;
+import com.medbuddy.shared.security.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 

@@ -2,7 +2,7 @@ package com.medbuddy.service.appointment.booking;
 
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.model.AppointmentSlotStatus;
+import com.medbuddy.shared.model.AppointmentSlotStatus;
 
 @Component
 public class SlotAvailabilityValidationHandler extends AbstractBookingValidationHandler {

@@ -1,6 +1,7 @@
 package com.medbuddy.dto;
 
-import com.medbuddy.model.Role;
+import com.medbuddy.shared.model.Role;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

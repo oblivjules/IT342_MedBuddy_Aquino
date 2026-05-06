@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.model.AppointmentStatus;
+import com.medbuddy.shared.model.AppointmentStatus;
 
 import lombok.RequiredArgsConstructor;
 

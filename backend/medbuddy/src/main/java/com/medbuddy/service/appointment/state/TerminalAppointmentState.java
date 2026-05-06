@@ -1,6 +1,6 @@
 package com.medbuddy.service.appointment.state;
 
-import com.medbuddy.model.AppointmentStatus;
+import com.medbuddy.shared.model.AppointmentStatus;
 
 public abstract class TerminalAppointmentState implements AppointmentState {
 

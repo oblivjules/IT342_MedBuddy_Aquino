@@ -2,8 +2,8 @@ package com.medbuddy.service.appointment.booking;
 
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.model.AppointmentSlot;
-import com.medbuddy.model.Doctor;
+import com.medbuddy.shared.model.AppointmentSlot;
+import com.medbuddy.shared.model.Doctor;
 
 @Component
 public class BookingValidationChain {

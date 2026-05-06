@@ -2,7 +2,7 @@ package com.medbuddy.service.appointment.state;
 
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.model.AppointmentStatus;
+import com.medbuddy.shared.model.AppointmentStatus;
 
 @Component
 public class ConfirmedAppointmentState extends MutableAppointmentState {

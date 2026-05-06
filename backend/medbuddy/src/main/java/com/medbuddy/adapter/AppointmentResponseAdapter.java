@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 import com.medbuddy.dto.AppointmentResponse;
 import com.medbuddy.dto.DoctorDto;
 import com.medbuddy.dto.PatientDto;
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.Doctor;
-import com.medbuddy.model.Patient;
-import com.medbuddy.model.Specialization;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.Doctor;
+import com.medbuddy.shared.model.Patient;
+import com.medbuddy.shared.model.Specialization;
 
 @Component
 public class AppointmentResponseAdapter {

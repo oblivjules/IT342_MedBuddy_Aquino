@@ -1,6 +1,5 @@
 package com.medbuddy.dto;
 
-import com.medbuddy.model.AvailabilityStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import com.medbuddy.shared.model.AvailabilityStatus;
 
 @Data
 @Builder

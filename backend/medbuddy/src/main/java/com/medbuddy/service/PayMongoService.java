@@ -20,8 +20,8 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.medbuddy.model.Appointment;
-import com.medbuddy.model.Payment;
+import com.medbuddy.shared.model.Appointment;
+import com.medbuddy.shared.model.Payment;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
