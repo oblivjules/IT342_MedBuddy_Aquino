@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.medicalrecords;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,13 +11,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.medbuddy.dto.UnifiedRecordFileResponse;
+import com.medbuddy.features.medicalrecords.UnifiedRecordFileResponse;
 import com.medbuddy.features.appointment.AppointmentRepository;
 import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.FileUploadRepository;
-import com.medbuddy.repository.MedicalRecordFileRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.medicalrecords.FileUploadRepository;
+import com.medbuddy.features.medicalrecords.MedicalRecordFileRepository;
 import com.medbuddy.shared.model.Doctor;
 import com.medbuddy.shared.model.MedicalRecordFile;
 import com.medbuddy.shared.model.Patient;

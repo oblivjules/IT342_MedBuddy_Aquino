@@ -1,4 +1,4 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.medicalrecords;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.medbuddy.dto.UnifiedRecordFileResponse;
-import com.medbuddy.service.UnifiedRecordFileService;
+import com.medbuddy.features.medicalrecords.UnifiedRecordFileResponse;
+import com.medbuddy.features.medicalrecords.UnifiedRecordFileService;
 
 import lombok.RequiredArgsConstructor;
 

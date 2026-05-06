@@ -1,10 +1,10 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.medicalrecords;
 
 import com.medbuddy.dto.DrugInfoResponse;
-import com.medbuddy.dto.MedicalRecordRequest;
-import com.medbuddy.dto.MedicalRecordResponse;
 import com.medbuddy.service.DrugInfoService;
-import com.medbuddy.service.MedicalRecordService;
+import com.medbuddy.features.medicalrecords.MedicalRecordRequest;
+import com.medbuddy.features.medicalrecords.MedicalRecordResponse;
+import com.medbuddy.features.medicalrecords.MedicalRecordService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

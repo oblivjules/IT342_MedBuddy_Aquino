@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.medicalrecords;
 
 import java.io.IOException;
 import java.util.Locale;

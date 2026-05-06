@@ -1,4 +1,4 @@
-package com.medbuddy.repository;
+package com.medbuddy.features.medicalrecords;
 
 import java.util.List;
 

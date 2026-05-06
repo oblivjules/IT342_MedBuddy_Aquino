@@ -1,4 +1,4 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.medicalrecords;
 
 import java.time.LocalDateTime;
 

@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.medicalrecords;
 
 import org.springframework.web.multipart.MultipartFile;
 

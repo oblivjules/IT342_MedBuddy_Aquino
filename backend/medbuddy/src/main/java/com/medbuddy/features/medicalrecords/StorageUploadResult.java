@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.medicalrecords;
 
 public record StorageUploadResult(String fileUrl, String storagePath) {
 }

@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.medicalrecords;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.medbuddy.dto.FileUploadResponse;
-import com.medbuddy.repository.FileUploadRepository;
-import com.medbuddy.repository.MedicalRecordRepository;
+import com.medbuddy.features.medicalrecords.FileUploadResponse;
+import com.medbuddy.features.medicalrecords.FileUploadRepository;
+import com.medbuddy.features.medicalrecords.MedicalRecordRepository;
 import com.medbuddy.repository.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
 import com.medbuddy.shared.model.Appointment;

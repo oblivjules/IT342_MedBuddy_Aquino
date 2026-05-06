@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.medicalrecords;
 
 import java.util.List;
 
@@ -7,12 +7,12 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.medbuddy.dto.MedicalRecordRequest;
-import com.medbuddy.dto.MedicalRecordResponse;
+import com.medbuddy.features.medicalrecords.MedicalRecordRequest;
+import com.medbuddy.features.medicalrecords.MedicalRecordResponse;
 import com.medbuddy.features.appointment.AppointmentRepository;
-import com.medbuddy.repository.MedicalRecordRepository;
 import com.medbuddy.repository.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.medicalrecords.MedicalRecordRepository;
 import com.medbuddy.shared.model.Appointment;
 import com.medbuddy.shared.model.MedicalRecord;
 import com.medbuddy.shared.model.PaymentStatus;

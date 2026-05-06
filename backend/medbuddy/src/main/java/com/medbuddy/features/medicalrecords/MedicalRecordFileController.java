@@ -1,4 +1,4 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.medicalrecords;
 
 import java.util.List;
 import java.util.Map;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.medbuddy.dto.MedicalRecordFileResponse;
-import com.medbuddy.service.MedicalRecordFileService;
+import com.medbuddy.features.medicalrecords.MedicalRecordFileResponse;
+import com.medbuddy.features.medicalrecords.MedicalRecordFileService;
 
 import lombok.RequiredArgsConstructor;
 

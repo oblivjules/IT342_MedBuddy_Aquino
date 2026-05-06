@@ -1,4 +1,4 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.medicalrecords;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
