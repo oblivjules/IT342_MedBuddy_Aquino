@@ -32,24 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 
-# ── Build output ─────────────────────────────────────────────────────────────
-target/
-*.jar
-*.war
-*.class
-
-# ── IDE ───────────────────────────────────────────────────────────────────────
-.idea/
-*.iml
-.vscode/settings.json
-
-# ── Secrets / local config ────────────────────────────────────────────────────
-# Never commit files that contain real credentials.
+# Local environment secrets
 .env
-.env.local
-application-local.properties
-src/main/resources/application-dev.properties
-
-# ── macOS / Windows ───────────────────────────────────────────────────────────
-.DS_Store
-Thumbs.db

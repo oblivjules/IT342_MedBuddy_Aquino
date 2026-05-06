@@ -14,6 +14,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -69,6 +71,7 @@ public class GlobalExceptionHandler {
     // ── Conflict (e.g. duplicate email) ─────────────────────────────
     @ExceptionHandler(IllegalStateException.class)
     public ProblemDetail handleConflict(IllegalStateException ex) {
+        log.error("[EXCEPTION_HANDLER] IllegalStateException caught", ex);
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.CONFLICT, ex.getMessage());
         pd.setProperty("timestamp", Instant.now());
@@ -87,6 +90,7 @@ public class GlobalExceptionHandler {
     // ── Bad argument (e.g. doctor not found, invalid status) ─────────
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+        log.error("[EXCEPTION_HANDLER] IllegalArgumentException caught", ex);
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setProperty("timestamp", Instant.now());
@@ -98,6 +102,25 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleUnreadable(HttpMessageNotReadableException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, "Malformed request body: " + ex.getMostSpecificCause().getMessage());
+        pd.setProperty("timestamp", Instant.now());
+        return pd;
+    }
+
+    // ── Static resource not found (e.g., favicon) ──────────────────
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail handleNoResourceFound(NoResourceFoundException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, ex.getMessage());
+        pd.setProperty("timestamp", Instant.now());
+        return pd;
+    }
+
+    // ── Multipart file too large ───────────────────────────────────
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                HttpStatus.PAYLOAD_TOO_LARGE,
+                "Profile image is too large. Please upload a file up to 5 MB.");
         pd.setProperty("timestamp", Instant.now());
         return pd;
     }
