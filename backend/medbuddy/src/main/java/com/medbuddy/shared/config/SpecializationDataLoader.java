@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.repository.SpecializationRepository;
+import com.medbuddy.features.specialization.SpecializationRepository;
 import com.medbuddy.shared.model.Specialization;
 
 import lombok.RequiredArgsConstructor;

@@ -23,15 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.medbuddy.features.auth.AuthResponse;
-import com.medbuddy.features.user.DoctorDto;
 import com.medbuddy.features.auth.LoginRequest;
 import com.medbuddy.features.auth.RegisterRequest;
-import com.medbuddy.features.user.UpdateProfileRequest;
-import com.medbuddy.features.user.UserDto;
-import com.medbuddy.features.user.DoctorRepository;
-import com.medbuddy.features.user.PatientRepository;
-import com.medbuddy.repository.SpecializationRepository;
-import com.medbuddy.features.user.UserRepository;
+import com.medbuddy.features.medicalrecords.FileStorageService;
+import com.medbuddy.features.medicalrecords.FileUploadValidationService;
+import com.medbuddy.features.medicalrecords.StorageUploadResult;
+import com.medbuddy.features.specialization.SpecializationRepository;
 import com.medbuddy.shared.model.Doctor;
 import com.medbuddy.shared.model.Patient;
 import com.medbuddy.shared.model.Provider;
@@ -39,9 +36,6 @@ import com.medbuddy.shared.model.Role;
 import com.medbuddy.shared.model.Specialization;
 import com.medbuddy.shared.model.User;
 import com.medbuddy.shared.security.JwtUtil;
-import com.medbuddy.features.medicalrecords.FileStorageService;
-import com.medbuddy.features.medicalrecords.FileUploadValidationService;
-import com.medbuddy.features.medicalrecords.StorageUploadResult;
 
 import lombok.RequiredArgsConstructor;
 
