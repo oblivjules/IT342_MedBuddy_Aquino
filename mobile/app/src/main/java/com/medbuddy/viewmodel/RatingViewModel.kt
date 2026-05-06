@@ -65,6 +65,10 @@ class RatingViewModel(
             }
         }
     }
+
+    fun submitRating(appointmentId: Int, rating: Int, feedback: String?) {
+        submitRating(appointmentId.toLong(), rating, feedback)
+    }
 }
 
 class RatingViewModelFactory(

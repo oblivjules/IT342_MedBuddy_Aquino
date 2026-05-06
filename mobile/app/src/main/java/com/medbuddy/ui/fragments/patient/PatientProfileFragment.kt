@@ -9,56 +9,50 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.gson.Gson
 import com.medbuddy.auth.TokenManager
-import com.medbuddy.databinding.FragmentPatientProfileBinding
+import com.medbuddy.databinding.FragmentPatientProfileRefinedBinding
 import com.medbuddy.dto.UserDto
 import com.medbuddy.ui.LoginActivity
 
 class PatientProfileFragment : Fragment() {
 
-    private lateinit var binding: FragmentPatientProfileBinding
+    private lateinit var binding: FragmentPatientProfileRefinedBinding
     private lateinit var tokenManager: TokenManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentPatientProfileBinding.inflate(inflater, container, false)
+        binding = FragmentPatientProfileRefinedBinding.inflate(inflater, container, false)
         tokenManager = TokenManager(requireContext())
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         loadProfileInfo()
 
-        binding.btnLogout.setOnClickListener {
-            logout()
+        binding.btnEditProfile.setOnClickListener {
+            Toast.makeText(requireContext(), "Edit profile is not connected yet.", Toast.LENGTH_SHORT).show()
         }
+
+        binding.btnLogout.setOnClickListener { logout() }
     }
 
     private fun loadProfileInfo() {
-        val userJson = tokenManager.getUserJson()
-        if (!userJson.isNullOrBlank()) {
-            try {
-                val user = Gson().fromJson(userJson, UserDto::class.java)
-                val first = user.firstName.orEmpty()
-                val last = user.lastName.orEmpty()
-                val initials = "${first.firstOrNull() ?: 'P'}${last.firstOrNull() ?: 'T'}".uppercase()
-                binding.tvAvatar.text = initials
-                binding.tvName.text = "$first $last".trim()
-                binding.tvEmail.text = "Email\n${user.email}"
-                binding.tvPatientId.text = "Patient ID\n#${user.profileId ?: user.id}"
-            } catch (e: Exception) {
-                binding.tvName.text = "Patient"
-                binding.tvEmail.text = "Email\n-"
-                binding.tvPatientId.text = "Patient ID\n-"
-            }
-        }
+        val userJson = tokenManager.getUserJson().orEmpty()
+        val user = runCatching { Gson().fromJson(userJson, UserDto::class.java) }.getOrNull()
+        val firstName = user?.firstName.orEmpty()
+        val lastName = user?.lastName.orEmpty()
+        binding.tvAvatar.text = patientInitials(firstName, lastName)
+        binding.tvName.text = listOf(firstName, lastName).filter { it.isNotBlank() }.joinToString(" ").ifBlank { "Patient" }
+        binding.tvEmail.text = user?.email.orEmpty()
+        binding.tvPatientId.text = user?.profileId?.let { "#${it}" } ?: "#${user?.id ?: "-"}"
 
-        binding.btnEditProfile.setOnClickListener {
-            Toast.makeText(requireContext(), "Edit profile flow coming soon", Toast.LENGTH_SHORT).show()
+        val prefs = requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+        binding.switchNotifications.isChecked = prefs.getBoolean(KEY_NOTIFICATIONS, true)
+        binding.switchNotifications.setOnCheckedChangeListener { _, checked ->
+            prefs.edit().putBoolean(KEY_NOTIFICATIONS, checked).apply()
         }
     }
 
@@ -66,5 +60,10 @@ class PatientProfileFragment : Fragment() {
         tokenManager.clearSession()
         startActivity(Intent(requireContext(), LoginActivity::class.java))
         requireActivity().finish()
+    }
+
+    companion object {
+        private const val PREFS_NAME = "patient_profile_prefs"
+        private const val KEY_NOTIFICATIONS = "notifications_enabled"
     }
 }

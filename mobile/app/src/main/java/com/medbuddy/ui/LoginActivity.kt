@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.medbuddy.R
 import com.medbuddy.api.ApiErrorMapper
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.constants.AppConstants
@@ -80,7 +81,7 @@ class LoginActivity : AppCompatActivity() {
             try {
                 val response = RetrofitClient.getInstance(applicationContext)
                     .apiService
-                    .login(LoginRequest(email, password, null))
+                    .login(LoginRequest(email, password, null)).bodyOrThrow()
 
                 tokenManager.saveToken(response.token)
                 tokenManager.saveUserJson(Gson().toJson(response.user))
@@ -101,7 +102,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun navigateToDashboard(role: String? = null) {
-        val resolvedRole = role ?: run {
+        role ?: run {
             val json = tokenManager.getUserJson() ?: return
             try {
                 Gson().fromJson(json, com.medbuddy.dto.UserDto::class.java).role

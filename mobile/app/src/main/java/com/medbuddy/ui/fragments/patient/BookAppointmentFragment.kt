@@ -6,193 +6,209 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.medbuddy.R
 import com.medbuddy.api.RetrofitClient
-import com.medbuddy.databinding.FragmentBookAppointmentBinding
+import com.medbuddy.databinding.FragmentBookAppointmentRefinedBinding
+import com.medbuddy.dto.DoctorDto
 import com.medbuddy.repository.AppointmentRepository
 import com.medbuddy.viewmodel.AppointmentViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class BookAppointmentFragment : Fragment() {
 
-    private lateinit var binding: FragmentBookAppointmentBinding
+    private lateinit var binding: FragmentBookAppointmentRefinedBinding
     private lateinit var viewModel: AppointmentViewModel
-    private var doctorId: Long = -1
-    private var doctorName: String = ""
-    private var selectedDate: LocalDate = LocalDate.now()
-    private var selectedSlotId: Long = -1
+    private lateinit var dayAdapter: CalendarDayAdapter
+    private var doctor: DoctorDto? = null
+    private var selectedDate: LocalDate = LocalDate.now().plusDays(1)
+    private var selectedSlotId: Long? = null
+    private var selectedDateTime: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentBookAppointmentBinding.inflate(inflater, container, false)
+        binding = FragmentBookAppointmentRefinedBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        doctorId = arguments?.getLong("doctorId") ?: -1
-        doctorName = arguments?.getString("doctorName") ?: ""
-
+        doctor = arguments?.getSerializable(ARG_DOCTOR) as? DoctorDto
         val repository = AppointmentRepository(RetrofitClient.getInstance(requireContext()).apiService)
-        viewModel = ViewModelProvider(
-            this,
-            AppointmentViewModel.factory(repository)
-        )[AppointmentViewModel::class.java]
+        viewModel = ViewModelProvider(this, AppointmentViewModel.factory(repository))[AppointmentViewModel::class.java]
 
-        bindDoctorHeader()
-        setupDateStrip()
+        setupDoctorHeader()
+        setupDates()
         observeSlots()
 
-        binding.btnBack.setOnClickListener { parentFragmentManager.popBackStack() }
         binding.btnBook.setOnClickListener { submitBooking() }
-
         loadSlotsForSelectedDate()
     }
 
-    private fun bindDoctorHeader() {
-        binding.tvDoctorName.text = "Dr. $doctorName"
-        binding.tvDoctorAvatar.text = doctorName
-            .split(" ")
-            .filter { it.isNotBlank() }
-            .take(2)
-            .joinToString("") { it.take(1).uppercase(Locale.getDefault()) }
-            .ifBlank { "DR" }
-        binding.tvDoctorSpec.text = "Verified specialist"
+    private fun setupDoctorHeader() {
+        val currentDoctor = doctor ?: return
+        val doctorName = doctorDisplayName(currentDoctor)
+        val specialization = currentDoctor.specializations?.firstOrNull()
+            ?: currentDoctor.specialization
+            ?: "General Practice"
+
+        binding.tvAvatar.text = doctorInitials(currentDoctor.firstName, currentDoctor.lastName)
+        binding.tvDoctorName.text = doctorName
+        binding.tvDoctorSpec.text = specialization
+        binding.tvReservationFee.text = ""
     }
 
-    private fun setupDateStrip() {
-        binding.dateContainer.removeAllViews()
-        val formatter = DateTimeFormatter.ofPattern("EEE\nMM/dd", Locale.getDefault())
-
-        (0..20).forEach { index ->
-            val date = LocalDate.now().plusDays(index.toLong())
-            val chip = Chip(requireContext()).apply {
-                id = View.generateViewId()
-                text = date.format(formatter)
-                isCheckable = true
-                isClickable = true
-                chipMinHeight = 52f
-                chipStrokeWidth = 1f
-                chipStrokeColor = requireContext().getColorStateList(R.color.primary)
-                chipBackgroundColor = requireContext().getColorStateList(R.color.chip_filter_bg_color)
-                setTextColor(requireContext().getColorStateList(R.color.chip_filter_text_color))
-                setOnClickListener {
-                    selectedDate = date
-                    selectedSlotId = -1
-                    binding.etDate.setText(date.toString())
-                    binding.btnBook.isEnabled = false
-                    loadSlotsForSelectedDate()
-                }
-            }
-
-            if (index == 0) {
-                chip.isChecked = true
-                binding.etDate.setText(date.toString())
-            }
-            binding.dateContainer.addView(chip)
+    private fun setupDates() {
+        val dates = (0 until 14).map { LocalDate.now().plusDays((it + 1).toLong()) }
+        dayAdapter = CalendarDayAdapter { date ->
+            selectedDate = date
+            selectedSlotId = null
+            selectedDateTime = null
+            dayAdapter.selectedDate = date
+            binding.btnBook.isEnabled = false
+            loadSlotsForSelectedDate()
         }
+        binding.rvDates.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.rvDates.adapter = dayAdapter
+        dayAdapter.submitList(dates)
+        dayAdapter.selectedDate = selectedDate
     }
 
     private fun observeSlots() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 viewModel.slotsState.collect { state ->
                     binding.progressBar.visibility = if (state.loading) View.VISIBLE else View.GONE
-                    binding.chipGroupTime.removeAllViews()
+                    if (state.loading) {
+                        binding.scrollContent.visibility = View.GONE
+                        return@collect
+                    }
+
+                    binding.scrollContent.visibility = View.VISIBLE
+                    binding.chipGroupSlots.removeAllViews()
 
                     if (state.error != null) {
-                        Toast.makeText(requireContext(), state.error, Toast.LENGTH_SHORT).show()
+                        binding.tvEmptyState.visibility = View.VISIBLE
+                        binding.tvEmptyState.text = state.error
                         return@collect
                     }
 
                     if (state.items.isEmpty()) {
-                        Toast.makeText(
-                            requireContext(),
-                            "No available time slots for this date.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        binding.tvEmptyState.visibility = View.VISIBLE
                         return@collect
                     }
 
+                    binding.tvEmptyState.visibility = View.GONE
+
                     state.items.forEach { slot ->
+                        val isBooked = slot.status == "BOOKED" || slot.status == "UNAVAILABLE" || slot.status == "RESERVED"
                         val chip = Chip(requireContext()).apply {
                             id = View.generateViewId()
                             text = slot.label
-                            isCheckable = true
-                            isClickable = true
+                            isCheckable = !isBooked
+                            isClickable = !isBooked
+                            isEnabled = !isBooked
                             chipMinHeight = 48f
-                            chipStrokeWidth = 1f
-                            chipStrokeColor = requireContext().getColorStateList(R.color.primary)
-                            chipBackgroundColor = requireContext().getColorStateList(R.color.chip_filter_bg_color)
-                            setTextColor(requireContext().getColorStateList(R.color.chip_filter_text_color))
-                            setOnClickListener {
-                                selectedSlotId = slot.id
-                                binding.btnBook.isEnabled = true
+                            chipCornerRadius = 24f
+                            if (isBooked) {
+                                chipBackgroundColor = requireContext().getColorStateList(R.color.chip_completed_bg)
+                                setTextColor(requireContext().getColorStateList(R.color.chip_completed_text))
+                            } else {
+                                chipBackgroundColor = requireContext().getColorStateList(R.color.chip_pending_bg)
+                                setTextColor(requireContext().getColorStateList(R.color.chip_pending_text))
+                                isChecked = selectedSlotId == slot.id
+                                setOnClickListener {
+                                    selectedSlotId = slot.id
+                                    selectedDateTime = buildDateTime(selectedDate, slot.time24)
+                                    binding.btnBook.isEnabled = true
+                                    refreshSlotStyles()
+                                }
                             }
                         }
-                        binding.chipGroupTime.addView(chip)
+                        binding.chipGroupSlots.addView(chip)
                     }
+
+                    refreshSlotStyles()
                 }
             }
+        }
+    }
+
+    private fun refreshSlotStyles() {
+        for (index in 0 until binding.chipGroupSlots.childCount) {
+            val chip = binding.chipGroupSlots.getChildAt(index) as? Chip ?: continue
+            if (!chip.isEnabled) continue
+            val selected = chip.isChecked
+            chip.chipBackgroundColor = requireContext().getColorStateList(
+                if (selected) R.color.primary else R.color.chip_pending_bg,
+            )
+            chip.setTextColor(
+                requireContext().getColorStateList(
+                    if (selected) R.color.white else R.color.chip_pending_text,
+                ),
+            )
         }
     }
 
     private fun loadSlotsForSelectedDate() {
-        viewModel.loadSlots(doctorId, selectedDate.toString())
+        val currentDoctor = doctor ?: return
+        viewModel.loadSlots(currentDoctor.id, selectedDate.toString())
+        binding.btnBook.isEnabled = false
     }
 
     private fun submitBooking() {
-        if (selectedSlotId <= 0) {
-            Toast.makeText(requireContext(), "Please select a valid time slot", Toast.LENGTH_SHORT).show()
+        val currentDoctor = doctor ?: return
+        val chosenDateTime = selectedDateTime
+        if (chosenDateTime.isNullOrBlank()) {
+            Toast.makeText(requireContext(), "Please select an available slot", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val notes = binding.etNotes.text?.toString()?.trim().orEmpty().ifBlank { null }
         binding.btnBook.isEnabled = false
-        binding.progressBar.visibility = View.VISIBLE
-
         viewModel.bookAppointment(
-            doctorId = doctorId,
-            slotId = selectedSlotId,
-            notes = notes,
+            doctorId = currentDoctor.id,
+            dateTime = chosenDateTime,
+            notes = binding.etNotes.text?.toString()?.trim().orEmpty().ifBlank { null },
             onSuccess = {
                 if (!isAdded) return@bookAppointment
-                binding.progressBar.visibility = View.GONE
                 Toast.makeText(requireContext(), getString(R.string.success_booked), Toast.LENGTH_SHORT).show()
                 parentFragmentManager.popBackStack()
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.fragmentContainer, AppointmentsFragment())
-                    .addToBackStack(null)
                     .commit()
             },
             onError = { message ->
                 if (!isAdded) return@bookAppointment
-                binding.progressBar.visibility = View.GONE
                 binding.btnBook.isEnabled = true
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-            }
+            },
         )
     }
 
+    private fun buildDateTime(date: LocalDate, time24: String): String {
+        val time = LocalTime.parse(time24)
+        return LocalDateTime.of(date, time).format(DateTimeFormatter.ISO_DATE_TIME)
+    }
+
     companion object {
-        fun newInstance(doctorId: Long, doctorName: String): BookAppointmentFragment {
+        private const val ARG_DOCTOR = "doctor"
+
+        fun newInstance(doctor: DoctorDto): BookAppointmentFragment {
             return BookAppointmentFragment().apply {
-                arguments = Bundle().apply {
-                    putLong("doctorId", doctorId)
-                    putString("doctorName", doctorName)
-                }
+                arguments = Bundle().apply { putSerializable(ARG_DOCTOR, doctor) }
             }
         }
     }

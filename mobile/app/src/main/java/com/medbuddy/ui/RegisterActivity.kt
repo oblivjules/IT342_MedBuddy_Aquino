@@ -20,6 +20,7 @@ import com.medbuddy.api.RetrofitClient
 import com.medbuddy.constants.AppConstants
 import com.medbuddy.databinding.ActivityRegisterBinding
 import com.medbuddy.dto.RegisterRequest
+import com.medbuddy.api.bodyOrThrow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -123,7 +124,7 @@ class RegisterActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val list = withContext(Dispatchers.IO) {
-                    RetrofitClient.getInstance(applicationContext).apiService.getSpecializations()
+                    RetrofitClient.getInstance(applicationContext).apiService.getSpecializations().bodyOrThrow()
                 }
 
                 binding.containerSpecializations.removeAllViews()
@@ -277,7 +278,7 @@ class RegisterActivity : AppCompatActivity() {
                         phoneNumber = "+63$phoneDigits",
                         specializationIds = if (isDoctor) selectedSpecializationIds.toList() else null
                     )
-                )
+                ).bodyOrThrow()
 
                 Toast.makeText(
                     this@RegisterActivity,

@@ -18,10 +18,6 @@ class AvailabilitySlotAdapter(
     private val onDelete: (DoctorAvailabilityResponse) -> Unit
 ) : ListAdapter<DoctorAvailabilityResponse, AvailabilitySlotAdapter.AvailabilitySlotViewHolder>(DiffCallback()) {
 
-    fun submitList(slots: List<DoctorAvailabilityResponse>) {
-        super.submitList(slots)
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AvailabilitySlotViewHolder {
         val binding = ItemAvailabilitySlotBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return AvailabilitySlotViewHolder(binding)
@@ -30,8 +26,6 @@ class AvailabilitySlotAdapter(
     override fun onBindViewHolder(holder: AvailabilitySlotViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
-
-    override fun getItemCount(): Int = super.getItemCount()
 
     inner class AvailabilitySlotViewHolder(
         private val binding: ItemAvailabilitySlotBinding

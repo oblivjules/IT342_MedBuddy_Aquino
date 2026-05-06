@@ -46,8 +46,12 @@ class TokenManager(context: Context) {
 
     fun isLoggedIn(): Boolean = !getToken().isNullOrBlank()
 
-    fun clearSession() {
+    fun clearToken() {
         prefs.edit().clear().apply()
+    }
+
+    fun clearSession() {
+        clearToken()
     }
 
     companion object {

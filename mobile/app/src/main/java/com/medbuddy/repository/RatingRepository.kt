@@ -1,6 +1,7 @@
 package com.medbuddy.repository
 
 import com.medbuddy.api.ApiService
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.dto.AverageRatingResponse
 import com.medbuddy.dto.CreateRatingRequest
 import com.medbuddy.dto.RatingResponse
@@ -10,11 +11,15 @@ class RatingRepository(
 ) {
 
     suspend fun getDoctorRatings(doctorId: Long): List<RatingResponse> {
-        return apiService.getDoctorRatings(doctorId)
+        return apiService.getDoctorRatings(doctorId).bodyOrThrow()
     }
 
     suspend fun getAverageRating(doctorId: Long): AverageRatingResponse {
-        return apiService.getAverageRating(doctorId)
+        val response = apiService.getAverageRating(doctorId).bodyOrThrow()
+        return AverageRatingResponse(
+            averageRating = response["average"] ?: response["averageRating"] ?: 0.0,
+            totalRatings = response["totalRatings"]?.toInt()
+        )
     }
 
     suspend fun createRating(
@@ -28,6 +33,6 @@ class RatingRepository(
                 rating = rating,
                 feedback = feedback
             )
-        )
+        ).bodyOrThrow()
     }
 }

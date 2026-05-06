@@ -1,40 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary & Dark -->
     <color name="primary">#E91E8C</color>
-    <color name="primary_dark">#C21873</color>
-    <color name="background">#FFFFFF</color>
+    <color name="primary_dark">#D01A7C</color>
+    <color name="white">#FFFFFF</color>
+    
+    <!-- Background & Surface -->
+    <color name="background">#F7F7F7</color>
     <color name="surface">#FFFFFF</color>
     <color name="card_surface">#F5F5F5</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#2D2D2D</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_muted">#9CA3AF</color>
+    
+    <!-- Status Chip Colors - Background (bg) and Text -->
+    <color name="status_booked_bg">#DBEAFE</color>
+    <color name="status_booked_text">#1D4ED8</color>
+    
+    <color name="status_completed_bg">#DCFCE7</color>
+    <color name="status_completed_text">#15803D</color>
+    
+    <color name="status_cancelled_bg">#F3F4F6</color>
+    <color name="status_cancelled_text">#374151</color>
+    
+    <color name="status_pending_bg">#FFEDD5</color>
+    <color name="status_pending_text">#C2410C</color>
+    
+    <color name="status_paid_bg">#DCFCE7</color>
+    <color name="status_paid_text">#15803D</color>
+    
+    <color name="status_refunded_bg">#F3E8FF</color>
+    <color name="status_refunded_text">#7E22CE</color>
+    
+    <!-- Divider -->
+    <color name="divider">#F3F4F6</color>
+    
+    <!-- Utility Colors -->
     <color name="success">#10B981</color>
     <color name="warning">#F59E0B</color>
     <color name="error">#EF4444</color>
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
     <color name="border">#E0E0E0</color>
     <color name="input_border">#D8D8D8</color>
     <color name="input_border_focused">#E91E8C</color>
     <color name="pink_light">#FCE4EF</color>
     <color name="primary_soft">#FCE4EF</color>
-    <color name="accent_soft">#FCE4EF</color>
 
-    <color name="chip_booked_bg">#1F385BCE</color>
-    <color name="chip_booked_text">#385BCE</color>
-    <color name="chip_confirmed_bg">#2610B981</color>
-    <color name="chip_confirmed_text">#0B7D58</color>
-    <color name="chip_completed_bg">#1F9CA3AF</color>
-    <color name="chip_completed_text">#6B7280</color>
-    <color name="chip_cancelled_bg">#1FEF4444</color>
-    <color name="chip_cancelled_text">#DC2626</color>
-    <color name="chip_pending_bg">#26F59E0B</color>
-    <color name="chip_pending_text">#D97706</color>
-    <color name="chip_rejected_bg">#26EF4444</color>
-    <color name="chip_rejected_text">#C62828</color>
+    <!-- Compatibility aliases used by existing layouts -->
+    <color name="chip_booked_bg">#DBEAFE</color>
+    <color name="chip_booked_text">#1D4ED8</color>
+    <color name="chip_confirmed_bg">#DBEAFE</color>
+    <color name="chip_confirmed_text">#1D4ED8</color>
+    <color name="chip_completed_bg">#DCFCE7</color>
+    <color name="chip_completed_text">#15803D</color>
+    <color name="chip_cancelled_bg">#F3F4F6</color>
+    <color name="chip_cancelled_text">#374151</color>
+    <color name="chip_pending_bg">#FFEDD5</color>
+    <color name="chip_pending_text">#C2410C</color>
 
     <color name="chip_filter_checked_bg">#E91E8C</color>
-    <color name="chip_filter_unchecked_bg">#FFFFFFFF</color>
+    <color name="chip_filter_unchecked_bg">#FFFFFF</color>
     <color name="chip_filter_checked_text">#FFFFFF</color>
-    <color name="chip_filter_unchecked_text">#757575</color>
-
+    <color name="chip_filter_unchecked_text">#6B7280</color>
+    
+    <!-- Navigation -->
     <color name="bottom_nav_active">#E91E8C</color>
     <color name="bottom_nav_inactive">#9E9E9E</color>
 </resources>

@@ -42,10 +42,10 @@ class RatingAdapter : ListAdapter<RatingResponse, RatingAdapter.ViewHolder>(Diff
             val date = try {
                 dateFormat.format(
                     SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-                        .parse(rating.createdAt) ?: System.currentTimeMillis()
+                        .parse(rating.createdAt.orEmpty()) ?: System.currentTimeMillis()
                 )
             } catch (e: Exception) {
-                rating.createdAt
+                rating.createdAt.orEmpty()
             }
             binding.tvDate.text = date
         }

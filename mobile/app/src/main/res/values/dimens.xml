@@ -1,20 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Card design -->
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    
+    <!-- Screen padding -->
+    <dimen name="screen_padding">24dp</dimen>
+    
+    <!-- Avatar sizes -->
+    <dimen name="avatar_size_large">72dp</dimen>
+    <dimen name="avatar_size_medium">48dp</dimen>
+    <dimen name="avatar_size_small">40dp</dimen>
+    
+    <!-- Touch target -->
+    <dimen name="min_touch_target">48dp</dimen>
+    
+    <!-- Spacing -->
     <dimen name="space_0_5">4dp</dimen>
     <dimen name="space_1">8dp</dimen>
     <dimen name="space_1_5">12dp</dimen>
     <dimen name="space_2">16dp</dimen>
     <dimen name="space_3">24dp</dimen>
     <dimen name="space_4">32dp</dimen>
-
+    
+    <!-- Radius -->
     <dimen name="radius_input">8dp</dimen>
-    <dimen name="radius_button">8dp</dimen>
-    <dimen name="radius_card">8dp</dimen>
+    <dimen name="radius_button">12dp</dimen>
+    <dimen name="radius_card">12dp</dimen>
     <dimen name="radius_chip">10dp</dimen>
-
+    
+    <!-- Elevation -->
     <dimen name="elevation_card">2dp</dimen>
     <dimen name="elevation_card_pressed">8dp</dimen>
-
-    <dimen name="touch_target_min">48dp</dimen>
+    
+    <!-- Text sizes -->
+    <dimen name="text_size_large">24sp</dimen>
+    <dimen name="text_size_headline">22sp</dimen>
+    <dimen name="text_size_h1">20sp</dimen>
+    <dimen name="text_size_h2">18sp</dimen>
+    <dimen name="text_size_h3">16sp</dimen>
+    <dimen name="text_size_body">15sp</dimen>
+    <dimen name="text_size_body_small">14sp</dimen>
+    <dimen name="text_size_label">13sp</dimen>
+    <dimen name="text_size_caption">12sp</dimen>
+    <dimen name="text_size_small">11sp</dimen>
+    
+    <!-- Button height -->
+    <dimen name="button_height">56dp</dimen>
+    <dimen name="button_height_small">36dp</dimen>
 </resources>
 
