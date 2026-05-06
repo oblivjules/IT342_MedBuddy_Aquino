@@ -1,6 +1,5 @@
 package com.medbuddy.ui.fragments.patient
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,115 +10,110 @@ import com.google.gson.Gson
 import com.medbuddy.R
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.auth.TokenManager
-import com.medbuddy.databinding.FragmentPatientHomeBinding
+import com.medbuddy.databinding.FragmentPatientHomeRefinedBinding
 import com.medbuddy.dto.UserDto
 import com.medbuddy.repository.AppointmentRepository
-import com.medbuddy.ui.LoginActivity
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 class PatientHomeFragment : Fragment() {
 
-    private lateinit var binding: FragmentPatientHomeBinding
+    private lateinit var binding: FragmentPatientHomeRefinedBinding
     private lateinit var tokenManager: TokenManager
+    private lateinit var appointmentRepository: AppointmentRepository
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentPatientHomeBinding.inflate(inflater, container, false)
+        binding = FragmentPatientHomeRefinedBinding.inflate(inflater, container, false)
         tokenManager = TokenManager(requireContext())
+        appointmentRepository = AppointmentRepository(RetrofitClient.getInstance(requireContext()).apiService)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        updateWelcomeText()
-        loadUpcomingAppointmentCard()
+        binding.btnViewDetails.setOnClickListener { openAppointments() }
+        binding.cardBookAppointment.setOnClickListener { openFindDoctor() }
+        binding.cardMyRecords.setOnClickListener { openMedicalRecords() }
 
-        binding.btnFindDoctor.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, FindDoctorFragment())
-                .addToBackStack(null)
-                .commit()
-        }
+        loadDashboard()
+    }
 
-        binding.btnBookAppointment.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, FindDoctorFragment())
-                .addToBackStack(null)
-                .commit()
-        }
+    private fun loadDashboard() {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.scrollContent.visibility = View.GONE
+        binding.tvEmptyState.visibility = View.GONE
 
-        binding.btnViewDetails.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, AppointmentsFragment())
-                .addToBackStack(null)
-                .commit()
-        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                updateWelcomeText()
+                val appointments = appointmentRepository.getPatientAppointments()
+                val upcoming = appointments
+                    .filter {
+                        val status = it.status.uppercase()
+                        status == "PENDING" || status == "CONFIRMED"
+                    }
+                    .minByOrNull { it.dateTime }
 
-        binding.btnMyAppointments.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, AppointmentsFragment())
-                .addToBackStack(null)
-                .commit()
+                if (upcoming != null) {
+                    bindUpcomingAppointment(upcoming)
+                    binding.cardUpcoming.visibility = View.VISIBLE
+                } else {
+                    binding.cardUpcoming.visibility = View.GONE
+                    binding.tvEmptyState.visibility = View.VISIBLE
+                }
+            } catch (_: Throwable) {
+                binding.cardUpcoming.visibility = View.GONE
+                binding.tvEmptyState.visibility = View.VISIBLE
+            } finally {
+                binding.progressBar.visibility = View.GONE
+                binding.scrollContent.visibility = View.VISIBLE
+            }
         }
     }
 
     private fun updateWelcomeText() {
-        val userJson = tokenManager.getUserJson()
-        if (!userJson.isNullOrBlank()) {
-            try {
-                val user = Gson().fromJson(userJson, UserDto::class.java)
-                binding.tvWelcome.text = "Welcome, ${user.firstName ?: "Patient"}! \uD83D\uDC4B"
-            } catch (e: Exception) {
-                // Keep default text
-            }
-        }
+        val userJson = tokenManager.getUserJson().orEmpty()
+        val firstName = runCatching {
+            Gson().fromJson(userJson, UserDto::class.java)?.firstName
+        }.getOrNull().orEmpty()
+        binding.tvWelcome.text = "Welcome, ${firstName.ifBlank { "Patient" }}"
+        binding.tvSubtitle.text = "Here is your next appointment and quick actions."
     }
 
-    private fun loadUpcomingAppointmentCard() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val appointments = AppointmentRepository(
-                    RetrofitClient.getInstance(context ?: return@launch).apiService
-                ).getPatientAppointments()
+    private fun bindUpcomingAppointment(appointment: com.medbuddy.dto.AppointmentResponse) {
+        val doctorName = appointmentDoctorName(appointment)
+        val specialization = appointmentDoctorSpecialization(appointment)
+        val initials = doctorInitials(appointment.doctor.firstName, appointment.doctor.lastName)
 
-                val upcoming = appointments
-                    .filter { it.status.equals("PENDING", true) || it.status.equals("CONFIRMED", true) }
-                    .minByOrNull { it.dateTime }
-
-                if (upcoming != null) {
-                    val formatted = runCatching {
-                        LocalDateTime.parse(upcoming.dateTime, DateTimeFormatter.ISO_DATE_TIME)
-                            .format(DateTimeFormatter.ofPattern("MMMM d, yyyy • hh:mm a", Locale.getDefault()))
-                    }.getOrDefault(upcoming.dateTime.replace("T", " "))
-                    binding.tvDoctorName.text = "Dr. ${upcoming.doctor.firstName} ${upcoming.doctor.lastName}"
-                    binding.tvDoctorSpec.text = upcoming.doctor.specialization
-                        ?: upcoming.doctor.specializations?.firstOrNull()
-                        ?: "General Practice"
-                    binding.tvUpcomingCount.text = formatted
-                } else {
-                    binding.tvDoctorName.text = "No upcoming appointment"
-                    binding.tvDoctorSpec.text = ""
-                    binding.tvUpcomingCount.text = "Book a doctor to get started"
-                }
-            } catch (e: Throwable) {
-                if (context == null) return@launch
-                binding.tvDoctorName.text = "No upcoming appointment"
-                binding.tvDoctorSpec.text = ""
-                binding.tvUpcomingCount.text = "Book a doctor to get started"
-            }
-        }
+        binding.tvAvatar.text = initials
+        binding.tvDoctorName.text = doctorName
+        binding.tvSpecialization.text = specialization
+        binding.tvDateTime.text = formatAppointmentDateTime(appointment.dateTime)
+        binding.tvStatusChip.text = formatStatusLabel(appointment.status)
     }
 
-    private fun logout() {
-        tokenManager.clearSession()
-        startActivity(Intent(requireContext(), LoginActivity::class.java))
-        requireActivity().finish()
+    private fun openAppointments() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, AppointmentsFragment())
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun openFindDoctor() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, FindDoctorFragment())
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun openMedicalRecords() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, MedicalRecordsFragment())
+            .addToBackStack(null)
+            .commit()
     }
 }

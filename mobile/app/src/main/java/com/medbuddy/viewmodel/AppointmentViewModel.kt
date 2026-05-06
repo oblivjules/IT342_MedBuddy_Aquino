@@ -94,6 +94,17 @@ class AppointmentViewModel(
         }
     }
 
+    fun bookAppointment(doctorId: Long, dateTime: String, notes: String?, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.bookAppointment(doctorId, dateTime, notes)
+                onSuccess()
+            } catch (e: Throwable) {
+                onError(e.message ?: "Booking failed")
+            }
+        }
+    }
+
     companion object {
         fun factory(repository: AppointmentRepository): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {

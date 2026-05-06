@@ -1,6 +1,7 @@
 package com.medbuddy.repository
 
 import com.medbuddy.api.ApiService
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.constants.AppointmentStatus
 import com.medbuddy.dto.AppointmentRequest
 import com.medbuddy.dto.AppointmentResponse
@@ -10,7 +11,8 @@ import com.medbuddy.dto.AppointmentStatusRequest
 data class SlotUiModel(
     val id: Long,
     val time24: String,
-    val label: String
+    val label: String,
+    val status: String
 )
 
 class AppointmentRepository(
@@ -18,37 +20,49 @@ class AppointmentRepository(
 ) {
 
     suspend fun getAppointments(): List<AppointmentResponse> {
-        val raw = apiService.getAppointments()
+        val raw = apiService.getAppointments().bodyOrThrow()
         return raw.map { it.copy(status = AppointmentStatus.normalize(it.status)) }
     }
 
-    suspend fun getPatientAppointments(): List<AppointmentResponse> =
-        getAppointments()
+    suspend fun getPatientAppointments(): List<AppointmentResponse> {
+        val raw = apiService.getMyAppointments().bodyOrThrow()
+        return raw.map { it.copy(status = AppointmentStatus.normalize(it.status)) }
+    }
 
     suspend fun getDoctorAppointments(): List<AppointmentResponse> =
         getAppointments()
 
     suspend fun updateAppointmentStatus(id: Long, status: String): AppointmentResponse {
-        return apiService.updateAppointmentStatus(id, AppointmentStatusRequest(AppointmentStatus.normalize(status)))
+        return apiService.updateAppointmentStatus(id, AppointmentStatusRequest(AppointmentStatus.normalize(status))).bodyOrThrow()
     }
 
     suspend fun getSlotsByDoctorDate(doctorId: Long, date: String): List<SlotUiModel> {
-        val slots = apiService.getDoctorAppointmentSlotsByDate(doctorId, date)
+        val slots = apiService.getDoctorAvailabilityByDate(doctorId, date).bodyOrThrow()
         return slots
-            .filter { AppointmentStatus.normalize(it.status ?: "") == AppointmentStatus.PENDING || (it.status ?: "").equals("AVAILABLE", true) }
             .mapNotNull { slot ->
-                val time = normalizeTime(slot.slotStartTime)
+                val time = normalizeTime(slot.slotStartTime ?: slot.startTime ?: slot.endTime)
                 if (slot.id <= 0 || time == null) {
                     null
                 } else {
                     SlotUiModel(
                         id = slot.id,
                         time24 = time,
-                        label = formatTo12Hour(time)
+                        label = formatTo12Hour(time),
+                        status = (slot.status ?: "AVAILABLE").trim().uppercase()
                     )
                 }
             }
             .sortedBy { it.time24 }
+    }
+
+    suspend fun bookAppointment(doctorId: Long, dateTime: String, notes: String?): AppointmentResponse {
+        return apiService.bookAppointment(
+            AppointmentRequest(
+                doctorId = doctorId,
+                dateTime = dateTime,
+                notes = notes
+            )
+        ).bodyOrThrow()
     }
 
     suspend fun bookAppointment(doctorId: Long, slotId: Long, notes: String?): AppointmentResponse {
@@ -58,7 +72,7 @@ class AppointmentRepository(
                 slotId = slotId,
                 notes = notes
             )
-        )
+        ).bodyOrThrow()
     }
 
     private fun normalizeTime(raw: String?): String? {

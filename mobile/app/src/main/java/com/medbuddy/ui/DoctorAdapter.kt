@@ -13,10 +13,6 @@ class DoctorAdapter(
     private val onBookClick: (DoctorDto) -> Unit
 ) : ListAdapter<DoctorDto, DoctorAdapter.DoctorViewHolder>(DiffCallback()) {
 
-    fun submitList(items: List<DoctorDto>) {
-        super.submitList(items)
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoctorViewHolder {
         val binding = ItemDoctorBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return DoctorViewHolder(binding)
@@ -25,8 +21,6 @@ class DoctorAdapter(
     override fun onBindViewHolder(holder: DoctorViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
-
-    override fun getItemCount(): Int = super.getItemCount()
 
     inner class DoctorViewHolder(
         private val binding: ItemDoctorBinding

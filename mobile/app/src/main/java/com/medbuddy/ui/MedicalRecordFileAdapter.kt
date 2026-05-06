@@ -39,10 +39,10 @@ class MedicalRecordFileAdapter(
             val date = try {
                 dateFormat.format(
                     SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-                        .parse(file.uploadedAt) ?: System.currentTimeMillis()
+                        .parse(file.uploadedAt.orEmpty()) ?: System.currentTimeMillis()
                 )
             } catch (e: Exception) {
-                file.uploadedAt
+                file.uploadedAt.orEmpty()
             }
             binding.tvUploadedAt.text = date
 

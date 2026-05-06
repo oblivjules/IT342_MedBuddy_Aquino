@@ -1,6 +1,7 @@
 package com.medbuddy.api
 
 import android.content.Context
+import android.content.Intent
 import com.google.gson.GsonBuilder
 import com.medbuddy.BuildConfig
 import com.medbuddy.auth.TokenManager
@@ -18,12 +19,6 @@ class RetrofitClient private constructor(context: Context) {
 
     init {
         val tokenManager = TokenManager(context.applicationContext)
-        val publicPaths = listOf(
-            "/api/auth/login",
-            "/api/auth/register",
-            "/api/auth/health",
-            "/api/specializations"
-        )
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) {
@@ -37,24 +32,16 @@ class RetrofitClient private constructor(context: Context) {
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
+            .addInterceptor(AuthInterceptor(tokenManager))
             .addInterceptor { chain ->
-                val original = chain.request()
-                val builder = original.newBuilder()
-                val path = original.url.encodedPath
-                val isPublic = publicPaths.any { path == it || path.startsWith("$it/") }
-
-                tokenManager.getToken()?.let { token ->
-                    if (!isPublic) {
-                        builder.addHeader("Authorization", "Bearer $token")
-                    }
-                }
-
-                val response = chain.proceed(builder.build())
-                if (response.code == 401 && !isPublic) {
-                    tokenManager.clearSession()
-                    context.sendBroadcast(android.content.Intent(AppConstants.Auth.ACTION_SESSION_EXPIRED).apply {
-                        setPackage(context.packageName)
-                    })
+                val response = chain.proceed(chain.request())
+                if (response.code == 401) {
+                    tokenManager.clearToken()
+                    context.sendBroadcast(
+                        Intent(AppConstants.Auth.ACTION_SESSION_EXPIRED).apply {
+                            setPackage(context.packageName)
+                        }
+                    )
                 }
                 response
             }

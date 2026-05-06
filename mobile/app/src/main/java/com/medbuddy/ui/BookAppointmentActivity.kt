@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.medbuddy.R
 import com.medbuddy.api.ApiErrorMapper
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.databinding.ActivityBookAppointmentBinding
@@ -67,8 +68,13 @@ class BookAppointmentActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 RetrofitClient.getInstance(applicationContext).apiService.bookAppointment(
-                    AppointmentRequest(doctorId, slotId, notes)
-                )
+                    AppointmentRequest(
+                        doctorId = doctorId,
+                        dateTime = "$date" + "T" + "$time:00",
+                        notes = notes,
+                        slotId = slotId
+                    )
+                ).bodyOrThrow()
                 AlertDialog.Builder(this@BookAppointmentActivity)
                     .setMessage(getString(R.string.success_booked))
                     .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
@@ -140,7 +146,8 @@ class BookAppointmentActivity : AppCompatActivity() {
             try {
                 val slots = RetrofitClient.getInstance(applicationContext)
                     .apiService
-                    .getDoctorAppointmentSlotsByDate(targetDoctorId, date)
+                    .getDoctorAvailabilityByDate(targetDoctorId, date)
+                    .bodyOrThrow()
 
                 slotIdByTime.clear()
                 slots.forEach { slot ->

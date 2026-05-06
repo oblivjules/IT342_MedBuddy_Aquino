@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.medbuddy.R
 import com.medbuddy.api.ApiErrorMapper
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.databinding.ActivityFindDoctorBinding
 import kotlinx.coroutines.launch
@@ -39,7 +40,7 @@ class FindDoctorActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val doctors = RetrofitClient.getInstance(applicationContext).apiService.getDoctors()
+                val doctors = RetrofitClient.getInstance(applicationContext).apiService.getDoctors().bodyOrThrow()
                 adapter.submitList(doctors)
                 if (doctors.isEmpty()) {
                     binding.tvEmpty.text = getString(R.string.label_no_data)

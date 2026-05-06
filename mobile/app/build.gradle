@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.medbuddy"
-        minSdk 26
+        minSdk 34
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -22,7 +22,7 @@ android {
         debug {
             // Update this IP to match your machine's local IPv4 address (check via ipconfig / ifconfig)
             // Make sure your phone and backend machine are on the same WiFi network
-            buildConfigField "String", "BASE_URL", '"http://192.168.1.2:8080/"'
+            buildConfigField "String", "BASE_URL", '"http://192.168.1.9:8080/"'
             debuggable true
         }
         release {

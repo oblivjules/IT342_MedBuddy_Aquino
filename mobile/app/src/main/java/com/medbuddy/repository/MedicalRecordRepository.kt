@@ -1,6 +1,7 @@
 package com.medbuddy.repository
 
 import com.medbuddy.api.ApiService
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.dto.CreateMedicalRecordRequest
 import com.medbuddy.dto.DrugInfoResponse
 import com.medbuddy.dto.MedicalRecordFileResponse
@@ -11,23 +12,27 @@ class MedicalRecordRepository(
 ) {
 
     suspend fun getMedicalRecords(): List<MedicalRecordResponse> {
-        return apiService.getMedicalRecords()
+        return apiService.getMedicalRecords().bodyOrThrow()
     }
 
     suspend fun getMedicalRecord(id: Long): MedicalRecordResponse {
-        return apiService.getMedicalRecord(id)
+        return apiService.getMedicalRecord(id).bodyOrThrow()
+    }
+
+    suspend fun getMedicalRecordByAppointment(appointmentId: Long): MedicalRecordResponse {
+        return apiService.getMedicalRecordByAppointment(appointmentId).bodyOrThrow()
     }
 
     suspend fun getDrugInfo(recordId: Long): DrugInfoResponse {
-        return apiService.getDrugInfo(recordId)
+        return apiService.getDrugInfo(recordId).bodyOrThrow()
     }
 
     suspend fun getAppointmentFiles(appointmentId: Long): List<MedicalRecordFileResponse> {
-        return apiService.getAppointmentFiles(appointmentId)
+        return apiService.getAppointmentFiles(appointmentId).bodyOrThrow()
     }
 
     suspend fun getMedicalRecordFiles(recordId: Long): List<MedicalRecordFileResponse> {
-        return apiService.getMedicalRecordFiles(recordId)
+        return apiService.getMedicalRecordFiles(recordId).bodyOrThrow()
     }
 
     suspend fun createMedicalRecord(
@@ -53,6 +58,6 @@ class MedicalRecordRepository(
                 duration = duration,
                 prescriptionNotes = prescriptionNotes
             )
-        )
+        ).bodyOrThrow()
     }
 }

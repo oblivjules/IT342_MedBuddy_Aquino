@@ -46,10 +46,10 @@ class MedicalRecordAdapter(
             val date = try {
                 dateFormat.format(
                     SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-                        .parse(record.uploadedAt) ?: System.currentTimeMillis()
+                        .parse(record.uploadedAt.orEmpty()) ?: System.currentTimeMillis()
                 )
             } catch (e: Exception) {
-                record.uploadedAt
+                record.uploadedAt.orEmpty()
             }
             binding.tvDate.text = date
 

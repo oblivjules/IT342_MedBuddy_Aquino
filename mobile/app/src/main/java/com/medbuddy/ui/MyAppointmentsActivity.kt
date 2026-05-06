@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.gson.Gson
 import com.medbuddy.R
 import com.medbuddy.api.ApiErrorMapper
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.databinding.ActivityMyAppointmentsBinding
@@ -49,7 +50,7 @@ class MyAppointmentsActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val items = RetrofitClient.getInstance(applicationContext).apiService.getMyAppointments()
+                val items = RetrofitClient.getInstance(applicationContext).apiService.getMyAppointments().bodyOrThrow()
                 adapter.submitList(items)
                 if (items.isEmpty()) {
                     binding.tvEmpty.text = getString(R.string.label_no_data)
@@ -107,7 +108,7 @@ class MyAppointmentsActivity : AppCompatActivity() {
                     .updateAppointmentStatus(
                         appointmentId,
                         com.medbuddy.dto.AppointmentStatusRequest(targetStatus)
-                    )
+                    ).bodyOrThrow()
                 loadAppointments()
             } catch (_: Exception) {
                 binding.progressBar.visibility = View.GONE
