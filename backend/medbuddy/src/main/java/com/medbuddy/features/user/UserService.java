@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.medbuddy.features.auth.AuthResponse;
+import com.medbuddy.features.auth.JwtUtil;
 import com.medbuddy.features.auth.LoginRequest;
 import com.medbuddy.features.auth.RegisterRequest;
 import com.medbuddy.features.medicalrecords.FileStorageService;
@@ -35,7 +36,6 @@ import com.medbuddy.shared.model.Provider;
 import com.medbuddy.shared.model.Role;
 import com.medbuddy.shared.model.Specialization;
 import com.medbuddy.shared.model.User;
-import com.medbuddy.shared.security.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 
