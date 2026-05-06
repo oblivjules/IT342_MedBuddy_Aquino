@@ -1,8 +1,8 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.feedback;
 
-import com.medbuddy.dto.RatingFeedbackRequest;
-import com.medbuddy.dto.RatingFeedbackResponse;
-import com.medbuddy.service.RatingFeedbackService;
+import com.medbuddy.features.feedback.RatingFeedbackRequest;
+import com.medbuddy.features.feedback.RatingFeedbackResponse;
+import com.medbuddy.features.feedback.RatingFeedbackService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

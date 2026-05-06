@@ -1,4 +1,4 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.feedback;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;

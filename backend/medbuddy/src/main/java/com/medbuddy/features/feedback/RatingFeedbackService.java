@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.feedback;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,12 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.medbuddy.dto.DoctorDto;
 import com.medbuddy.dto.PatientDto;
-import com.medbuddy.dto.RatingFeedbackRequest;
-import com.medbuddy.dto.RatingFeedbackResponse;
 import com.medbuddy.features.appointment.AppointmentRepository;
 import com.medbuddy.repository.PatientRepository;
-import com.medbuddy.repository.RatingAndFeedbackRepository;
 import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.feedback.RatingAndFeedbackRepository;
+import com.medbuddy.features.feedback.RatingFeedbackRequest;
+import com.medbuddy.features.feedback.RatingFeedbackResponse;
 import com.medbuddy.shared.model.Appointment;
 import com.medbuddy.shared.model.AppointmentStatus;
 import com.medbuddy.shared.model.Doctor;

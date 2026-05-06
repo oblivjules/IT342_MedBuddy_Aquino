@@ -1,5 +1,7 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.feedback;
 
+import com.medbuddy.dto.DoctorDto;
+import com.medbuddy.dto.PatientDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
