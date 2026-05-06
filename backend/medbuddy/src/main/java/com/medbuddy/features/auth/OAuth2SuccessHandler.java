@@ -14,10 +14,10 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.medbuddy.dto.UserDto;
-import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.PatientRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.UserDto;
+import com.medbuddy.features.user.DoctorRepository;
+import com.medbuddy.features.user.PatientRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.shared.model.Doctor;
 import com.medbuddy.shared.model.Patient;
 import com.medbuddy.shared.model.Provider;

@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.user;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

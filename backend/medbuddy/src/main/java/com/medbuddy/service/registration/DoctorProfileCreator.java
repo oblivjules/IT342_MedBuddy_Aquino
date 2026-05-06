@@ -4,8 +4,8 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.dto.RegisterRequest;
-import com.medbuddy.repository.DoctorRepository;
+import com.medbuddy.features.auth.RegisterRequest;
+import com.medbuddy.features.user.DoctorRepository;
 import com.medbuddy.shared.model.Doctor;
 import com.medbuddy.shared.model.Role;
 import com.medbuddy.shared.model.Specialization;

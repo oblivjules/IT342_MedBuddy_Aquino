@@ -1,7 +1,7 @@
 package com.medbuddy.features.schedule;
 
-import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.DoctorRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.shared.model.AvailabilityStatus;
 import com.medbuddy.shared.model.Doctor;
 import com.medbuddy.shared.model.DoctorAvailability;

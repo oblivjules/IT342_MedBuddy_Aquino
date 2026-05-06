@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.shared.model.User;
 
 import lombok.RequiredArgsConstructor;

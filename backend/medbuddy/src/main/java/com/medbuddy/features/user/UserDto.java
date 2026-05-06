@@ -1,4 +1,4 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.user;
 
 import com.medbuddy.shared.model.Role;
 

@@ -15,7 +15,7 @@ import com.medbuddy.features.medicalrecords.FileUploadResponse;
 import com.medbuddy.features.medicalrecords.FileUploadRepository;
 import com.medbuddy.features.medicalrecords.MedicalRecordRepository;
 import com.medbuddy.features.payment.PaymentRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.shared.model.Appointment;
 import com.medbuddy.shared.model.FileUpload;
 import com.medbuddy.shared.model.MedicalRecord;

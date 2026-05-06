@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.medbuddy.features.medicalrecords.UnifiedRecordFileResponse;
 import com.medbuddy.features.appointment.AppointmentRepository;
-import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.PatientRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.DoctorRepository;
+import com.medbuddy.features.user.PatientRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.features.medicalrecords.FileUploadRepository;
 import com.medbuddy.features.medicalrecords.MedicalRecordFileRepository;
 import com.medbuddy.shared.model.Doctor;

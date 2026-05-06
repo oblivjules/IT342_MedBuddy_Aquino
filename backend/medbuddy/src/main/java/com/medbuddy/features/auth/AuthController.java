@@ -16,11 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.medbuddy.dto.AuthResponse;
-import com.medbuddy.dto.LoginRequest;
-import com.medbuddy.dto.RegisterRequest;
-import com.medbuddy.dto.UserDto;
-import com.medbuddy.service.UserService;
+// (types in the same package — imports removed)
+import com.medbuddy.features.user.UserDto;
+import com.medbuddy.features.user.UserService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

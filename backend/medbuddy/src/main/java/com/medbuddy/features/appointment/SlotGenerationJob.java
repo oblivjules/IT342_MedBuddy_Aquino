@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.features.appointment.AppointmentSlotRepository;
 import com.medbuddy.features.schedule.DoctorAvailabilityRepository;
 import com.medbuddy.features.schedule.DoctorScheduleTemplateRepository;
-import com.medbuddy.repository.DoctorRepository;
+import com.medbuddy.features.user.DoctorRepository;
+import com.medbuddy.features.appointment.AppointmentSlotRepository;
 import com.medbuddy.shared.model.AvailabilityStatus;
 import com.medbuddy.shared.model.DoctorAvailability;
 import com.medbuddy.shared.model.DoctorScheduleTemplate;

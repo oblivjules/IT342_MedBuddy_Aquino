@@ -1,4 +1,4 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.user;
 
 import java.util.List;
 
@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.medbuddy.dto.DoctorDto;
-import com.medbuddy.dto.AuthResponse;
-import com.medbuddy.dto.UpdateProfileRequest;
-import com.medbuddy.dto.UserDto;
-import com.medbuddy.service.UserService;
+import com.medbuddy.features.user.DoctorDto;
+import com.medbuddy.features.auth.AuthResponse;
+import com.medbuddy.features.user.UpdateProfileRequest;
+import com.medbuddy.features.user.UserDto;
+import com.medbuddy.features.user.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

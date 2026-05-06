@@ -8,12 +8,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.medbuddy.features.appointment.AppointmentSlotRepository;
-import com.medbuddy.features.appointment.AppointmentSlotRequest;
-import com.medbuddy.features.appointment.AppointmentSlotResponse;
 import com.medbuddy.features.schedule.DoctorAvailabilityRepository;
-import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.DoctorRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.shared.model.AppointmentSlot;
 import com.medbuddy.shared.model.AppointmentSlotStatus;
 import com.medbuddy.shared.model.DoctorAvailability;

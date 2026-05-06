@@ -8,11 +8,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.medbuddy.dto.DoctorDto;
-import com.medbuddy.dto.PatientDto;
+import com.medbuddy.features.user.DoctorDto;
+import com.medbuddy.features.user.PatientDto;
 import com.medbuddy.features.appointment.AppointmentRepository;
-import com.medbuddy.repository.PatientRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.PatientRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.features.feedback.RatingAndFeedbackRepository;
 import com.medbuddy.features.feedback.RatingFeedbackRequest;
 import com.medbuddy.features.feedback.RatingFeedbackResponse;

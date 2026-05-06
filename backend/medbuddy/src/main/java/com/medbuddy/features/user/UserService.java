@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.user;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,16 +22,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.medbuddy.dto.AuthResponse;
-import com.medbuddy.dto.DoctorDto;
-import com.medbuddy.dto.LoginRequest;
-import com.medbuddy.dto.RegisterRequest;
-import com.medbuddy.dto.UpdateProfileRequest;
-import com.medbuddy.dto.UserDto;
-import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.PatientRepository;
+import com.medbuddy.features.auth.AuthResponse;
+import com.medbuddy.features.user.DoctorDto;
+import com.medbuddy.features.auth.LoginRequest;
+import com.medbuddy.features.auth.RegisterRequest;
+import com.medbuddy.features.user.UpdateProfileRequest;
+import com.medbuddy.features.user.UserDto;
+import com.medbuddy.features.user.DoctorRepository;
+import com.medbuddy.features.user.PatientRepository;
 import com.medbuddy.repository.SpecializationRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.shared.model.Doctor;
 import com.medbuddy.shared.model.Patient;
 import com.medbuddy.shared.model.Provider;
@@ -39,6 +39,9 @@ import com.medbuddy.shared.model.Role;
 import com.medbuddy.shared.model.Specialization;
 import com.medbuddy.shared.model.User;
 import com.medbuddy.shared.security.JwtUtil;
+import com.medbuddy.features.medicalrecords.FileStorageService;
+import com.medbuddy.features.medicalrecords.FileUploadValidationService;
+import com.medbuddy.features.medicalrecords.StorageUploadResult;
 
 import lombok.RequiredArgsConstructor;
 

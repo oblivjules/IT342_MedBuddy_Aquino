@@ -2,7 +2,7 @@ package com.medbuddy.features.auth;
 
 import java.util.Set;
 
-import com.medbuddy.dto.RegisterRequest;
+import com.medbuddy.features.auth.RegisterRequest;
 import com.medbuddy.shared.model.Role;
 import com.medbuddy.shared.model.Specialization;
 import com.medbuddy.shared.model.User;

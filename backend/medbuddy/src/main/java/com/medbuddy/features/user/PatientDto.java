@@ -1,4 +1,4 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

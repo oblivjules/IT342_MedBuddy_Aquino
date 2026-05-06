@@ -1,4 +1,4 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.user;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.medbuddy.dto.DoctorDto;
+import com.medbuddy.features.user.DoctorDto;
 import com.medbuddy.features.schedule.DoctorAvailabilityRequest;
 import com.medbuddy.features.schedule.DoctorAvailabilityResponse;
 import com.medbuddy.features.schedule.DoctorAvailabilityService;
-import com.medbuddy.service.UserService;
+import com.medbuddy.features.user.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

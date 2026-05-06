@@ -14,19 +14,16 @@ import org.springframework.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.medbuddy.dto.DoctorDto;
-import com.medbuddy.dto.PatientDto;
-import com.medbuddy.features.appointment.AppointmentRequest;
-import com.medbuddy.features.appointment.AppointmentResponse;
-import com.medbuddy.features.appointment.AppointmentRepository;
-import com.medbuddy.features.appointment.AppointmentSlotRepository;
-import com.medbuddy.features.appointment.AppointmentStatusRequest;
-import com.medbuddy.service.EmailService;
-import com.medbuddy.features.medicalrecords.FileStorageService;
+// types from same package (AppointmentRequest, AppointmentResponse, AppointmentRepository,
+// AppointmentSlotRepository, AppointmentStatusRequest) are in this package; no imports needed
 import com.medbuddy.features.payment.PaymentService;
-import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.PatientRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.DoctorDto;
+import com.medbuddy.features.user.EmailService;
+import com.medbuddy.features.user.PatientDto;
+import com.medbuddy.features.user.PatientRepository;
+import com.medbuddy.features.user.UserRepository;
+import com.medbuddy.features.user.DoctorRepository;
+import com.medbuddy.features.medicalrecords.FileStorageService;
 import com.medbuddy.shared.model.Appointment;
 import com.medbuddy.shared.model.AppointmentSlot;
 import com.medbuddy.shared.model.AppointmentSlotStatus;

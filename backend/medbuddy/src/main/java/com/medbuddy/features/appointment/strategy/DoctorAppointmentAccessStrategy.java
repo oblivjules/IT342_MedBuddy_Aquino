@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.medbuddy.features.appointment.AppointmentRepository;
-import com.medbuddy.repository.DoctorRepository;
+import com.medbuddy.features.user.DoctorRepository;
 import com.medbuddy.shared.model.Appointment;
 import com.medbuddy.shared.model.AppointmentStatus;
 import com.medbuddy.shared.model.Role;

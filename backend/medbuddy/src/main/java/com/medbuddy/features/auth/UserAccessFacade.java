@@ -4,9 +4,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.PatientRepository;
-import com.medbuddy.repository.UserRepository;
+import com.medbuddy.features.user.DoctorRepository;
+import com.medbuddy.features.user.PatientRepository;
+import com.medbuddy.features.user.UserRepository;
 import com.medbuddy.shared.model.Doctor;
 import com.medbuddy.shared.model.Patient;
 import com.medbuddy.shared.model.Role;

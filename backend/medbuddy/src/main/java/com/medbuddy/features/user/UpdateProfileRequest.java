@@ -1,4 +1,4 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

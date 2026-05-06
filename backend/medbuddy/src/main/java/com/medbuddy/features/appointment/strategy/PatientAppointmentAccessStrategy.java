@@ -6,7 +6,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 import com.medbuddy.features.appointment.AppointmentRepository;
-import com.medbuddy.repository.PatientRepository;
+import com.medbuddy.features.user.PatientRepository;
 import com.medbuddy.shared.model.Appointment;
 import com.medbuddy.shared.model.AppointmentStatus;
 import com.medbuddy.shared.model.Role;

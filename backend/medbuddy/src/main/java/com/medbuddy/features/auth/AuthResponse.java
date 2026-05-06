@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.medbuddy.dto.UserDto;
+import com.medbuddy.features.user.UserDto;
 
 /**
  * Top-level response returned by POST /api/auth/login and POST /api/auth/register.
