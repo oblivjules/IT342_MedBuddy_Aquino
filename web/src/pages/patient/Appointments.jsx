@@ -543,40 +543,40 @@ export default function PatientAppointments() {
                         </div>
                       )}
 
-                      {modalDetails.accessNote && (
-                        <div className="rounded-xl border border-accent/30 bg-accent-soft/30 px-4 py-3">
-                          <p className="text-sm text-muted-foreground">{modalDetails.accessNote}</p>
-                          <div className="mt-3">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                try {
-                                  const resp = await createPayment({ appointmentId: appointment.id })
-                                  const checkoutUrl = resp?.checkoutUrl || resp?.checkout_url
-                                  if (checkoutUrl) {
-                                    window.location.href = checkoutUrl
-                                    return
-                                  }
-
-                                  // No checkout session returned — redirect to billing
-                                  navigate('/patient/billing')
-                                } catch (err) {
-                                  console.error(err)
-
-                                  // If backend responded with 400, redirect to billing instead
-                                  if (err?.response?.status === 400) {
-                                    navigate('/patient/billing')
-                                    return
-                                  }
-
-                                  setError(err.response?.data?.message || err.message || 'Unable to start payment. Please try again.')
+                      {modalDetails.isLocked && (
+                        <div className="rounded-lg border border-accent/30 bg-accent-soft/30 p-4">
+                          <p className="text-sm text-muted-foreground">
+                            This medical record exists but is currently locked until your appointment balance is fully paid.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const resp = await createPayment({ appointmentId: appointment.id })
+                                const checkoutUrl = resp?.checkoutUrl || resp?.checkout_url
+                                if (checkoutUrl) {
+                                  window.location.href = checkoutUrl
+                                  return
                                 }
-                              }}
-                              className="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-                            >
-                              Pay Now
-                            </button>
-                          </div>
+
+                                // No checkout session returned — redirect to billing
+                                navigate('/patient/billing')
+                              } catch (err) {
+                                console.error(err)
+
+                                // If backend responded with 400, redirect to billing instead
+                                if (err?.response?.status === 400) {
+                                  navigate('/patient/billing')
+                                  return
+                                }
+
+                                setError(err.response?.data?.message || err.message || 'Unable to start payment. Please try again.')
+                              }
+                            }}
+                            className="mt-3 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                          >
+                            Pay Now
+                          </button>
                         </div>
                       )}
 

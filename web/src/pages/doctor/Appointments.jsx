@@ -913,66 +913,82 @@ export default function DoctorAppointments() {
                     {completionFormErrors.diagnosis && <p className="text-xs text-destructive">{completionFormErrors.diagnosis}</p>}
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">Prescription Details</label>
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold">Prescription</p>
                     <div className="grid gap-3 md:grid-cols-2">
                       <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-medium text-muted-foreground">Medicine Name</label>
                         <input
                           value={medicineNameInput}
                           onChange={(event) => {
                             setMedicineNameInput(event.target.value)
                             setHasDraftChanges(true)
                           }}
-                          placeholder="Medicine Name"
+                          placeholder="e.g., Paracetamol 500mg"
                           className="h-10 w-full rounded-md border border-input bg-card px-3 text-sm"
                         />
                       </div>
-                      <input
-                        value={dosageInput}
-                        onChange={(event) => {
-                          setDosageInput(event.target.value)
-                          setHasDraftChanges(true)
-                        }}
-                        placeholder="Dosage"
-                        className="h-10 rounded-md border border-input bg-card px-3 text-sm"
-                      />
-                      <input
-                        value={routeInput}
-                        onChange={(event) => {
-                          setRouteInput(event.target.value)
-                          setHasDraftChanges(true)
-                        }}
-                        placeholder="Route"
-                        className="h-10 rounded-md border border-input bg-card px-3 text-sm"
-                      />
-                      <input
-                        value={frequencyInput}
-                        onChange={(event) => {
-                          setFrequencyInput(event.target.value)
-                          setHasDraftChanges(true)
-                        }}
-                        placeholder="Frequency"
-                        className="h-10 rounded-md border border-input bg-card px-3 text-sm"
-                      />
-                      <input
-                        value={durationInput}
-                        onChange={(event) => {
-                          setDurationInput(event.target.value)
-                          setHasDraftChanges(true)
-                        }}
-                        placeholder="Duration"
-                        className="h-10 rounded-md border border-input bg-card px-3 text-sm"
-                      />
-                      <textarea
-                        rows={2}
-                        value={prescriptionNotesInput}
-                        onChange={(event) => {
-                          setPrescriptionNotesInput(event.target.value)
-                          setHasDraftChanges(true)
-                        }}
-                        placeholder="Notes (optional)"
-                        className="min-h-20 rounded-md border border-input bg-card px-3 py-2 text-sm md:col-span-2"
-                      />
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">Dosage</label>
+                        <input
+                          value={dosageInput}
+                          onChange={(event) => {
+                            setDosageInput(event.target.value)
+                            setHasDraftChanges(true)
+                          }}
+                          placeholder="e.g., 500mg"
+                          className="h-10 rounded-md border border-input bg-card px-3 text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">Route</label>
+                        <input
+                          value={routeInput}
+                          onChange={(event) => {
+                            setRouteInput(event.target.value)
+                            setHasDraftChanges(true)
+                          }}
+                          placeholder="e.g., Oral"
+                          className="h-10 rounded-md border border-input bg-card px-3 text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">Frequency</label>
+                        <input
+                          value={frequencyInput}
+                          onChange={(event) => {
+                            setFrequencyInput(event.target.value)
+                            setHasDraftChanges(true)
+                          }}
+                          placeholder="e.g., Every 6 hours"
+                          className="h-10 rounded-md border border-input bg-card px-3 text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground">Duration</label>
+                        <input
+                          value={durationInput}
+                          onChange={(event) => {
+                            setDurationInput(event.target.value)
+                            setHasDraftChanges(true)
+                          }}
+                          placeholder="e.g., 7 days"
+                          className="h-10 rounded-md border border-input bg-card px-3 text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-xs font-medium text-muted-foreground">Notes (optional)</label>
+                        <textarea
+                          rows={2}
+                          value={prescriptionNotesInput}
+                          onChange={(event) => {
+                            setPrescriptionNotesInput(event.target.value)
+                            setHasDraftChanges(true)
+                          }}
+                          placeholder="Additional instructions for the patient..."
+                          className="min-h-20 rounded-md border border-input bg-card px-3 py-2 text-sm md:col-span-2"
+                        />
+                      </div>
                     </div>
                   </div>
 
