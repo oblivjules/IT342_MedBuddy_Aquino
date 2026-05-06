@@ -1,8 +1,5 @@
-package com.medbuddy.service;
+package com.medbuddy.features.schedule;
 
-import com.medbuddy.dto.DoctorAvailabilityRequest;
-import com.medbuddy.dto.DoctorAvailabilityResponse;
-import com.medbuddy.repository.DoctorAvailabilityRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.UserRepository;
 import com.medbuddy.shared.model.AvailabilityStatus;

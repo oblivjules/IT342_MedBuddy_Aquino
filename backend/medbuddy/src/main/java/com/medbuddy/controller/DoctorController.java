@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.medbuddy.dto.DoctorAvailabilityRequest;
-import com.medbuddy.dto.DoctorAvailabilityResponse;
 import com.medbuddy.dto.DoctorDto;
-import com.medbuddy.service.DoctorAvailabilityService;
+import com.medbuddy.features.schedule.DoctorAvailabilityRequest;
+import com.medbuddy.features.schedule.DoctorAvailabilityResponse;
+import com.medbuddy.features.schedule.DoctorAvailabilityService;
 import com.medbuddy.service.UserService;
 
 import jakarta.validation.Valid;

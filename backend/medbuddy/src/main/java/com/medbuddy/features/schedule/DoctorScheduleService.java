@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.schedule;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -15,14 +15,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.medbuddy.dto.DoctorAvailabilityRequest;
-import com.medbuddy.dto.TemplateRequest;
-import com.medbuddy.event.TemplateChangedEvent;
 import com.medbuddy.features.appointment.AppointmentSlotRepository;
 import com.medbuddy.features.appointment.SlotGenerationJob;
-import com.medbuddy.repository.DoctorAvailabilityRepository;
 import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.DoctorScheduleTemplateRepository;
 import com.medbuddy.shared.model.AvailabilityStatus;
 import com.medbuddy.shared.model.Doctor;
 import com.medbuddy.shared.model.DoctorAvailability;

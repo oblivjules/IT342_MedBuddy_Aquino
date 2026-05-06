@@ -1,4 +1,4 @@
-package com.medbuddy.event;
+package com.medbuddy.features.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

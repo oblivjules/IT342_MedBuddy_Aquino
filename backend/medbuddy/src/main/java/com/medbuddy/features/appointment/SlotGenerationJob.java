@@ -11,9 +11,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.medbuddy.features.appointment.AppointmentSlotRepository;
-import com.medbuddy.repository.DoctorAvailabilityRepository;
+import com.medbuddy.features.schedule.DoctorAvailabilityRepository;
+import com.medbuddy.features.schedule.DoctorScheduleTemplateRepository;
 import com.medbuddy.repository.DoctorRepository;
-import com.medbuddy.repository.DoctorScheduleTemplateRepository;
 import com.medbuddy.shared.model.AvailabilityStatus;
 import com.medbuddy.shared.model.DoctorAvailability;
 import com.medbuddy.shared.model.DoctorScheduleTemplate;

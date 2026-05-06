@@ -1,4 +1,4 @@
-package com.medbuddy.dto;
+package com.medbuddy.features.schedule;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

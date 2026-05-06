@@ -1,4 +1,4 @@
-package com.medbuddy.service;
+package com.medbuddy.features.schedule;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -15,10 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.medbuddy.dto.DoctorAvailabilityRequest;
-import com.medbuddy.dto.DoctorAvailabilityResponse;
 import com.medbuddy.features.appointment.AppointmentSlotRepository;
-import com.medbuddy.repository.DoctorAvailabilityRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.UserRepository;
 import com.medbuddy.shared.model.AppointmentSlot;

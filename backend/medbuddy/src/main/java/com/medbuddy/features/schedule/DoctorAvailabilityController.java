@@ -1,4 +1,4 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.schedule;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,12 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.medbuddy.dto.DoctorAvailabilityRequest;
-import com.medbuddy.dto.DoctorAvailabilityResponse;
-import com.medbuddy.dto.TemplateRequest;
-import com.medbuddy.service.DoctorAvailabilityService;
-import com.medbuddy.service.DoctorScheduleService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

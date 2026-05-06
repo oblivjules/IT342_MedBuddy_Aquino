@@ -1,8 +1,5 @@
-package com.medbuddy.controller;
+package com.medbuddy.features.schedule;
 
-import com.medbuddy.dto.DoctorAvailabilityRequest;
-import com.medbuddy.dto.DoctorAvailabilityResponse;
-import com.medbuddy.service.AvailabilityService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
