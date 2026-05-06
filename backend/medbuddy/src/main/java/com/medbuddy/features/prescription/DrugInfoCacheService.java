@@ -1,6 +1,6 @@
-package com.medbuddy.service;
+package com.medbuddy.features.prescription;
 
-import com.medbuddy.dto.DrugInfoDto;
+import com.medbuddy.features.prescription.DrugInfoDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;

@@ -1,7 +1,7 @@
 package com.medbuddy.features.medicalrecords;
 
-import com.medbuddy.dto.DrugInfoResponse;
-import com.medbuddy.service.DrugInfoService;
+import com.medbuddy.features.prescription.DrugInfoResponse;
+import com.medbuddy.features.prescription.DrugInfoService;
 import com.medbuddy.features.medicalrecords.MedicalRecordRequest;
 import com.medbuddy.features.medicalrecords.MedicalRecordResponse;
 import com.medbuddy.features.medicalrecords.MedicalRecordService;
