@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Bell,
   ChevronDown,
   Calendar,
   Clock,
@@ -31,6 +30,7 @@ const patientLinks = [
 const doctorLinks = [
   { label: 'Dashboard', path: '/doctor/dashboard', icon: LayoutDashboard },
   { label: 'Appointments', path: '/doctor/appointments', icon: Calendar },
+  { label: 'Ratings & Feedback', path: '/doctor/ratings', icon: MessageSquare },
   { label: 'Schedule', path: '/doctor/schedule', icon: Clock },
   { label: 'Patient Records', path: '/doctor/patient-records', icon: Users },
 ]
@@ -155,24 +155,9 @@ export default function DashboardLayout({ title, subtitle, actions, children }) 
             >
               <Menu className="h-5 w-5" />
             </button>
-            {user?.role !== 'DOCTOR' && (
-              <div className="relative hidden sm:block">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  disabled
-                  value=""
-                  placeholder="Search"
-                  className="h-10 w-72 rounded-md border border-input bg-muted/50 pl-9 pr-3 text-sm text-muted-foreground"
-                />
-              </div>
-            )}
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button className="relative rounded-full p-2 hover:bg-muted" aria-label="Notifications">
-              <Bell className="h-5 w-5 text-muted-foreground" />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" />
-            </button>
             <div className="relative" ref={profileMenuRef}>
               <button
                 type="button"
