@@ -12,13 +12,13 @@
     --card-foreground: 220 20% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 15%;
-    --primary: 340 60% 65%;
+    --primary: 340 60% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 200 60% 94%;
-    --secondary-foreground: 200 40% 30%;
+    --secondary: 340 60% 94%;
+    --secondary-foreground: 340 40% 35%;
     --muted: 220 14% 96%;
     --muted-foreground: 220 10% 50%;
-    --accent: 200 70% 50%;
+    --accent: 340 80% 65%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -26,20 +26,24 @@
     --input: 220 14% 90%;
     --ring: 340 60% 65%;
     --radius: 0.75rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 340 60% 65%;
+    --sidebar-background: 340 30% 97%;
+    --sidebar-foreground: 220 15% 20%;
+    --sidebar-primary: 340 60% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 340 40% 96%;
+    --sidebar-accent: 340 40% 94%;
     --sidebar-accent-foreground: 340 60% 40%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 340 60% 65%;
+    --sidebar-ring: 340 60% 55%;
     --primary-soft: 340 50% 95%;
-    --accent-soft: 200 50% 95%;
-    --gradient-primary: linear-gradient(135deg, hsl(340, 60%, 65%), hsl(320, 50%, 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(340, 50%, 97%), hsl(200, 50%, 97%));
-    --shadow-card: 0 4px 24px -4px hsl(340 60% 65% / 0.1);
-    --shadow-elevated: 0 12px 40px -8px hsl(340 60% 65% / 0.15);
+    --accent-soft: 340 40% 95%;
+    --teal: 174 60% 40%;
+    --teal-foreground: 0 0% 100%;
+    --teal-soft: 174 40% 95%;
+    --gradient-primary: linear-gradient(135deg, hsl(340, 60%, 55%), hsl(340, 50%, 45%));
+    --gradient-accent: linear-gradient(135deg, hsl(340, 80%, 65%), hsl(340, 60%, 55%));
+    --gradient-hero: linear-gradient(135deg, hsl(340, 30%, 97%), hsl(340, 20%, 98%), hsl(0, 0%, 100%));
+    --shadow-card: 0 4px 24px -4px hsl(340 60% 55% / 0.08);
+    --shadow-elevated: 0 12px 40px -8px hsl(340 60% 55% / 0.12);
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   }
 
@@ -50,29 +54,32 @@
     --card-foreground: 0 0% 95%;
     --popover: 220 20% 12%;
     --popover-foreground: 0 0% 95%;
-    --primary: 340 60% 65%;
+    --primary: 340 60% 58%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 200 30% 18%;
-    --secondary-foreground: 200 40% 80%;
+    --secondary: 340 30% 18%;
+    --secondary-foreground: 340 40% 80%;
     --muted: 220 15% 18%;
     --muted-foreground: 220 10% 60%;
-    --accent: 200 70% 50%;
+    --accent: 340 60% 55%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 15% 20%;
     --input: 220 15% 20%;
-    --ring: 340 60% 65%;
+    --ring: 340 60% 58%;
     --sidebar-background: 220 20% 10%;
     --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 340 60% 65%;
+    --sidebar-primary: 340 60% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 15% 16%;
     --sidebar-accent-foreground: 0 0% 90%;
     --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 340 60% 65%;
+    --sidebar-ring: 340 60% 58%;
     --primary-soft: 340 30% 15%;
-    --accent-soft: 200 30% 15%;
+    --accent-soft: 340 30% 15%;
+    --teal: 174 60% 45%;
+    --teal-foreground: 0 0% 100%;
+    --teal-soft: 174 30% 15%;
   }
 
   * {
@@ -99,6 +106,11 @@
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-primary);
+  }
+
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-accent);
   }
 
   .bg-hero-gradient {

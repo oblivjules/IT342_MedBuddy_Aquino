@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Stethoscope, User } from 'lucide-react'
+import { Eye, EyeOff, Stethoscope, User } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import axiosInstance from '../api/axiosInstance'
 import logo from '../assets/medbuddy-logo-removebg-preview.png'
@@ -25,6 +25,7 @@ function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const oauthPortal = selectedRole === 'DOCTOR' ? 'doctor' : 'patient'
 
   const from = location.state?.from?.pathname || null
@@ -122,16 +123,28 @@ function Login() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium leading-none" htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                autoComplete="new-password"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           <button

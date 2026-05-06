@@ -5,12 +5,8 @@ export const ToastContext = createContext(null)
 
 const toneByType = {
   success: {
-    container: 'border-emerald-700 bg-emerald-600 text-white',
+    container: 'border-teal/40 bg-teal-soft text-teal',
     icon: CheckCircle2,
-  },
-  error: {
-    container: 'border-destructive/40 bg-destructive/10 text-destructive',
-    icon: X,
   },
   info: {
     container: 'border-primary/40 bg-primary-soft text-primary',
@@ -52,17 +48,13 @@ export function ToastProvider({ children }) {
     showToast({ message, type: 'success', durationMs })
   }, [showToast])
 
-  const error = useCallback((message, durationMs) => {
-    showToast({ message, type: 'error', durationMs })
-  }, [showToast])
-
   useEffect(() => () => {
     Object.values(timeoutsRef.current).forEach((timeoutId) => clearTimeout(timeoutId))
   }, [])
 
   const value = useMemo(
-    () => ({ showToast, success, error, removeToast }),
-    [removeToast, showToast, success, error],
+    () => ({ showToast, success, removeToast }),
+    [removeToast, showToast, success],
   )
 
   return (
