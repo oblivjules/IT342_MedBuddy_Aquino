@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.medbuddy.dto.MedicalRecordFileResponse;
-import com.medbuddy.repository.AppointmentRepository;
+import com.medbuddy.features.appointment.AppointmentRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.MedicalRecordFileRepository;
 import com.medbuddy.repository.PatientRepository;

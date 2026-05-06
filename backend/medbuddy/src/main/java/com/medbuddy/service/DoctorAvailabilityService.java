@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.medbuddy.dto.DoctorAvailabilityRequest;
 import com.medbuddy.dto.DoctorAvailabilityResponse;
-import com.medbuddy.repository.AppointmentSlotRepository;
+import com.medbuddy.features.appointment.AppointmentSlotRepository;
 import com.medbuddy.repository.DoctorAvailabilityRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.UserRepository;

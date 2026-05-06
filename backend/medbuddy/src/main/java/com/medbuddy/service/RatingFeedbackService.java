@@ -12,7 +12,7 @@ import com.medbuddy.dto.DoctorDto;
 import com.medbuddy.dto.PatientDto;
 import com.medbuddy.dto.RatingFeedbackRequest;
 import com.medbuddy.dto.RatingFeedbackResponse;
-import com.medbuddy.repository.AppointmentRepository;
+import com.medbuddy.features.appointment.AppointmentRepository;
 import com.medbuddy.repository.PatientRepository;
 import com.medbuddy.repository.RatingAndFeedbackRepository;
 import com.medbuddy.repository.UserRepository;

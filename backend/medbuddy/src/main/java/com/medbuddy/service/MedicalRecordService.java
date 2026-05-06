@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.medbuddy.dto.MedicalRecordRequest;
 import com.medbuddy.dto.MedicalRecordResponse;
-import com.medbuddy.repository.AppointmentRepository;
+import com.medbuddy.features.appointment.AppointmentRepository;
 import com.medbuddy.repository.MedicalRecordRepository;
 import com.medbuddy.repository.PaymentRepository;
 import com.medbuddy.repository.UserRepository;

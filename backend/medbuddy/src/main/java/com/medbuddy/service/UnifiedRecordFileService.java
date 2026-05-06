@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.medbuddy.dto.UnifiedRecordFileResponse;
-import com.medbuddy.repository.AppointmentRepository;
+import com.medbuddy.features.appointment.AppointmentRepository;
 import com.medbuddy.repository.DoctorRepository;
 import com.medbuddy.repository.FileUploadRepository;
 import com.medbuddy.repository.MedicalRecordFileRepository;

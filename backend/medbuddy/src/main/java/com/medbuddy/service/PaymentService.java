@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medbuddy.dto.PaymentRequest;
 import com.medbuddy.dto.PaymentResponse;
-import com.medbuddy.repository.AppointmentRepository;
+import com.medbuddy.features.appointment.AppointmentRepository;
 import com.medbuddy.repository.PaymentRepository;
 import com.medbuddy.repository.UserRepository;
 import com.medbuddy.shared.model.Appointment;
