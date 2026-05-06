@@ -35,6 +35,9 @@ export default function PatientFeedback() {
   const [comment, setComment] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [starFilter, setStarFilter] = useState('ALL')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   useEffect(() => {
     let mounted = true
@@ -83,6 +86,29 @@ export default function PatientFeedback() {
     () => ratings.filter((rating) => Number(rating.ratingScore) === 5).length,
     [ratings],
   )
+
+  const filteredRatings = useMemo(() => {
+    return ratings.filter((rating) => {
+      const ratingScore = Number(rating.ratingScore || 0)
+      if (starFilter !== 'ALL' && ratingScore !== Number(starFilter)) return false
+      const ratingDate = rating.createdAt
+        ? new Date(rating.createdAt)
+        : (rating.appointmentId && appointmentsById[rating.appointmentId]?.dateTime
+            ? new Date(appointmentsById[rating.appointmentId].dateTime)
+            : null)
+      if (!ratingDate) return true
+      if (dateFrom) {
+        const fromDate = new Date(dateFrom)
+        if (ratingDate < fromDate) return false
+      }
+      if (dateTo) {
+        const toDate = new Date(dateTo)
+        toDate.setHours(23, 59, 59, 999)
+        if (ratingDate > toDate) return false
+      }
+      return true
+    })
+  }, [ratings, starFilter, dateFrom, dateTo, appointmentsById])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -226,13 +252,61 @@ export default function PatientFeedback() {
             <h2 className="text-lg font-semibold">Your Reviews</h2>
           </div>
 
+          <div className="border-b border-border p-4 space-y-3 bg-muted/30">
+            <p className="text-sm font-medium">Filters</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">Star Rating</label>
+                <select
+                  value={starFilter}
+                  onChange={(e) => setStarFilter(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-card px-3 text-sm"
+                >
+                  <option value="ALL">All Ratings</option>
+                  <option value="5">5 Stars</option>
+                  <option value="4">4 Stars</option>
+                  <option value="3">3 Stars</option>
+                  <option value="2">2 Stars</option>
+                  <option value="1">1 Star</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">From Date</label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-card px-3 text-sm"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">To Date</label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-card px-3 text-sm"
+                />
+              </div>
+            </div>
+            {(starFilter !== 'ALL' || dateFrom || dateTo) && (
+              <button
+                type="button"
+                onClick={() => { setStarFilter('ALL'); setDateFrom(''); setDateTo('') }}
+                className="text-xs text-primary hover:underline"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+
           {loading && <p className="p-5 text-sm text-muted-foreground">Loading reviews...</p>}
-          {!loading && ratings.length === 0 && (
-            <p className="p-5 text-sm text-muted-foreground">No ratings submitted yet.</p>
+          {!loading && filteredRatings.length === 0 && (
+            <p className="p-5 text-sm text-muted-foreground">No reviews match your filters.</p>
           )}
 
           <div className="divide-y divide-border">
-            {ratings.map((rating) => {
+            {filteredRatings.map((rating) => {
               const appointment = appointmentsById[rating.appointmentId]
               const name = formatDoctorName(rating.doctor || appointment?.doctor)
               const profileImageUrl = rating.doctor?.profileImageUrl || appointment?.doctor?.profileImageUrl
