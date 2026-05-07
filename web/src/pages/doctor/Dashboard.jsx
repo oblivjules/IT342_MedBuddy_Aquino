@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import DashboardLayout from '../../components/DashboardLayout'
 import { Calendar as CalendarIcon, Clock, Users, Star, TrendingUp, ChevronLeft, ChevronRight, AlertCircle, X } from 'lucide-react'
-import { getMyAppointments } from '../../api/appointmentApi'
-import { getRatingsByDoctor } from '../../api/ratingApi'
-import { useAuth } from '../../hooks/useAuth'
+import { getMyAppointments } from '../../features/appointment/appointmentApi'
+import { getRatingsByDoctor } from '../../features/feedback/ratingApi'
+import { useAuth } from '../../features/auth/useAuth'
 
 const avatarColors = ['bg-primary', 'bg-teal', 'bg-accent', 'bg-primary', 'bg-teal', 'bg-accent']
 const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
