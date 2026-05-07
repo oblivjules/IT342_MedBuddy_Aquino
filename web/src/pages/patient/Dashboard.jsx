@@ -12,13 +12,13 @@ import {
   X,
 } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout'
-import FileOpenerModal from '../../components/FileOpenerModal'
-import UserAvatar from '../../components/UserAvatar'
-import { getMyAppointments } from '../../api/appointmentApi'
-import { getFileAccessUrl, getFilesByAppointment } from '../../api/fileUploadApi'
-import { getMedicalRecordByAppointment } from '../../api/medicalRecordApi'
-import { useAuth } from '../../hooks/useAuth'
-import { getDrugInfo } from '../../api/drugInfoApi'
+import FileOpenerModal from '../../features/medicalrecords/FileOpenerModal'
+import UserAvatar from '../../features/user/UserAvatar'
+import { getMyAppointments } from '../../features/appointment/appointmentApi'
+import { getFileAccessUrl, getFilesByAppointment } from '../../features/medicalrecords/fileUploadApi'
+import { getMedicalRecordByAppointment } from '../../features/medicalrecords/medicalRecordApi'
+import { useAuth } from '../../features/auth/useAuth'
+import { getDrugInfo } from '../../features/prescription/drugInfoApi'
 
 const avatarColors = ['bg-primary', 'bg-teal', 'bg-accent']
 const weekdayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']

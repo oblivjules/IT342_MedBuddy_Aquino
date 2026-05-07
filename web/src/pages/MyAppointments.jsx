@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMyAppointments } from '../api/appointmentApi';
-import AppointmentCard from '../components/AppointmentCard';
-import { useAuth } from '../hooks/useAuth';
+import { getMyAppointments } from '../features/appointment/appointmentApi';
+import AppointmentCard from '../features/appointment/AppointmentCard';
+import { useAuth } from '../features/auth/useAuth';
 
 export default function MyAppointments() {
     const { user } = useAuth();
