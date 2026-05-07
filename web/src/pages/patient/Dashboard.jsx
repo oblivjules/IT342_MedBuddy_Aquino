@@ -12,8 +12,8 @@ import {
   X,
 } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout'
-import FileOpenerModal from '../../components/FileOpenerModal'
-import UserAvatar from '../../components/UserAvatar'
+import FileOpenerModal from '../../features/medicalrecords/FileOpenerModal'
+import UserAvatar from '../../features/user/UserAvatar'
 import { getMyAppointments } from '../../features/appointment/appointmentApi'
 import { getFileAccessUrl, getFilesByAppointment } from '../../features/medicalrecords/fileUploadApi'
 import { getMedicalRecordByAppointment } from '../../features/medicalrecords/medicalRecordApi'

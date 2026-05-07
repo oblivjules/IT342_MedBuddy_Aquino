@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../features/auth/useAuth'
 import logo from '../assets/medbuddy-logo-removebg-preview.png'
-import UserAvatar from './UserAvatar'
+import UserAvatar from '../features/user/UserAvatar'
 
 const patientLinks = [
   { label: 'Dashboard', path: '/patient/dashboard', icon: LayoutDashboard },
