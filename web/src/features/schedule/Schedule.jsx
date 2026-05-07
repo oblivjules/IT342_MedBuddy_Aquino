@@ -3,7 +3,6 @@ import { CalendarOff, CheckCircle, Clock, Plus, Save, X } from 'lucide-react'
 import { useBeforeUnload } from 'react-router-dom'
 import DashboardLayout from '../../components/DashboardLayout'
 import {
-import {
   deleteMyScheduleException,
   getDoctorAvailability,
   getMyScheduleTemplate,

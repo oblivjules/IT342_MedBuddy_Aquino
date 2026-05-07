@@ -143,7 +143,7 @@ export default function DoctorRatingsFeedback() {
           {loading && <p className="p-5 text-sm text-muted-foreground">Loading ratings...</p>}
           {!loading && error && <p className="p-5 text-sm text-destructive">{error}</p>}
           {!loading && !error && filteredRatings.length === 0 && (
-            <p className="p-5 text-sm text-muted-foreground">No ratings match your filters.</p>
+            <p className="p-5 text-sm text-muted-foreground">No reviews here.</p>
           )}
 
           <div className="divide-y divide-border">

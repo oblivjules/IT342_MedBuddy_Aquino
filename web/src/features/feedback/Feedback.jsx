@@ -302,7 +302,7 @@ export default function PatientFeedback() {
 
           {loading && <p className="p-5 text-sm text-muted-foreground">Loading reviews...</p>}
           {!loading && filteredRatings.length === 0 && (
-            <p className="p-5 text-sm text-muted-foreground">No reviews match your filters.</p>
+            <p className="p-5 text-sm text-muted-foreground">No reviews here.</p>
           )}
 
           <div className="divide-y divide-border">
