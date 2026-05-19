@@ -3,12 +3,17 @@ package com.medbuddy.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.medbuddy.repository.AppointmentRepository
+import com.medbuddy.repository.PaymentRepository
 
 class AppointmentViewModelFactory(
-    private val repository: AppointmentRepository
+    private val appointmentRepository: AppointmentRepository,
+    private val paymentRepository: PaymentRepository? = null
 ) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return AppointmentViewModel(repository) as T
+        if (modelClass.isAssignableFrom(AppointmentViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return AppointmentViewModel(appointmentRepository, paymentRepository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

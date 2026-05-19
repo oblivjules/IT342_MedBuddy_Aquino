@@ -15,6 +15,9 @@ import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.databinding.FragmentFindDoctorRefinedBinding
 import com.medbuddy.dto.DoctorDto
+import com.medbuddy.repository.RatingRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 class FindDoctorFragment : Fragment() {
@@ -48,9 +51,17 @@ class FindDoctorFragment : Fragment() {
 
         binding.etSearch.doAfterTextChanged { applyFilters() }
         binding.dropdownSpecialization.setOnItemClickListener { _, _, position, _ ->
-            val selected = binding.dropdownSpecialization.adapter.getItem(position).toString()
-            selectedSpecialization = if (selected.equals("All Specializations", ignoreCase = true)) "ALL" else selected
+            val selected = binding.dropdownSpecialization.adapter?.getItem(position)?.toString().orEmpty()
+            selectedSpecialization = if (selected.equals("All Specializations", ignoreCase = true) || selected.isBlank()) "ALL" else selected
             applyFilters()
+        }
+        binding.dropdownSpecialization.doAfterTextChanged { text ->
+            val selected = text?.toString().orEmpty()
+            val newFilter = if (selected.equals("All Specializations", ignoreCase = true) || selected.isBlank()) "ALL" else selected
+            if (newFilter != selectedSpecialization) {
+                selectedSpecialization = newFilter
+                applyFilters()
+            }
         }
 
         loadDoctors()
@@ -65,10 +76,18 @@ class FindDoctorFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                allDoctors = RetrofitClient.getInstance(requireContext())
-                    .apiService
-                    .getDoctors()
-                    .bodyOrThrow()
+                val apiService = RetrofitClient.getInstance(requireContext()).apiService
+                val doctors = apiService.getDoctors().bodyOrThrow()
+                val ratingRepository = RatingRepository(apiService)
+
+                allDoctors = coroutineScope {
+                    doctors.map { doctor ->
+                        async {
+                            val avg = runCatching { ratingRepository.getAverageRating(doctor.id).averageRating }.getOrNull()
+                            doctor.copy(averageRating = avg)
+                        }
+                    }.map { it.await() }
+                }
 
                 val specializations = buildList {
                     add("All Specializations")

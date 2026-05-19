@@ -1,10 +1,12 @@
 package com.medbuddy.ui.fragments.patient
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.medbuddy.databinding.ItemPatientDoctorBinding
 import com.medbuddy.dto.DoctorDto
 import kotlin.math.roundToInt
@@ -35,11 +37,19 @@ class PatientDoctorAdapter(
             val rating = item.averageRating ?: 0.0
             val filledStars = rating.roundToInt().coerceIn(0, 5)
 
-            binding.tvAvatar.text = listOfNotNull(item.firstName, item.lastName)
+            val initials = listOfNotNull(item.firstName, item.lastName)
                 .mapNotNull { it.trim().firstOrNull()?.toString() }
-                .joinToString("")
-                .uppercase()
-                .ifBlank { "DR" }
+                .joinToString("").uppercase().ifBlank { "DR" }
+            val imageUrl = item.profileImageUrl
+            if (!imageUrl.isNullOrBlank()) {
+                binding.ivDoctorAvatar.visibility = View.VISIBLE
+                binding.tvAvatar.visibility = View.GONE
+                Glide.with(binding.root.context).load(imageUrl).circleCrop().into(binding.ivDoctorAvatar)
+            } else {
+                binding.ivDoctorAvatar.visibility = View.GONE
+                binding.tvAvatar.visibility = View.VISIBLE
+                binding.tvAvatar.text = initials
+            }
             binding.tvDoctorName.text = name
             binding.tvSpecialization.text = specializations
             binding.tvRating.text = if (rating > 0) String.format("%.1f", rating) else "No ratings yet"

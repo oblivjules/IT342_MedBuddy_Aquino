@@ -37,20 +37,17 @@ class AppointmentRepository(
     }
 
     suspend fun getSlotsByDoctorDate(doctorId: Long, date: String): List<SlotUiModel> {
-        val slots = apiService.getDoctorAvailabilityByDate(doctorId, date).bodyOrThrow()
+        val slots = apiService.getDoctorAppointmentSlots(doctorId, date).bodyOrThrow()
         return slots
             .mapNotNull { slot ->
-                val time = normalizeTime(slot.slotStartTime ?: slot.startTime ?: slot.endTime)
-                if (slot.id <= 0 || time == null) {
-                    null
-                } else {
-                    SlotUiModel(
-                        id = slot.id,
-                        time24 = time,
-                        label = formatTo12Hour(time),
-                        status = (slot.status ?: "AVAILABLE").trim().uppercase()
-                    )
-                }
+                if (slot.id <= 0) return@mapNotNull null
+                val time = normalizeTime(slot.slotStartTime) ?: return@mapNotNull null
+                SlotUiModel(
+                    id = slot.id,
+                    time24 = time,
+                    label = formatTo12Hour(time),
+                    status = (slot.status ?: "AVAILABLE").trim().uppercase()
+                )
             }
             .sortedBy { it.time24 }
     }
@@ -78,10 +75,9 @@ class AppointmentRepository(
     private fun normalizeTime(raw: String?): String? {
         if (raw.isNullOrBlank()) return null
         val text = raw.trim()
-        return when {
-            text.length >= 5 -> text.substring(0, 5)
-            else -> null
-        }
+        // Pad single-digit hours like "9:30:00" → "09:30:00"
+        val padded = if (text.length > 1 && text[1] == ':') "0$text" else text
+        return if (padded.length >= 5) padded.substring(0, 5) else null
     }
 
     private fun formatTo12Hour(time24: String): String {

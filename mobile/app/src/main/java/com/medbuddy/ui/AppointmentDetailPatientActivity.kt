@@ -21,6 +21,7 @@ import com.medbuddy.viewmodel.RatingViewModel
 import com.medbuddy.viewmodel.RatingViewModelFactory
 import com.medbuddy.viewmodel.MedicalRecordViewModel
 import com.medbuddy.viewmodel.MedicalRecordViewModelFactory
+import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -148,8 +149,27 @@ class AppointmentDetailPatientActivity : AppCompatActivity() {
 
     private fun setupPaymentButton() {
         binding.btnPayNow.setOnClickListener {
-            appointment?.let {
-                paymentViewModel.initiatePayment(it.id)
+            val currentAppointment = appointment ?: return@setOnClickListener
+
+            if (currentAppointment.status == "CANCELLED") {
+                binding.tvPaymentError.visibility = View.VISIBLE
+                binding.tvPaymentError.text = "Payment cannot be initiated for cancelled appointments."
+                return@setOnClickListener
+            }
+
+            val amount = paymentViewModel.paymentState.value.payment?.amount
+                ?: paymentViewModel.paymentState.value.payment?.feeAmount
+
+            if (amount == null || amount <= 0.0) {
+                binding.tvPaymentError.visibility = View.VISIBLE
+                binding.tvPaymentError.text = "Payment amount is unavailable. Please refresh and try again."
+                return@setOnClickListener
+            }
+
+            paymentViewModel.initiatePayment(currentAppointment.id, BigDecimal.valueOf(amount)) { checkoutUrl ->
+                if (checkoutUrl != null) {
+                    openCheckoutUrl(checkoutUrl)
+                }
             }
         }
     }

@@ -50,7 +50,6 @@ class AppointmentsFragment : Fragment() {
 
         adapter = PatientAppointmentAdapter(
             onCancelClick = { appointment -> showCancelConfirmation(appointment) },
-            onRescheduleClick = { openFindDoctor() },
             onViewRecordClick = { appointment -> openMedicalRecordDetail(appointment) },
             onRateClick = { appointment -> openFeedbackSheet(appointment) },
         )
@@ -65,8 +64,8 @@ class AppointmentsFragment : Fragment() {
         binding.chipCancelled.setOnClickListener { currentFilter = AppointmentStatus.CANCELLED; applyFilter() }
         binding.btnBilling.setOnClickListener { openBilling() }
 
-        parentFragmentManager.setFragmentResultListener(FeedbackBottomSheetFragment.RESULT_KEY, viewLifecycleOwner) { _, result ->
-            if (result.getBoolean(FeedbackBottomSheetFragment.RESULT_SUCCESS)) {
+        parentFragmentManager.setFragmentResultListener(LeaveFeedbackFragment.RESULT_KEY, viewLifecycleOwner) { _, result ->
+            if (result.getBoolean(LeaveFeedbackFragment.RESULT_SUCCESS)) {
                 loadAppointments()
             }
         }
@@ -78,7 +77,7 @@ class AppointmentsFragment : Fragment() {
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.appointmentsState.collect { state ->
+                viewModel.appointments.collect { state ->
                     binding.progressBar.visibility = if (state.loading) View.VISIBLE else View.GONE
                     if (state.loading) {
                         binding.scrollContent.visibility = View.GONE
@@ -94,6 +93,7 @@ class AppointmentsFragment : Fragment() {
                     }
 
                     allAppointments = state.items
+                    feedbackProvidedIds = emptySet()
                     refreshFeedbackState()
                 }
             }
@@ -137,7 +137,7 @@ class AppointmentsFragment : Fragment() {
 
     private fun loadAppointments() {
         binding.tvEmptyState.visibility = View.GONE
-        viewModel.loadAppointments(AppConstants.Role.PATIENT)
+        viewModel.getAppointments()
     }
 
     private fun showCancelConfirmation(appointment: AppointmentResponse) {
@@ -149,13 +149,6 @@ class AppointmentsFragment : Fragment() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    private fun openFindDoctor() {
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, FindDoctorFragment())
-            .addToBackStack(null)
-            .commit()
     }
 
     private fun openBilling() {
@@ -173,7 +166,9 @@ class AppointmentsFragment : Fragment() {
     }
 
     private fun openFeedbackSheet(appointment: AppointmentResponse) {
-        FeedbackBottomSheetFragment.newInstance(appointment.id, appointment.doctor.id)
-            .show(parentFragmentManager, "feedback")
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, LeaveFeedbackFragment.newInstance(appointment))
+            .addToBackStack(null)
+            .commit()
     }
 }

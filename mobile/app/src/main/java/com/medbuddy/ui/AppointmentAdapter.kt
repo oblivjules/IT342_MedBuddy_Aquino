@@ -125,11 +125,9 @@ class AppointmentAdapter(
                 when (status) {
                     AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED -> {
                         binding.btnPrimaryAction.visibility = View.VISIBLE
-                        binding.btnSecondaryAction.visibility = View.VISIBLE
-                        binding.btnPrimaryAction.text = "Reschedule"
-                        binding.btnSecondaryAction.text = "Cancel"
-                        binding.btnPrimaryAction.setOnClickListener { onStatusUpdate(item, "RESCHEDULE") }
-                        binding.btnSecondaryAction.setOnClickListener { onStatusUpdate(item, AppointmentStatus.CANCELLED) }
+                        binding.btnSecondaryAction.visibility = View.GONE
+                        binding.btnPrimaryAction.text = "Cancel"
+                        binding.btnPrimaryAction.setOnClickListener { onStatusUpdate(item, AppointmentStatus.CANCELLED) }
                     }
                     AppointmentStatus.COMPLETED -> {
                         binding.btnPrimaryAction.visibility = View.VISIBLE

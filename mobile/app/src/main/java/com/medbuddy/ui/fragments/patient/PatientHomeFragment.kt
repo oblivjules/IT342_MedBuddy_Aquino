@@ -80,8 +80,8 @@ class PatientHomeFragment : Fragment() {
         val firstName = runCatching {
             Gson().fromJson(userJson, UserDto::class.java)?.firstName
         }.getOrNull().orEmpty()
-        binding.tvWelcome.text = "Welcome, ${firstName.ifBlank { "Patient" }}"
-        binding.tvSubtitle.text = "Here is your next appointment and quick actions."
+        binding.tvWelcome.text = "Welcome, ${firstName.ifBlank { "Patient" }}! 👋"
+        binding.tvSubtitle.text = "How are you feeling today?"
     }
 
     private fun bindUpcomingAppointment(appointment: com.medbuddy.dto.AppointmentResponse) {
