@@ -33,7 +33,14 @@ class DoctorFeedbackAdapter : ListAdapter<FeedbackResponse, DoctorFeedbackAdapte
             binding.tvPatientName.text = patientName
             binding.tvRating.text = item.rating.toString()
             binding.ratingBar.rating = item.rating.toFloat()
-            binding.tvFeedback.text = item.comment?.takeIf { it.isNotBlank() } ?: "No comment."
+            val feedbackText = item.comment?.takeIf { it.isNotBlank() }
+                ?: item.feedback?.takeIf { it.isNotBlank() }
+            if (feedbackText != null) {
+                binding.tvFeedback.text = feedbackText
+                binding.tvFeedback.visibility = android.view.View.VISIBLE
+            } else {
+                binding.tvFeedback.visibility = android.view.View.GONE
+            }
             binding.tvDate.text = item.createdAt?.let { formatDate(it) } ?: ""
         }
     }
