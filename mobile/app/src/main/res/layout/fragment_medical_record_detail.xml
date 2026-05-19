@@ -52,6 +52,62 @@
                 android:layout_marginTop="8dp"
                 android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
 
+            <LinearLayout
+                android:id="@+id/layoutDrugInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Drug Information"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Data from OpenFDA"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvDrugDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvDrugIndications"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvDrugDosage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvDrugWarnings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                    android:textColor="@color/error"
+                    android:visibility="gone" />
+            </LinearLayout>
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

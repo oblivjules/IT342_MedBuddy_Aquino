@@ -15,6 +15,10 @@ class MedicalRecordRepository(
         return apiService.getMedicalRecords().bodyOrThrow()
     }
 
+    suspend fun getMyRecordFiles(): List<MedicalRecordFileResponse> {
+        return apiService.getMyRecordFiles().bodyOrThrow()
+    }
+
     suspend fun getMedicalRecord(id: Long): MedicalRecordResponse {
         return apiService.getMedicalRecord(id).bodyOrThrow()
     }
