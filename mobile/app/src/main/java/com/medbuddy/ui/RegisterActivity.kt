@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
-import android.view.MotionEvent
 import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
@@ -41,22 +40,8 @@ class RegisterActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         styleLoginFooterLink()
-        setupSpecializationScrollBehavior()
-
         setupRoleToggle()
         setupListeners()
-    }
-
-    private fun setupSpecializationScrollBehavior() {
-        binding.scrollSpecializations.setOnTouchListener { view, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN,
-                MotionEvent.ACTION_MOVE -> view.parent?.requestDisallowInterceptTouchEvent(true)
-                MotionEvent.ACTION_UP,
-                MotionEvent.ACTION_CANCEL -> view.parent?.requestDisallowInterceptTouchEvent(false)
-            }
-            false
-        }
     }
 
     private fun styleLoginFooterLink() {
@@ -142,6 +127,16 @@ class RegisterActivity : AppCompatActivity() {
                     checkBox.text = spec.name
                     checkBox.tag = spec.id
                     checkBox.setTextColor(ContextCompat.getColor(this@RegisterActivity, R.color.text_primary))
+                    checkBox.buttonTintList = ColorStateList(
+                        arrayOf(
+                            intArrayOf(android.R.attr.state_checked),
+                            intArrayOf(-android.R.attr.state_checked)
+                        ),
+                        intArrayOf(
+                            ContextCompat.getColor(this@RegisterActivity, R.color.primary),
+                            ContextCompat.getColor(this@RegisterActivity, R.color.text_primary)
+                        )
+                    )
 
                     checkBox.setOnCheckedChangeListener { _, isChecked ->
                         val id = spec.id
@@ -176,6 +171,14 @@ class RegisterActivity : AppCompatActivity() {
         binding.tvGoLogin.setOnClickListener { finish() }
         binding.btnRetrySpecs.setOnClickListener { loadSpecializations() }
 
+        binding.etFirstName.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) validateFirstName()
+        }
+
+        binding.etLastName.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) validateLastName()
+        }
+
         binding.etEmail.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) validateEmail()
         }
@@ -198,31 +201,126 @@ class RegisterActivity : AppCompatActivity() {
         view.setBackgroundResource(R.drawable.bg_input)
     }
 
+    private fun showFieldError(errorView: android.widget.TextView, message: String) {
+        errorView.text = message
+        errorView.visibility = View.VISIBLE
+    }
+
+    private fun clearFieldError(errorView: android.widget.TextView) {
+        errorView.visibility = View.GONE
+    }
+
+    private fun validateFirstName(): Boolean {
+        val name = binding.etFirstName.text.toString().trim()
+        return when {
+            name.isBlank() -> {
+                setFieldError(binding.etFirstName, true)
+                showFieldError(binding.tvErrorFirstName, "Required")
+                false
+            }
+            name.length < 2 -> {
+                setFieldError(binding.etFirstName, true)
+                showFieldError(binding.tvErrorFirstName, "Too short")
+                false
+            }
+            else -> {
+                setFieldError(binding.etFirstName, false)
+                clearFieldError(binding.tvErrorFirstName)
+                true
+            }
+        }
+    }
+
+    private fun validateLastName(): Boolean {
+        val name = binding.etLastName.text.toString().trim()
+        return when {
+            name.isBlank() -> {
+                setFieldError(binding.etLastName, true)
+                showFieldError(binding.tvErrorLastName, "Required")
+                false
+            }
+            name.length < 2 -> {
+                setFieldError(binding.etLastName, true)
+                showFieldError(binding.tvErrorLastName, "Too short")
+                false
+            }
+            else -> {
+                setFieldError(binding.etLastName, false)
+                clearFieldError(binding.tvErrorLastName)
+                true
+            }
+        }
+    }
+
     private fun validateEmail(): Boolean {
-        val email = binding.etEmail.text.toString()
-        val valid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-        setFieldError(binding.etEmail, !valid)
-        return valid
+        val email = binding.etEmail.text.toString().trim()
+        return when {
+            email.isBlank() -> {
+                setFieldError(binding.etEmail, true)
+                showFieldError(binding.tvErrorEmail, "Required")
+                false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                setFieldError(binding.etEmail, true)
+                showFieldError(binding.tvErrorEmail, "Invalid email")
+                false
+            }
+            else -> {
+                setFieldError(binding.etEmail, false)
+                clearFieldError(binding.tvErrorEmail)
+                true
+            }
+        }
     }
 
     private fun validatePassword(): Boolean {
         val password = binding.etPassword.text.toString()
-        val valid = password.length >= 8
-        setFieldError(binding.etPassword, !valid)
-        return valid
+        return when {
+            password.isBlank() -> {
+                setFieldError(binding.etPassword, true)
+                showFieldError(binding.tvErrorPassword, "Required")
+                false
+            }
+            password.length < 8 -> {
+                setFieldError(binding.etPassword, true)
+                showFieldError(binding.tvErrorPassword, "Min. 8 characters")
+                false
+            }
+            else -> {
+                setFieldError(binding.etPassword, false)
+                clearFieldError(binding.tvErrorPassword)
+                true
+            }
+        }
     }
 
     private fun validateConfirmPassword(): Boolean {
         val confirm = binding.etConfirmPassword.text.toString()
-        val valid = confirm == binding.etPassword.text.toString()
-        setFieldError(binding.etConfirmPassword, !valid)
-        return valid
+        val password = binding.etPassword.text.toString()
+        return when {
+            confirm.isBlank() -> {
+                setFieldError(binding.etConfirmPassword, true)
+                showFieldError(binding.tvErrorConfirmPassword, "Required")
+                false
+            }
+            confirm != password -> {
+                setFieldError(binding.etConfirmPassword, true)
+                showFieldError(binding.tvErrorConfirmPassword, "Doesn't match")
+                false
+            }
+            else -> {
+                setFieldError(binding.etConfirmPassword, false)
+                clearFieldError(binding.tvErrorConfirmPassword)
+                true
+            }
+        }
     }
 
     private fun validatePhoneNumber(): Boolean {
         val phoneDigits = binding.etPhoneNumber.text.toString().filter { it.isDigit() }
         val valid = phoneDigits.length == 10
-        setFieldError(binding.etPhoneNumber, !valid)
+        setFieldError(binding.layoutPhoneContainer, !valid)
+        if (valid) clearFieldError(binding.tvErrorPhone) else showFieldError(binding.tvErrorPhone, "Must be 10 digits")
         return valid
     }
 
@@ -230,39 +328,24 @@ class RegisterActivity : AppCompatActivity() {
     // REGISTER
     // =========================
     private fun register() {
-        val firstName = binding.etFirstName.text.toString().trim()
-        val lastName = binding.etLastName.text.toString().trim()
-        val email = binding.etEmail.text.toString().trim()
-        val password = binding.etPassword.text.toString()
-        val phoneDigits = binding.etPhoneNumber.text.toString().filter { it.isDigit() }
-
         val isDoctor = binding.toggleRole.checkedButtonId == binding.btnRoleDoctor.id
         val role = if (isDoctor) AppConstants.Role.DOCTOR else AppConstants.Role.PATIENT
 
-        if (firstName.isBlank() || lastName.isBlank()) {
-            showError(getString(R.string.error_required))
-            return
-        }
-
-        if (!validateEmail() || !validatePassword()) {
-            showError(getString(R.string.error_generic))
-            return
-        }
-
-        if (!validateConfirmPassword()) {
-            showError(getString(R.string.error_passwords_match))
-            return
-        }
-
-        if (!validatePhoneNumber()) {
-            showError(getString(R.string.error_phone_digits))
-            return
-        }
+        val allValid = validateFirstName() and validateLastName() and
+                       validateEmail() and validatePassword() and
+                       validateConfirmPassword() and validatePhoneNumber()
+        if (!allValid) return
 
         if (isDoctor && selectedSpecializationIds.isEmpty()) {
             showError(getString(R.string.error_doctor_specialization))
             return
         }
+
+        val firstName = binding.etFirstName.text.toString().trim()
+        val lastName = binding.etLastName.text.toString().trim()
+        val email = binding.etEmail.text.toString().trim()
+        val password = binding.etPassword.text.toString()
+        val phoneDigits = binding.etPhoneNumber.text.toString().filter { it.isDigit() }
 
         setLoading(true)
 

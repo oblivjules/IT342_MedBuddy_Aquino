@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import android.widget.Toast
+import com.bumptech.glide.Glide
 import com.google.gson.Gson
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.databinding.FragmentDoctorProfileBinding
@@ -33,6 +34,13 @@ class DoctorProfileFragment : Fragment() {
 
         loadProfileInfo()
 
+        binding.btnPatientFeedback.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(com.medbuddy.R.id.fragmentContainer, DoctorRatingsFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         binding.btnLogout.setOnClickListener {
             logout()
         }
@@ -40,24 +48,36 @@ class DoctorProfileFragment : Fragment() {
 
     private fun loadProfileInfo() {
         val userJson = tokenManager.getUserJson()
-        if (!userJson.isNullOrBlank()) {
-            try {
-                val user = Gson().fromJson(userJson, UserDto::class.java)
-                val specialization = user.specializations?.joinToString(", ")
-                    ?: user.specialization ?: "General Practice"
-                val first = user.firstName.orEmpty()
-                val last = user.lastName.orEmpty()
-                val initials = "${first.firstOrNull() ?: 'D'}${last.firstOrNull() ?: 'R'}".uppercase()
-                binding.tvAvatar.text = initials
-                binding.tvName.text = "Dr. $first $last".trim()
-                binding.tvEmail.text = "Email\n${user.email}"
-                binding.tvSpecialization.text = "Specialization\n$specialization"
-            } catch (e: Exception) {
-                binding.tvName.text = "Dr. Doctor"
-                binding.tvEmail.text = "Email\n-"
-                binding.tvSpecialization.text = "Specialization\n-"
-            }
+        val user = runCatching {
+            Gson().fromJson(userJson, UserDto::class.java)
+        }.getOrNull()
+
+        val first = user?.firstName.orEmpty()
+        val last = user?.lastName.orEmpty()
+        binding.tvName.text = "Dr. $first $last".trim()
+        binding.tvEmail.text = user?.email.orEmpty()
+
+        val imageUrl = user?.profileImageUrl
+        if (!imageUrl.isNullOrBlank()) {
+            binding.ivAvatar.visibility = View.VISIBLE
+            binding.tvAvatar.visibility = View.GONE
+            Glide.with(this).load(imageUrl).circleCrop().into(binding.ivAvatar)
+        } else {
+            binding.ivAvatar.visibility = View.GONE
+            binding.tvAvatar.visibility = View.VISIBLE
+            val initials = "${first.firstOrNull() ?: 'D'}${last.firstOrNull() ?: 'R'}".uppercase()
+            binding.tvAvatar.text = initials
         }
+
+        val phone = user?.phoneNumber?.takeIf { it.isNotBlank() }
+        if (phone != null) {
+            binding.tvPhone.text = phone
+            binding.rowPhone.visibility = View.VISIBLE
+        }
+
+        val specialization = user?.specializations?.joinToString(", ")
+            ?: user?.specialization ?: "General Practice"
+        binding.tvSpecialization.text = "Specialization: $specialization"
 
         binding.btnEditProfile.setOnClickListener {
             Toast.makeText(requireContext(), "Edit profile flow coming soon", Toast.LENGTH_SHORT).show()

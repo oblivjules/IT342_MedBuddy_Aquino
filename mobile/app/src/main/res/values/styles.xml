@@ -108,6 +108,8 @@
     </style>
 
     <style name="Widget.MedBuddy.Chip.Filter" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
         <item name="chipBackgroundColor">@color/chip_filter_bg_color</item>
         <item name="chipStrokeColor">@color/primary</item>
         <item name="chipStrokeWidth">1dp</item>

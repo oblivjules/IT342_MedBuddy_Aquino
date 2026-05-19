@@ -1,16 +1,20 @@
 package com.medbuddy.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
+import com.medbuddy.BuildConfig
 import com.medbuddy.R
 import com.medbuddy.api.ApiErrorMapper
 import com.medbuddy.api.bodyOrThrow
@@ -20,6 +24,7 @@ import com.medbuddy.constants.AppConstants
 import com.medbuddy.databinding.ActivityLoginBinding
 import com.medbuddy.dto.LoginRequest
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 
 class LoginActivity : AppCompatActivity() {
 
@@ -44,12 +49,58 @@ class LoginActivity : AppCompatActivity() {
         binding.btnLogin.setOnClickListener { attemptLogin() }
 
         binding.btnGoogleSignIn.setOnClickListener {
-            showError(getString(R.string.error_google_unavailable))
+            showGoogleRoleDialog()
         }
 
         binding.tvGoRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
+
+        binding.etEmail.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) validateLoginEmail()
+        }
+
+        binding.etPassword.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) validateLoginPassword()
+        }
+    }
+
+    private fun validateLoginEmail(): Boolean {
+        val email = binding.etEmail.text.toString().trim()
+        return when {
+            email.isBlank() -> {
+                showFieldError(binding.tvErrorEmail, "Required")
+                false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                showFieldError(binding.tvErrorEmail, "Invalid email")
+                false
+            }
+            else -> {
+                clearFieldError(binding.tvErrorEmail)
+                true
+            }
+        }
+    }
+
+    private fun validateLoginPassword(): Boolean {
+        val password = binding.etPassword.text.toString()
+        return if (password.isBlank()) {
+            showFieldError(binding.tvErrorPassword, "Required")
+            false
+        } else {
+            clearFieldError(binding.tvErrorPassword)
+            true
+        }
+    }
+
+    private fun showFieldError(errorView: android.widget.TextView, message: String) {
+        errorView.text = message
+        errorView.visibility = View.VISIBLE
+    }
+
+    private fun clearFieldError(errorView: android.widget.TextView) {
+        errorView.visibility = View.GONE
     }
 
     private fun styleRegisterFooterLink() {
@@ -66,14 +117,31 @@ class LoginActivity : AppCompatActivity() {
         binding.tvGoRegister.text = ss
     }
 
+    private fun showGoogleRoleDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Sign in as")
+            .setItems(arrayOf("Patient", "Doctor")) { _, which ->
+                val portal = if (which == 0) "patient" else "doctor"
+                openGoogleSignIn(portal)
+            }
+            .show()
+    }
+
+    private fun openGoogleSignIn(portal: String) {
+        val callbackUri = "medbuddy://oauth-callback"
+        val encodedCallback = URLEncoder.encode(callbackUri, "UTF-8")
+        val url = "${BuildConfig.BASE_URL}api/auth/oauth2/google?portal=$portal&redirect=$encodedCallback"
+        CustomTabsIntent.Builder()
+            .setShowTitle(true)
+            .build()
+            .launchUrl(this, Uri.parse(url))
+    }
+
     private fun attemptLogin() {
+        if (!(validateLoginEmail() and validateLoginPassword())) return
+
         val email = binding.etEmail.text.toString().trim()
         val password = binding.etPassword.text.toString()
-
-        if (email.isBlank() || password.isBlank()) {
-            showError(getString(R.string.error_required))
-            return
-        }
 
         setLoading(true)
 

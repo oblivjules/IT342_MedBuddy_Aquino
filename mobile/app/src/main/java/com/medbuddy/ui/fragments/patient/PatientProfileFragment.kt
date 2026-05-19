@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
 import com.google.gson.Gson
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.databinding.FragmentPatientProfileRefinedBinding
@@ -30,10 +30,22 @@ class PatientProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.progressBar.visibility = View.GONE
+        binding.scrollContent.visibility = View.VISIBLE
         loadProfileInfo()
 
+        binding.btnMyReviews.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(com.medbuddy.R.id.fragmentContainer, PatientRatingsFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         binding.btnEditProfile.setOnClickListener {
-            Toast.makeText(requireContext(), "Edit profile is not connected yet.", Toast.LENGTH_SHORT).show()
+            parentFragmentManager.beginTransaction()
+                .replace(com.medbuddy.R.id.fragmentContainer, EditProfileFragment())
+                .addToBackStack(null)
+                .commit()
         }
 
         binding.btnLogout.setOnClickListener { logout() }
@@ -44,15 +56,24 @@ class PatientProfileFragment : Fragment() {
         val user = runCatching { Gson().fromJson(userJson, UserDto::class.java) }.getOrNull()
         val firstName = user?.firstName.orEmpty()
         val lastName = user?.lastName.orEmpty()
-        binding.tvAvatar.text = patientInitials(firstName, lastName)
         binding.tvName.text = listOf(firstName, lastName).filter { it.isNotBlank() }.joinToString(" ").ifBlank { "Patient" }
         binding.tvEmail.text = user?.email.orEmpty()
-        binding.tvPatientId.text = user?.profileId?.let { "#${it}" } ?: "#${user?.id ?: "-"}"
 
-        val prefs = requireContext().getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
-        binding.switchNotifications.isChecked = prefs.getBoolean(KEY_NOTIFICATIONS, true)
-        binding.switchNotifications.setOnCheckedChangeListener { _, checked ->
-            prefs.edit().putBoolean(KEY_NOTIFICATIONS, checked).apply()
+        val imageUrl = user?.profileImageUrl
+        if (!imageUrl.isNullOrBlank()) {
+            binding.ivAvatar.visibility = View.VISIBLE
+            binding.tvAvatar.visibility = View.GONE
+            Glide.with(this).load(imageUrl).circleCrop().into(binding.ivAvatar)
+        } else {
+            binding.ivAvatar.visibility = View.GONE
+            binding.tvAvatar.visibility = View.VISIBLE
+            binding.tvAvatar.text = patientInitials(firstName, lastName)
+        }
+
+        val phone = user?.phoneNumber?.takeIf { it.isNotBlank() }
+        if (phone != null) {
+            binding.tvPhone.text = phone
+            binding.rowPhone.visibility = View.VISIBLE
         }
     }
 
@@ -60,10 +81,5 @@ class PatientProfileFragment : Fragment() {
         tokenManager.clearSession()
         startActivity(Intent(requireContext(), LoginActivity::class.java))
         requireActivity().finish()
-    }
-
-    companion object {
-        private const val PREFS_NAME = "patient_profile_prefs"
-        private const val KEY_NOTIFICATIONS = "notifications_enabled"
     }
 }

@@ -32,16 +32,29 @@
                     android:orientation="vertical"
                     android:padding="18dp">
 
-                    <TextView
-                        android:id="@+id/tvAvatar"
+                    <FrameLayout
                         android:layout_width="92dp"
                         android:layout_height="92dp"
-                        android:layout_gravity="center_horizontal"
-                        android:background="@drawable/bg_avatar_circle"
-                        android:gravity="center"
-                        android:textColor="@android:color/white"
-                        android:textSize="30sp"
-                        android:textStyle="bold" />
+                        android:layout_gravity="center_horizontal">
+
+                        <TextView
+                            android:id="@+id/tvAvatar"
+                            android:layout_width="92dp"
+                            android:layout_height="92dp"
+                            android:background="@drawable/bg_avatar_circle"
+                            android:gravity="center"
+                            android:textColor="@android:color/white"
+                            android:textSize="30sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/ivDoctorAvatar"
+                            android:layout_width="92dp"
+                            android:layout_height="92dp"
+                            android:contentDescription="Doctor photo"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+                    </FrameLayout>
 
                     <TextView
                         android:id="@+id/tvDoctorName"
@@ -58,6 +71,58 @@
                         android:layout_marginTop="4dp"
                         android:gravity="center"
                         android:textAppearance="@style/TextAppearance.MedBuddy.Caption" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:id="@+id/rowEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:contentDescription="Email"
+                                android:src="@android:drawable/ic_dialog_email" />
+
+                            <TextView
+                                android:id="@+id/tvDoctorEmail"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/rowPhone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:contentDescription="Phone"
+                                android:src="@android:drawable/ic_menu_call" />
+
+                            <TextView
+                                android:id="@+id/tvDoctorPhone"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -93,6 +158,31 @@
                         android:text="Book Appointment" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Upcoming Availability"
+                android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+            <TextView
+                android:id="@+id/tvAvailabilityEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="No upcoming availability"
+                android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                android:textColor="@color/text_secondary"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/containerAvailability"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
 
             <TextView
                 android:layout_width="match_parent"
