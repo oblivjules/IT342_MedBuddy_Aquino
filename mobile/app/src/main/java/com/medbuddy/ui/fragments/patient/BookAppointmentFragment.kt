@@ -19,10 +19,6 @@ import com.medbuddy.repository.AppointmentRepository
 import com.medbuddy.viewmodel.AppointmentViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 class BookAppointmentFragment : Fragment() {
 
@@ -32,7 +28,6 @@ class BookAppointmentFragment : Fragment() {
     private var doctor: DoctorDto? = null
     private var selectedDate: LocalDate = LocalDate.now().plusDays(1)
     private var selectedSlotId: Long? = null
-    private var selectedDateTime: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,7 +63,7 @@ class BookAppointmentFragment : Fragment() {
         binding.tvAvatar.text = doctorInitials(currentDoctor.firstName, currentDoctor.lastName)
         binding.tvDoctorName.text = doctorName
         binding.tvDoctorSpec.text = specialization
-        binding.tvReservationFee.text = ""
+        binding.tvReservationFee.text = "₱100 reservation fee"
     }
 
     private fun setupDates() {
@@ -76,7 +71,6 @@ class BookAppointmentFragment : Fragment() {
         dayAdapter = CalendarDayAdapter { date ->
             selectedDate = date
             selectedSlotId = null
-            selectedDateTime = null
             dayAdapter.selectedDate = date
             binding.btnBook.isEnabled = false
             loadSlotsForSelectedDate()
@@ -90,7 +84,7 @@ class BookAppointmentFragment : Fragment() {
     private fun observeSlots() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                viewModel.slotsState.collect { state ->
+                viewModel.slots.collect { state ->
                     binding.progressBar.visibility = if (state.loading) View.VISIBLE else View.GONE
                     if (state.loading) {
                         binding.scrollContent.visibility = View.GONE
@@ -132,7 +126,6 @@ class BookAppointmentFragment : Fragment() {
                                 isChecked = selectedSlotId == slot.id
                                 setOnClickListener {
                                     selectedSlotId = slot.id
-                                    selectedDateTime = buildDateTime(selectedDate, slot.time24)
                                     binding.btnBook.isEnabled = true
                                     refreshSlotStyles()
                                 }
@@ -165,42 +158,45 @@ class BookAppointmentFragment : Fragment() {
 
     private fun loadSlotsForSelectedDate() {
         val currentDoctor = doctor ?: return
-        viewModel.loadSlots(currentDoctor.id, selectedDate.toString())
+        viewModel.getSlotsByDoctorDate(currentDoctor.id, selectedDate.toString())
         binding.btnBook.isEnabled = false
     }
 
     private fun submitBooking() {
         val currentDoctor = doctor ?: return
-        val chosenDateTime = selectedDateTime
-        if (chosenDateTime.isNullOrBlank()) {
+        val chosenSlotId = selectedSlotId
+        if (chosenSlotId == null) {
             Toast.makeText(requireContext(), "Please select an available slot", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val notes = binding.etNotes.text?.toString()?.trim().orEmpty()
+        if (notes.isBlank()) {
+            Toast.makeText(requireContext(), "Please enter a reason for your visit", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (notes.length > 500) {
+            Toast.makeText(requireContext(), "Notes cannot exceed 500 characters", Toast.LENGTH_SHORT).show()
             return
         }
 
         binding.btnBook.isEnabled = false
         viewModel.bookAppointment(
             doctorId = currentDoctor.id,
-            dateTime = chosenDateTime,
-            notes = binding.etNotes.text?.toString()?.trim().orEmpty().ifBlank { null },
-            onSuccess = {
-                if (!isAdded) return@bookAppointment
+            slotId = chosenSlotId,
+            reason = notes
+        ) { success ->
+            if (!isAdded) return@bookAppointment
+            if (success) {
                 Toast.makeText(requireContext(), getString(R.string.success_booked), Toast.LENGTH_SHORT).show()
                 parentFragmentManager.popBackStack()
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.fragmentContainer, AppointmentsFragment())
                     .commit()
-            },
-            onError = { message ->
-                if (!isAdded) return@bookAppointment
+            } else {
                 binding.btnBook.isEnabled = true
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-            },
-        )
-    }
-
-    private fun buildDateTime(date: LocalDate, time24: String): String {
-        val time = LocalTime.parse(time24)
-        return LocalDateTime.of(date, time).format(DateTimeFormatter.ISO_DATE_TIME)
+                Toast.makeText(requireContext(), "Failed to book appointment", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     companion object {

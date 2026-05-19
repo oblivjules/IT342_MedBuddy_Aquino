@@ -28,17 +28,26 @@
                     android:text="Billing &amp; Payments"
                     android:textAppearance="@style/TextAppearance.MedBuddy.H1" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Manage your appointment invoices and payments"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                    android:textColor="@color/text_secondary" />
+
+                <!-- Summary Cards -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="18dp"
                     android:orientation="horizontal">
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginEnd="6dp"
                         app:cardCornerRadius="20dp"
                         app:cardElevation="0dp"
                         app:strokeColor="@color/border"
@@ -48,20 +57,22 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="16dp">
+                            android:padding="14dp">
 
                             <TextView
-                                android:text="Total Pending"
+                                android:text="Pending"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="@style/TextAppearance.MedBuddy.Caption" />
+                                android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                                android:textColor="@color/text_secondary" />
 
                             <TextView
                                 android:id="@+id/tvTotalPending"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+                                android:layout_marginTop="6dp"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.H2"
+                                android:textColor="@color/chip_pending_text" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
@@ -69,7 +80,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:layout_marginStart="8dp"
+                        android:layout_marginHorizontal="6dp"
                         app:cardCornerRadius="20dp"
                         app:cardElevation="0dp"
                         app:strokeColor="@color/border"
@@ -79,23 +90,114 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="16dp">
+                            android:padding="14dp">
 
                             <TextView
-                                android:text="Total Paid"
+                                android:text="Paid"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textAppearance="@style/TextAppearance.MedBuddy.Caption" />
+                                android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                                android:textColor="@color/text_secondary" />
 
                             <TextView
                                 android:id="@+id/tvTotalPaid"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
-                                android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+                                android:layout_marginTop="6dp"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.H2"
+                                android:textColor="@color/chip_completed_text" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/border"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="14dp">
+
+                            <TextView
+                                android:text="Refunded"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                                android:textColor="@color/text_secondary" />
+
+                            <TextView
+                                android:id="@+id/tvTotalRefunded"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.H2"
+                                android:textColor="@color/status_refunded_text" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
+
+                <!-- Payment Progress Bar -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Payment Progress"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
+
+                            <TextView
+                                android:id="@+id/tvProgressPercent"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold"
+                                android:textColor="@color/primary" />
+                        </LinearLayout>
+
+                        <ProgressBar
+                            android:id="@+id/paymentProgressBar"
+                            style="@android:style/Widget.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="8dp"
+                            android:layout_marginTop="10dp"
+                            android:max="100"
+                            android:progressTint="@color/primary" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Invoice List -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:text="Invoice History"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
 
                 <TextView
                     android:id="@+id/tvEmptyState"
@@ -112,7 +214,7 @@
                     android:id="@+id/rvPayments"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="12dp"
                     android:nestedScrollingEnabled="false" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

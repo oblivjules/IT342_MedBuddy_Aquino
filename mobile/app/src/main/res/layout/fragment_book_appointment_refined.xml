@@ -119,18 +119,26 @@
                 android:textColor="@color/text_secondary"
                 android:visibility="gone" />
 
-            <com.google.android.material.textfield.TextInputLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
+                android:text="Reason for Visit / Notes *"
+                android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 style="@style/Widget.MedBuddy.InputLayout">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etNotes"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Notes (optional)"
+                    android:hint="Describe your symptoms or reason for the visit..."
                     android:minLines="3"
+                    android:maxLength="500"
                     android:gravity="top"
                     android:inputType="textMultiLine"
                     style="@style/Widget.MedBuddy.InputEditText" />

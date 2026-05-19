@@ -16,7 +16,6 @@ import java.util.Locale
 
 class PatientAppointmentAdapter(
     private val onCancelClick: (AppointmentResponse) -> Unit,
-    private val onRescheduleClick: (AppointmentResponse) -> Unit,
     private val onViewRecordClick: (AppointmentResponse) -> Unit,
     private val onRateClick: (AppointmentResponse) -> Unit,
 ) : ListAdapter<AppointmentResponse, PatientAppointmentAdapter.ViewHolder>(DiffCallback()) {
@@ -69,11 +68,9 @@ class PatientAppointmentAdapter(
             when (status) {
                 AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED -> {
                     binding.btnPrimary.visibility = View.VISIBLE
-                    binding.btnSecondary.visibility = View.VISIBLE
                     binding.btnPrimary.text = "Cancel"
-                    binding.btnSecondary.text = "Reschedule"
                     binding.btnPrimary.setOnClickListener { onCancelClick(item) }
-                    binding.btnSecondary.setOnClickListener { onRescheduleClick(item) }
+                    binding.btnSecondary.visibility = View.GONE
                 }
                 AppointmentStatus.COMPLETED -> {
                     binding.btnPrimary.visibility = View.VISIBLE

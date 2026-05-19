@@ -19,17 +19,25 @@
             android:padding="20dp">
 
             <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Patient Dashboard"
+                android:textAppearance="@style/TextAppearance.MedBuddy.H1"
+                android:textColor="@color/text_primary" />
+
+            <TextView
                 android:id="@+id/tvWelcome"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.MedBuddy.H1"
+                android:layout_marginTop="16dp"
+                android:textAppearance="@style/TextAppearance.MedBuddy.H2"
                 android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tvSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:textAppearance="@style/TextAppearance.MedBuddy.Body"
                 android:textColor="@color/text_secondary" />
 
@@ -160,9 +168,20 @@
                         android:orientation="vertical"
                         android:padding="18dp">
 
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@color/primary_soft"
+                            android:contentDescription="Book Appointment"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_calendar"
+                            app:tint="@color/primary" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:gravity="center"
                             android:text="Book Appointment"
                             android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
                     </LinearLayout>
@@ -186,9 +205,20 @@
                         android:orientation="vertical"
                         android:padding="18dp">
 
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@color/primary_soft"
+                            android:contentDescription="My Records"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_appointments"
+                            app:tint="@color/primary" />
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:gravity="center"
                             android:text="My Records"
                             android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
                     </LinearLayout>

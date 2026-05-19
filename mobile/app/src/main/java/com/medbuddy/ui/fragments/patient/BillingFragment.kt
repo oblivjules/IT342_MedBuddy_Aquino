@@ -10,12 +10,15 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.medbuddy.R
+import com.medbuddy.api.ApiErrorMapper
 import com.medbuddy.api.RetrofitClient
-import com.medbuddy.api.bodyOrThrow
+import com.medbuddy.constants.AppointmentStatus
 import com.medbuddy.databinding.FragmentBillingBinding
 import com.medbuddy.repository.AppointmentRepository
 import com.medbuddy.repository.PaymentRepository
 import kotlinx.coroutines.launch
+
+private const val RESERVATION_FEE = 100.0
 
 class BillingFragment : Fragment() {
 
@@ -57,26 +60,41 @@ class BillingFragment : Fragment() {
                 val appointments = appointmentRepository.getPatientAppointments()
                 val rows = mutableListOf<PatientPaymentRow>()
 
-                appointments.forEach { appointment ->
-                    val response = runCatching { paymentRepository.getPaymentByAppointment(appointment.id) }.getOrNull()
-                    if (response != null) {
-                        rows.add(
-                            PatientPaymentRow(
-                                paymentId = response.id,
-                                appointmentId = appointment.id,
-                                doctorName = appointmentDoctorName(appointment),
-                                amount = response.feeAmount,
-                                status = response.paymentStatus,
-                                dateLabel = formatAppointmentDateTime(appointment.dateTime),
-                                description = response.status ?: "Consultation Bill",
-                            )
+                for (appointment in appointments) {
+                    val payment = runCatching { paymentRepository.getPaymentByAppointmentId(appointment.id) }.getOrNull()
+                    val normalizedAppointmentStatus = AppointmentStatus.normalize(appointment.status)
+                    rows.add(
+                        PatientPaymentRow(
+                            paymentId = payment?.id,
+                            appointmentId = appointment.id,
+                            doctorName = appointmentDoctorName(appointment),
+                            amount = payment?.feeAmount ?: RESERVATION_FEE,
+                            status = if (normalizedAppointmentStatus == AppointmentStatus.CANCELLED) {
+                                AppointmentStatus.CANCELLED
+                            } else {
+                                normalizePaymentStatus(payment?.paymentStatus)
+                            },
+                            appointmentStatus = normalizedAppointmentStatus,
+                            dateLabel = formatAppointmentDate(appointment.dateTime),
+                            description = payment?.status ?: "Consultation Bill",
                         )
-                    }
+                    )
                 }
 
                 adapter.submitList(rows)
-                binding.tvTotalPending.text = "PHP ${String.format("%.2f", rows.filter { it.status.uppercase() != "PAID" }.sumOf { it.amount })}"
-                binding.tvTotalPaid.text = "PHP ${String.format("%.2f", rows.filter { it.status.uppercase() == "PAID" }.sumOf { it.amount })}"
+
+                val totalAmount = rows.sumOf { it.amount }
+                val totalPaid = rows.filter { it.status.uppercase() == "PAID" }.sumOf { it.amount }
+                val totalRefunded = rows.filter { it.status.uppercase() == "REFUNDED" }.sumOf { it.amount }
+                val totalPending = rows.filter { it.status.uppercase() !in setOf("PAID", "REFUNDED") }.sumOf { it.amount }
+                val paidPercent = if (totalAmount > 0) ((totalPaid / totalAmount) * 100).toInt() else 0
+
+                binding.tvTotalPending.text = "PHP ${String.format("%.2f", totalPending)}"
+                binding.tvTotalPaid.text = "PHP ${String.format("%.2f", totalPaid)}"
+                binding.tvTotalRefunded.text = "PHP ${String.format("%.2f", totalRefunded)}"
+                binding.tvProgressPercent.text = "$paidPercent%"
+                binding.paymentProgressBar.progress = paidPercent
+
                 binding.tvEmptyState.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
             } catch (throwable: Throwable) {
                 binding.tvEmptyState.visibility = View.VISIBLE
@@ -89,11 +107,32 @@ class BillingFragment : Fragment() {
         }
     }
 
+    private fun normalizePaymentStatus(status: String?): String {
+        return when (status?.uppercase()) {
+            "PAID", "COMPLETED" -> "PAID"
+            "PARTIAL" -> "PARTIAL"
+            "REFUNDED" -> "REFUNDED"
+            "FAILED" -> "FAILED"
+            else -> "PENDING"
+        }
+    }
+
     private fun payNow(row: PatientPaymentRow) {
+        val payableAppointment = row.appointmentStatus.uppercase() in setOf("PENDING", "CONFIRMED", "COMPLETED")
+        if (!payableAppointment) {
+            binding.tvEmptyState.text = "Only pending, confirmed, or completed appointments can be paid."
+            binding.tvEmptyState.visibility = View.VISIBLE
+            return
+        }
+
+        val requestAmount = if (row.amount > 0.0) row.amount else RESERVATION_FEE
         viewLifecycleOwner.lifecycleScope.launch {
-            runCatching { paymentRepository.initiatePayment(row.appointmentId) }
+            runCatching { paymentRepository.initiatePayment(row.appointmentId, requestAmount.toBigDecimal()) }
                 .onSuccess { checkoutUrl -> openCheckout(checkoutUrl) }
-                .onFailure { binding.tvEmptyState.visibility = View.VISIBLE }
+                .onFailure {
+                    binding.tvEmptyState.text = ApiErrorMapper.toUserMessage(requireContext(), it, R.string.error_bad_request)
+                    binding.tvEmptyState.visibility = View.VISIBLE
+                }
         }
     }
 

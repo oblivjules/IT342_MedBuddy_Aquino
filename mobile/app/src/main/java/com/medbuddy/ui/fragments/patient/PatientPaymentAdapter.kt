@@ -16,6 +16,7 @@ data class PatientPaymentRow(
     val doctorName: String,
     val amount: Double,
     val status: String,
+    val appointmentStatus: String,
     val dateLabel: String,
     val description: String,
 )
@@ -39,6 +40,7 @@ class PatientPaymentAdapter(
 
         fun bind(item: PatientPaymentRow) {
             val normalized = item.status.uppercase()
+            val appointmentStatus = item.appointmentStatus.uppercase()
             binding.tvReference.text = item.paymentId?.let { "Payment #$it" } ?: "Appointment #${item.appointmentId}"
             binding.tvDoctorName.text = "Dr. ${item.doctorName}"
             binding.tvAmount.text = "PHP ${String.format("%.2f", item.amount)}"
@@ -47,14 +49,18 @@ class PatientPaymentAdapter(
             binding.tvDescription.text = item.description
             styleStatusChip(normalized)
 
-            binding.btnPayNow.visibility = if (normalized == "PENDING" || normalized == "FAILED") View.VISIBLE else View.GONE
+            val payableAppointment = appointmentStatus == "PENDING" || appointmentStatus == "CONFIRMED" || appointmentStatus == "COMPLETED"
+            val payablePayment = normalized == "PENDING" || normalized == "PARTIAL" || normalized == "FAILED"
+            binding.btnPayNow.visibility = if (payablePayment && payableAppointment) View.VISIBLE else View.GONE
             binding.btnPayNow.setOnClickListener { onPayNowClick(item) }
         }
 
         private fun styleStatusChip(status: String) {
             val context = itemView.context
             val (background, textColor) = when (status) {
-                "PAID" -> R.color.chip_confirmed_bg to R.color.chip_confirmed_text
+                "PAID" -> R.color.chip_completed_bg to R.color.chip_completed_text
+                "PARTIAL" -> R.color.chip_pending_bg to R.color.chip_pending_text
+                "REFUNDED" -> R.color.status_refunded_bg to R.color.status_refunded_text
                 "FAILED" -> R.color.chip_cancelled_bg to R.color.chip_cancelled_text
                 else -> R.color.chip_pending_bg to R.color.chip_pending_text
             }

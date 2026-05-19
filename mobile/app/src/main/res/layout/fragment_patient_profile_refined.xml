@@ -39,16 +39,28 @@
                     android:orientation="vertical"
                     android:padding="18dp">
 
-                    <TextView
-                        android:id="@+id/tvAvatar"
+                    <FrameLayout
                         android:layout_width="92dp"
                         android:layout_height="92dp"
-                        android:layout_gravity="center_horizontal"
-                        android:background="@drawable/bg_avatar_circle"
-                        android:gravity="center"
-                        android:textColor="@android:color/white"
-                        android:textSize="30sp"
-                        android:textStyle="bold" />
+                        android:layout_gravity="center_horizontal">
+
+                        <TextView
+                            android:id="@+id/tvAvatar"
+                            android:layout_width="92dp"
+                            android:layout_height="92dp"
+                            android:background="@drawable/bg_avatar_circle"
+                            android:gravity="center"
+                            android:textColor="@android:color/white"
+                            android:textSize="30sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/ivAvatar"
+                            android:layout_width="92dp"
+                            android:layout_height="92dp"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+                    </FrameLayout>
 
                     <TextView
                         android:id="@+id/tvName"
@@ -79,6 +91,7 @@
                         android:orientation="vertical">
 
                         <LinearLayout
+                            android:id="@+id/rowEmail"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
@@ -99,20 +112,22 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/rowPhone"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
+                            android:layout_marginTop="10dp"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:visibility="gone">
 
                             <ImageView
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
-                                android:contentDescription="Patient ID"
-                                android:src="@android:drawable/ic_menu_info_details" />
+                                android:contentDescription="Phone"
+                                android:src="@android:drawable/ic_menu_call" />
 
                             <TextView
-                                android:id="@+id/tvPatientId"
+                                android:id="@+id/tvPhone"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="10dp"
@@ -121,48 +136,20 @@
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMyReviews"
+                        style="@style/Widget.MedBuddy.Button.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="18dp"
+                        android:text="My Reviews" />
+
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEditProfile"
                         style="@style/Widget.MedBuddy.Button.Primary"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:layout_marginTop="18dp"
+                        android:layout_marginTop="10dp"
                         android:text="Edit Profile" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                app:cardCornerRadius="22dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/border"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="18dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Notifications"
-                            android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
-
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchNotifications"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

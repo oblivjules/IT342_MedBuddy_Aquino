@@ -52,7 +52,7 @@
                     android:layout_height="wrap_content"
                     android:hint="All Specializations"
                     android:inputType="none"
-                    android:focusable="false"
+                    android:focusableInTouchMode="false"
                     android:clickable="true"
                     style="@style/Widget.MedBuddy.InputEditText" />
             </com.google.android.material.textfield.TextInputLayout>

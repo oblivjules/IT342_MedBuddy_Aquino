@@ -7,6 +7,12 @@ object AppConstants {
         const val ACTION_SESSION_EXPIRED = "com.medbuddy.ACTION_SESSION_EXPIRED"
     }
 
+    object Payment {
+        const val RETURN_SCHEME = "medbuddy"
+        const val RETURN_HOST = "payment"
+        const val RETURN_URL = "medbuddy://payment"
+    }
+
     object Role {
         const val PATIENT = "PATIENT"
         const val DOCTOR = "DOCTOR"

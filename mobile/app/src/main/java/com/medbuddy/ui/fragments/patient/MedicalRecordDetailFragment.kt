@@ -70,6 +70,8 @@ class MedicalRecordDetailFragment : Fragment() {
                     ?: buildPrescriptionSummary(record)
                 fileAdapter.submitList(files)
                 binding.tvFilesEmptyState.visibility = if (files.isEmpty()) View.VISIBLE else View.GONE
+
+                loadDrugInfo(record.id)
             } catch (throwable: Throwable) {
                 binding.tvDiagnosis.text = throwable.message ?: "Unable to load medical record"
                 binding.tvFilesEmptyState.visibility = View.VISIBLE
@@ -85,6 +87,33 @@ class MedicalRecordDetailFragment : Fragment() {
             recordId > 0 -> recordRepository.getMedicalRecord(recordId)
             appointmentId > 0 -> recordRepository.getMedicalRecordByAppointment(appointmentId)
             else -> throw IllegalStateException("Missing record reference")
+        }
+    }
+
+    private fun loadDrugInfo(recordId: Long) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val drugInfo = runCatching { recordRepository.getDrugInfo(recordId) }.getOrNull()
+                ?: return@launch
+            if (drugInfo.available != true) return@launch
+
+            binding.layoutDrugInfo.visibility = View.VISIBLE
+            drugInfo.description?.takeIf { it.isNotBlank() }?.let {
+                binding.tvDrugDescription.text = it
+                binding.tvDrugDescription.visibility = View.VISIBLE
+            }
+            drugInfo.indications?.takeIf { it.isNotBlank() }?.let {
+                binding.tvDrugIndications.text = "Indications: $it"
+                binding.tvDrugIndications.visibility = View.VISIBLE
+            }
+            val dosage = drugInfo.dosageAdministration?.takeIf { it.isNotBlank() } ?: drugInfo.dosage?.takeIf { it.isNotBlank() }
+            dosage?.let {
+                binding.tvDrugDosage.text = "Dosage: $it"
+                binding.tvDrugDosage.visibility = View.VISIBLE
+            }
+            drugInfo.warnings?.takeIf { it.isNotBlank() }?.let {
+                binding.tvDrugWarnings.text = "⚠ Warnings: $it"
+                binding.tvDrugWarnings.visibility = View.VISIBLE
+            }
         }
     }
 

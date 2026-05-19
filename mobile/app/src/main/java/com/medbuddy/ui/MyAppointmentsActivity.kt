@@ -70,7 +70,6 @@ class MyAppointmentsActivity : AppCompatActivity() {
     private fun handleAppointmentAction(appointment: AppointmentResponse, targetStatus: String) {
         when (targetStatus) {
             "VIEW_RECORD" -> navigateToMedicalHistory()
-            "RESCHEDULE" -> android.widget.Toast.makeText(this, "Reschedule not yet implemented", android.widget.Toast.LENGTH_SHORT).show()
             else -> confirmStatusChange(appointment.id, targetStatus)
         }
     }
