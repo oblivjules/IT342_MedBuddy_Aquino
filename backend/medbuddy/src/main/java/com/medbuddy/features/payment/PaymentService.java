@@ -134,7 +134,7 @@ public class PaymentService {
                 .feeAmount(remainingAmount)
                 .build();
 
-        com.fasterxml.jackson.databind.JsonNode pmResp = payMongoService.createCheckoutSession(checkoutPayment, appointment);
+        com.fasterxml.jackson.databind.JsonNode pmResp = payMongoService.createCheckoutSession(checkoutPayment, appointment, request.getReturnUrl());
         if (pmResp == null) {
             String error = "Failed to create PayMongo checkout session. PayMongo service returned null.";
             log.error(error);

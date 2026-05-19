@@ -62,71 +62,87 @@ public class PayMongoService {
 }
 
     public JsonNode createCheckoutSession(Payment payment, Appointment appointment) {
-        try {
-            String url = "https://api.paymongo.com/v1/checkout_sessions";
-
-            long amountCentavos = payment.getFeeAmount()
-                    .multiply(java.math.BigDecimal.valueOf(100))
-                    .longValueExact();
-
-            String successUrl = frontendUrl + "/payment/success?appointmentId=" + appointment.getId();
-            String cancelUrl  = frontendUrl + "/payment/cancel?appointmentId=" + appointment.getId();
-            String failedUrl  = frontendUrl + "/payment/failed?appointmentId=" + appointment.getId();
-
-            String jsonBody = String.format("""
-                    {
-                      "data": {
-                        "attributes": {
-                          "line_items": [
-                            {
-                              "currency": "PHP",
-                              "amount": %d,
-                              "name": "Consultation Fee",
-                              "quantity": 1
-                            }
-                          ],
-                          "payment_method_types": ["card", "gcash"],
-                          "success_url": "%s",
-                          "cancel_url": "%s",
-                          "failed_url": "%s",
-                          "description": "MedBuddy Appointment Payment"
-                        }
-                      }
-                    }
-                    """, amountCentavos, successUrl, cancelUrl, failedUrl);
-
-            log.info("PayMongo checkout URLs - Success: {}, Cancel: {}, Failed: {}", successUrl, cancelUrl, failedUrl);
-            log.info("PayMongo request body: {}", jsonBody);
-            log.info("PayMongo auth header prefix: {}",
-                    basicAuthHeader != null ? basicAuthHeader.substring(0, 20) + "..." : "NULL");
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
-            headers.set(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader());
-
-            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
-            ResponseEntity<String> resp = restTemplate.postForEntity(url, entity, String.class);
-
-            log.info("PayMongo response status: {} body: {}", resp.getStatusCode(), resp.getBody());
-
-            if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
-                return objectMapper.readTree(resp.getBody());
-            }
-
-            log.warn("Unexpected PayMongo response: status={} body={}", resp.getStatusCode(), resp.getBody());
-
-        } catch (org.springframework.web.client.HttpClientErrorException e) {
-            log.error("PayMongo API rejected request: status={} body={}",
-                    e.getStatusCode(), e.getResponseBodyAsString());
-        } catch (JsonProcessingException e) {
-            log.error("PayMongo response parse error: {}", e.getMessage());
-        } catch (org.springframework.web.client.RestClientException e) {
-            log.error("PayMongo connection error: {}", e.getMessage(), e);
-        } catch (Exception e) {
-            log.error("Unexpected PayMongo error: {}", e.getMessage(), e);
-        }
-        return null;
+                return createCheckoutSession(payment, appointment, null);
     }
+
+        public JsonNode createCheckoutSession(Payment payment, Appointment appointment, String returnUrl) {
+                try {
+                        String url = "https://api.paymongo.com/v1/checkout_sessions";
+                        String baseReturnUrl = normalizeReturnUrl(returnUrl);
+
+                        long amountCentavos = payment.getFeeAmount()
+                                        .multiply(java.math.BigDecimal.valueOf(100))
+                                        .longValueExact();
+
+                        String successUrl = baseReturnUrl + "/success?appointmentId=" + appointment.getId();
+                        String cancelUrl  = baseReturnUrl + "/cancel?appointmentId=" + appointment.getId();
+                        String failedUrl  = baseReturnUrl + "/failed?appointmentId=" + appointment.getId();
+
+                        String jsonBody = String.format("""
+                                        {
+                                            "data": {
+                                                "attributes": {
+                                                    "line_items": [
+                                                        {
+                                                            "currency": "PHP",
+                                                            "amount": %d,
+                                                            "name": "Consultation Fee",
+                                                            "quantity": 1
+                                                        }
+                                                    ],
+                                                    "payment_method_types": ["card", "gcash"],
+                                                    "success_url": "%s",
+                                                    "cancel_url": "%s",
+                                                    "failed_url": "%s",
+                                                    "description": "MedBuddy Appointment Payment"
+                                                }
+                                            }
+                                        }
+                                        """, amountCentavos, successUrl, cancelUrl, failedUrl);
+
+                        log.info("PayMongo checkout URLs - Success: {}, Cancel: {}, Failed: {}", successUrl, cancelUrl, failedUrl);
+                        log.info("PayMongo request body: {}", jsonBody);
+                        log.info("PayMongo auth header prefix: {}",
+                                        basicAuthHeader != null ? basicAuthHeader.substring(0, 20) + "..." : "NULL");
+
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+                        headers.set(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader());
+
+                        HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+                        ResponseEntity<String> resp = restTemplate.postForEntity(url, entity, String.class);
+
+                        log.info("PayMongo response status: {} body: {}", resp.getStatusCode(), resp.getBody());
+
+                        if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
+                                return objectMapper.readTree(resp.getBody());
+                        }
+
+                        log.warn("Unexpected PayMongo response: status={} body={}", resp.getStatusCode(), resp.getBody());
+
+                } catch (org.springframework.web.client.HttpClientErrorException e) {
+                        log.error("PayMongo API rejected request: status={} body={}",
+                                        e.getStatusCode(), e.getResponseBodyAsString());
+                } catch (JsonProcessingException e) {
+                        log.error("PayMongo response parse error: {}", e.getMessage());
+                } catch (org.springframework.web.client.RestClientException e) {
+                        log.error("PayMongo connection error: {}", e.getMessage(), e);
+                } catch (Exception e) {
+                        log.error("Unexpected PayMongo error: {}", e.getMessage(), e);
+                }
+                return null;
+        }
+
+        private String normalizeReturnUrl(String returnUrl) {
+                String base = returnUrl;
+                if (base == null || base.isBlank()) {
+                        base = frontendUrl;
+                }
+                while (base.endsWith("/")) {
+                        base = base.substring(0, base.length() - 1);
+                }
+                return base;
+        }
 
     public boolean verifyWebhookSignature(String rawPayload, String sigHeader) {
         if (webhookSecret == null || webhookSecret.isBlank() || sigHeader == null) {

@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.medbuddy.api.ApiService
 import com.medbuddy.api.bodyOrThrow
+import com.medbuddy.constants.AppConstants
 import com.medbuddy.dto.AppointmentResponse
 import com.medbuddy.dto.PaymentResponse
 import kotlinx.coroutines.launch
@@ -54,11 +55,11 @@ class PaymentDetailViewModel(
         }
     }
 
-    fun initiatePayment(appointmentId: Long) {
+    fun initiatePayment(appointmentId: Long, amount: Double) {
         viewModelScope.launch {
             try {
                 val response = apiService.initiatePayment(
-                    com.medbuddy.dto.PaymentInitiateRequest(appointmentId)
+                    com.medbuddy.dto.PaymentInitiateRequest(appointmentId, amount.toBigDecimal(), AppConstants.Payment.RETURN_URL)
                 ).bodyOrThrow()
                 _initiatePaymentUrl.value = response.checkoutUrl
                 
