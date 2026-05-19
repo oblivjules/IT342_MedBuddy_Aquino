@@ -101,6 +101,37 @@
             android:label="My Ratings"
             android:parentActivityName=".ui.DoctorDashboardActivity" />
 
+        <activity
+            android:name=".ui.OAuthCallbackActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="medbuddy"
+                    android:host="oauth-callback" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.PaymentResultActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="medbuddy"
+                    android:host="payment"
+                    android:pathPrefix="/" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>

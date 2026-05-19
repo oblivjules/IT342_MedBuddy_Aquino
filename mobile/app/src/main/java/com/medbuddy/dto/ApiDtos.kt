@@ -1,6 +1,9 @@
 package com.medbuddy.dto
 
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
+import com.medbuddy.api.TimeArrayOrStringAdapter
+import java.math.BigDecimal
 
 data class AuthResponseDto(
     val token: String,
@@ -52,8 +55,11 @@ data class SpecializationDto(
 data class UpdateProfileRequest(
     val firstName: String? = null,
     val lastName: String? = null,
+    val email: String? = null,
     val phoneNumber: String? = null,
-    val specialization: String? = null
+    val specialization: String? = null,
+    val currentPassword: String? = null,
+    val newPassword: String? = null
 )
 
 data class DoctorDto(
@@ -127,10 +133,14 @@ data class DoctorAvailabilityResponse(
     val id: Long = 0,
     val doctorId: Long,
     val availableDate: String,
+    @JsonAdapter(TimeArrayOrStringAdapter::class)
     val startTime: String,
+    @JsonAdapter(TimeArrayOrStringAdapter::class)
     val endTime: String,
     val status: String,
+    @JsonAdapter(TimeArrayOrStringAdapter::class)
     val slotStartTime: String? = null,
+    @JsonAdapter(TimeArrayOrStringAdapter::class)
     val slotEndTime: String? = null
 )
 
@@ -191,35 +201,22 @@ data class CreateMedicalRecordRequest(
 )
 
 data class DrugInfoDto(
-    val indications: String? = null,
+    @SerializedName("indicationsAndUsage") val indications: String? = null,
     val warnings: String? = null,
+    @SerializedName("dosageAndAdministration") val dosageAdministration: String? = null,
     val dosage: String? = null,
-    val description: String? = null,
-    val dosageAdministration: String? = null
+    val description: String? = null
 )
 
 data class DrugInfoResponse(
     val available: Boolean? = null,
-    val data: DrugInfoDto? = null,
-    val indications: String? = null,
-    val warnings: String? = null,
-    val dosage: String? = null,
-    val description: String? = null,
-    val dosageAdministration: String? = null
+    val data: DrugInfoDto? = null
 ) {
-    companion object {
-        fun notAvailable(): DrugInfoResponse = DrugInfoResponse(available = false)
-
-        fun available(data: DrugInfoDto): DrugInfoResponse = DrugInfoResponse(
-            available = true,
-            data = data,
-            indications = data.indications,
-            warnings = data.warnings,
-            dosage = data.dosage,
-            description = data.description,
-            dosageAdministration = data.dosageAdministration ?: data.dosage
-        )
-    }
+    val indications: String? get() = data?.indications
+    val warnings: String? get() = data?.warnings
+    val dosageAdministration: String? get() = data?.dosageAdministration ?: data?.dosage
+    val dosage: String? get() = data?.dosage
+    val description: String? get() = data?.description
 }
 
 data class PaymentResponse(
@@ -240,7 +237,9 @@ data class CreatePaymentRequest(
 )
 
 data class PaymentInitiateRequest(
-    val appointmentId: Long
+    val appointmentId: Long,
+    val amount: BigDecimal,
+    val returnUrl: String? = null
 )
 
 data class PaymentInitiateResponse(
@@ -310,7 +309,9 @@ data class TemplateRequestDto(
 
 data class AppointmentSlotResponseDto(
     val id: Long,
+    @JsonAdapter(TimeArrayOrStringAdapter::class)
     val slotStartTime: String? = null,
+    @JsonAdapter(TimeArrayOrStringAdapter::class)
     val slotEndTime: String? = null,
     val status: String? = null
 )

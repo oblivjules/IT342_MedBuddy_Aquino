@@ -118,6 +118,12 @@ interface AvailabilityApiService {
 
     @POST("api/doctor/schedule/exception")
     suspend fun saveMyException(@Body request: DoctorAvailabilityRequest): Response<Unit>
+
+    @GET("api/appointment-slots/by-doctor/{doctorId}")
+    suspend fun getDoctorAppointmentSlots(
+        @Path("doctorId") doctorId: Long,
+        @Query("slotDate") slotDate: String
+    ): Response<List<AppointmentSlotResponseDto>>
 }
 
 interface MedicalRecordApiService {
@@ -151,6 +157,9 @@ interface MedicalRecordApiService {
 
     @GET("api/medical-record-files/appointment/{appointmentId}")
     suspend fun getAppointmentFiles(@Path("appointmentId") appointmentId: Long): Response<List<com.medbuddy.dto.MedicalRecordFileResponse>>
+
+    @GET("api/record-files/my")
+    suspend fun getMyRecordFiles(): Response<List<com.medbuddy.dto.MedicalRecordFileResponse>>
 }
 
 interface PaymentApiService {

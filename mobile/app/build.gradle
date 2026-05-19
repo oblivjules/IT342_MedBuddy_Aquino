@@ -22,7 +22,7 @@ android {
         debug {
             // Update this IP to match your machine's local IPv4 address (check via ipconfig / ifconfig)
             // Make sure your phone and backend machine are on the same WiFi network
-            buildConfigField "String", "BASE_URL", '"http://192.168.1.9:8080/"'
+            buildConfigField "String", "BASE_URL", '"http://192.168.1.8:8080/"'
             debuggable true
         }
         release {
@@ -78,6 +78,9 @@ dependencies {
 
     // Chrome Custom Tabs — used for Google OAuth2 sign-in
     implementation 'androidx.browser:browser:1.8.0'
+
+    // Glide — image loading for doctor profile pictures
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
 
     // Testing
     testImplementation 'junit:junit:4.13.2'
