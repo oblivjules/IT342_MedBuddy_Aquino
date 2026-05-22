@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Eye, EyeOff, Stethoscope, User } from 'lucide-react'
 import { useAuth } from './useAuth'
@@ -19,7 +19,7 @@ const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login } = useAuth()
+  const { login, isAuthenticated, user } = useAuth()
   const [selectedRole, setSelectedRole] = useState('PATIENT')
 
   const [form, setForm] = useState({ email: '', password: '' })
@@ -29,6 +29,15 @@ function Login() {
   const oauthPortal = selectedRole === 'DOCTOR' ? 'doctor' : 'patient'
 
   const from = location.state?.from?.pathname || null
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      return
+    }
+
+    const redirect = user.role === 'DOCTOR' ? '/doctor/dashboard' : '/patient/dashboard'
+    navigate(redirect, { replace: true })
+  }, [isAuthenticated, user, navigate])
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))

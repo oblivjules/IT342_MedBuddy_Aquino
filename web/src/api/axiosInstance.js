@@ -25,15 +25,15 @@ function makeCachedResponse(config, data) {
   }
 }
 
-// Base URL from Vite env (fallback to localhost for dev)
+const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+  baseURL: BACKEND_URL,
   timeout: DEFAULT_API_WAIT_MS,
   headers: {
     'Content-Type': 'application/json',
   },
 })
-
 
 // Simple global loading event emitter for UI overlay
 let __pendingRequests = 0
