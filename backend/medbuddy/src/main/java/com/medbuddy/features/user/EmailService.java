@@ -1,21 +1,20 @@
 package com.medbuddy.features.user;
 
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,16 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EmailService {
 
-    private final JavaMailSender mailSender;
-
-    @Value("${spring.mail.from:}")
+    @Value("${brevo.mail.from:}")
     private String fromAddress;
 
-    @Value("${spring.mail.username:}")
-    private String smtpUsername;
-
-    @Value("${spring.mail.password:}")
-    private String smtpPassword;
+    @Value("${brevo.api.key:}")
+    private String brevoApiKey;
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a");
@@ -46,12 +40,7 @@ public class EmailService {
 
     @PostConstruct
     void logMailConfigStatus() {
-        boolean hasUsername = smtpUsername != null && !smtpUsername.isBlank();
-        boolean hasPassword = smtpPassword != null && !smtpPassword.isBlank();
-        boolean hasFrom = fromAddress != null && !fromAddress.isBlank();
-
-        log.info("Email config status | usernameSet={} passwordSet={} fromSet={}",
-                hasUsername, hasPassword, hasFrom);
+        log.info("Email config | apiKeySet={} fromSet={}", !brevoApiKey.isBlank(), !fromAddress.isBlank());
     }
 
     @Async("emailTaskExecutor")
@@ -759,37 +748,55 @@ public class EmailService {
 
     private void send(String to, String subject, String htmlBody) {
         try {
-            if (Objects.isNull(smtpUsername) || smtpUsername.isBlank()
-                    || Objects.isNull(smtpPassword) || smtpPassword.isBlank()) {
-                log.warn("Skipping email send because SMTP credentials are not configured. "
-                        + "Set BREVO_SMTP_LOGIN and BREVO_SMTP_PASSWORD env vars | to={} subject='{}'",
+            if (brevoApiKey == null || brevoApiKey.isBlank()) {
+                log.warn("Skipping email send because Brevo API key is not configured. Set BREVO_API_KEY | to={} subject='{}'",
                         to, subject);
                 return;
             }
 
-            String effectiveFrom = (fromAddress != null && !fromAddress.isBlank())
-                    ? fromAddress
-                    : smtpUsername;
+            String jsonBody = buildBrevoPayload(to, subject, htmlBody);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
+                    .header("api-key", brevoApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
 
-            if (effectiveFrom.isBlank()) {
-                log.warn("Skipping email send because sender address is missing. "
-                        + "Set BREVO_MAIL_FROM or BREVO_SMTP_LOGIN env var | to={} subject='{}'",
-                        to, subject);
-                return;
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 201) {
+                log.info("Email sent | to={} subject='{}'", to, subject);
+            } else {
+                log.error("Failed to send email | to={} subject='{}' status={} body={}",
+                        to, subject, response.statusCode(), response.body());
             }
-
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-            helper.setFrom(effectiveFrom);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-
-            mailSender.send(message);
-            log.info("Email sent | to={} subject='{}'", to, subject);
-        } catch (MessagingException | MailException e) {
+        } catch (Exception e) {
             log.error("Failed to send email | to={} subject='{}' reason={}",
                     to, subject, e.getMessage(), e);
         }
+    }
+
+    private String buildBrevoPayload(String to, String subject, String htmlBody) {
+        String escapedFrom = escapeJson(fromAddress);
+        String escapedTo = escapeJson(to);
+        String escapedSubject = escapeJson(subject);
+        String escapedHtml = escapeJson(htmlBody);
+
+        return new StringBuilder()
+                .append('{')
+                .append("\"sender\":{\"email\":\"").append(escapedFrom).append("\"},")
+                .append("\"to\":[{\"email\":\"").append(escapedTo).append("\"}],")
+                .append("\"subject\":\"").append(escapedSubject).append("\",")
+                .append("\"htmlContent\":\"").append(escapedHtml).append("\"")
+                .append('}')
+                .toString();
+    }
+
+    private String escapeJson(String value) {
+        return Objects.toString(value, "")
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r\n", "\\n")
+                .replace("\n", "\\n")
+                .replace("\r", "\\n");
     }
 }

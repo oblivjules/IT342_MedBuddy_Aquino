@@ -88,6 +88,12 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>4.12.0</version>
+		</dependency>
+
 		<!-- ── Environment (.env) ────────────────────────────── -->
 		<dependency>
 			<groupId>io.github.cdimascio</groupId>
