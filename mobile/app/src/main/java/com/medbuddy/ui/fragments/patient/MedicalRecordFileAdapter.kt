@@ -30,8 +30,6 @@ class MedicalRecordFileAdapter(
 
         fun bind(item: MedicalRecordFileResponse) {
             binding.tvFileName.text = item.fileName
-            binding.tvUploadedBy.text = item.uploadedBy?.let { "Uploaded by: $it" } ?: "Uploaded file"
-            binding.tvUploadedAt.text = item.uploadedAt?.let { "Uploaded: ${formatDate(it)}" } ?: ""
             binding.btnOpen.setOnClickListener { onOpenClick(item) }
             binding.root.setOnClickListener { onOpenClick(item) }
         }

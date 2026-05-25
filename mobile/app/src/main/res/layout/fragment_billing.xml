@@ -36,6 +36,17 @@
                     android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
                     android:textColor="@color/text_secondary" />
 
+                <TextView
+                    android:id="@+id/tvPaymentStatusBanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_status_badge"
+                    android:padding="14dp"
+                    android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold"
+                    android:textColor="@color/text_primary"
+                    android:visibility="gone" />
+
                 <!-- Summary Cards -->
                 <LinearLayout
                     android:layout_width="match_parent"

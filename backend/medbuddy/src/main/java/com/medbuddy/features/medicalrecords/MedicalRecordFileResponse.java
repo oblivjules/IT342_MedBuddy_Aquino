@@ -22,5 +22,6 @@ public class MedicalRecordFileResponse {
     private LocalDateTime uploadedAt;
     private Long uploadedByUserId;
     private Long patientId;
+    private Long appointmentId;
 }
 

@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class PaymentInitiateResponse {
     private String checkoutUrl;
     private Long paymentId;
+    private String paymentIntentId;
+    private String clientKey;
 }

@@ -76,13 +76,13 @@ class AppointmentViewModel(
         }
     }
 
-    fun bookAppointment(doctorId: Long, slotId: Long, reason: String?, onResult: (Boolean) -> Unit) {
+    fun bookAppointment(doctorId: Long, slotId: Long, reason: String?, onResult: (com.medbuddy.dto.AppointmentResponse?) -> Unit) {
         viewModelScope.launch {
             try {
-                appointmentRepository.bookAppointment(doctorId, slotId, reason)
-                onResult(true)
+                val response = appointmentRepository.bookAppointment(doctorId, slotId, reason)
+                onResult(response)
             } catch (e: Exception) {
-                onResult(false)
+                onResult(null)
             }
         }
     }
@@ -127,8 +127,8 @@ class AppointmentViewModel(
                 onResult(null)
                 return@launch
             }
-            val url = repository.initiatePayment(appointmentId, amount)
-            onResult(url)
+            val response = repository.initiatePayment(appointmentId, amount)
+            onResult(response.checkoutUrl)
         }
     }
 

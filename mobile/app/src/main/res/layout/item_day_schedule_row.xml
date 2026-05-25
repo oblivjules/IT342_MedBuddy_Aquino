@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="56dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/space_2"
+    android:paddingVertical="@dimen/space_1">
+
+    <!-- Toggle switch -->
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchEnabled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- Day name -->
+    <TextView
+        android:id="@+id/tvDayName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_1"
+        android:layout_weight="1"
+        android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+        android:textStyle="bold" />
+
+    <!-- Time pickers (visible when enabled) -->
+    <LinearLayout
+        android:id="@+id/llTimePickers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStartTime"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:minWidth="72dp"
+            android:paddingHorizontal="@dimen/space_1"
+            android:text="09:00"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp"
+            android:text="–"
+            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+            android:textColor="@color/text_secondary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEndTime"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:minWidth="72dp"
+            android:paddingHorizontal="@dimen/space_1"
+            android:text="17:00"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <!-- Unavailable badge (visible when disabled) -->
+    <TextView
+        android:id="@+id/tvUnavailable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_status_badge"
+        android:paddingHorizontal="@dimen/space_1"
+        android:paddingVertical="4dp"
+        android:text="Unavailable"
+        android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+        android:textColor="@color/text_secondary"
+        android:visibility="gone" />
+
+</LinearLayout>

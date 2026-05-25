@@ -37,7 +37,7 @@ class MyAppointmentsActivity : AppCompatActivity() {
         binding.recyclerAppointments.adapter = adapter
 
         // Add item click listener to navigate to detail activity
-        adapter.setOnItemClickListener { appointment ->
+        adapter.setOnDetailsClickListener { appointment ->
             navigateToAppointmentDetail(appointment)
         }
 

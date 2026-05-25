@@ -1,6 +1,7 @@
 package com.medbuddy.features.payment;
 
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -13,9 +14,11 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,7 +44,7 @@ public class PayMongoService {
     @Value("${paymongo.webhook-secret}")
     private String webhookSecret;
 
-    @Value("${frontend.url:http://localhost:5173}")
+    @Value("${frontend.url:https://medbuddy-theta.vercel.app/}")
     private String frontendUrl;
 
     private String basicAuthHeader;
@@ -65,6 +68,37 @@ public class PayMongoService {
                 return createCheckoutSession(payment, appointment, null);
     }
 
+    public JsonNode getPaymentIntent(String paymentIntentId, String clientKey) {
+        try {
+                String url = UriComponentsBuilder
+                    .newInstance()
+                    .scheme("https")
+                    .host("api.paymongo.com")
+                    .path("/v1/payment_intents/" + paymentIntentId)
+                    .queryParam("client_key", clientKey)
+                    .toUriString();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.AUTHORIZATION, buildBasicAuthHeader());
+
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> resp = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+            if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
+                return objectMapper.readTree(resp.getBody());
+            }
+
+            log.warn("Unexpected PayMongo payment intent response: status={} body={}", resp.getStatusCode(), resp.getBody());
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("PayMongo payment intent lookup rejected: status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (JsonProcessingException e) {
+            log.error("PayMongo payment intent parse error: {}", e.getMessage());
+        } catch (org.springframework.web.client.RestClientException e) {
+            log.error("PayMongo payment intent connection error: {}", e.getMessage(), e);
+        }
+        return null;
+    }
+
         public JsonNode createCheckoutSession(Payment payment, Appointment appointment, String returnUrl) {
                 try {
                         String url = "https://api.paymongo.com/v1/checkout_sessions";
@@ -74,9 +108,10 @@ public class PayMongoService {
                                         .multiply(java.math.BigDecimal.valueOf(100))
                                         .longValueExact();
 
-                        String successUrl = baseReturnUrl + "/success?appointmentId=" + appointment.getId();
-                        String cancelUrl  = baseReturnUrl + "/cancel?appointmentId=" + appointment.getId();
-                        String failedUrl  = baseReturnUrl + "/failed?appointmentId=" + appointment.getId();
+                        String redirectBase = buildRedirectBase(baseReturnUrl);
+                        String successUrl = redirectBase + "/success?appointmentId=" + appointment.getId();
+                        String cancelUrl  = redirectBase + "/cancel?appointmentId=" + appointment.getId();
+                        String failedUrl  = redirectBase + "/failed?appointmentId=" + appointment.getId();
 
                         String jsonBody = String.format("""
                                         {
@@ -142,6 +177,23 @@ public class PayMongoService {
                         base = base.substring(0, base.length() - 1);
                 }
                 return base;
+        }
+
+        private String buildRedirectBase(String baseReturnUrl) {
+            if (baseReturnUrl.startsWith("http://") || baseReturnUrl.startsWith("https://")) {
+                URI uri = URI.create(baseReturnUrl);
+                StringBuilder origin = new StringBuilder()
+                    .append(uri.getScheme())
+                    .append("://")
+                    .append(uri.getHost());
+
+                if (uri.getPort() != -1) {
+                    origin.append(":").append(uri.getPort());
+                }
+
+                return origin.append("/payment").toString();
+            }
+            return baseReturnUrl;
         }
 
     public boolean verifyWebhookSignature(String rawPayload, String sigHeader) {

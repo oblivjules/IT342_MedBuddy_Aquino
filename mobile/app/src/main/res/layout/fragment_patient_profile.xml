@@ -121,24 +121,6 @@
                     android:orientation="vertical"
                     android:padding="@dimen/space_2">
 
-
-
-                    <TextView
-                        android:id="@+id/tvPrivacy"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        android:text="Privacy &amp; Security"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
-
-                    <TextView
-                        android:id="@+id/tvSupport"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_1_5"
-                        android:text="Help &amp; Support"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
-
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

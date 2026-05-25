@@ -44,6 +44,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
+                app:endIconMode="dropdown_menu"
+                app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light"
                 style="@style/Widget.MedBuddy.InputLayout">
 
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -52,7 +54,8 @@
                     android:layout_height="wrap_content"
                     android:hint="All Specializations"
                     android:inputType="none"
-                    android:focusableInTouchMode="false"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
                     android:clickable="true"
                     style="@style/Widget.MedBuddy.InputEditText" />
             </com.google.android.material.textfield.TextInputLayout>

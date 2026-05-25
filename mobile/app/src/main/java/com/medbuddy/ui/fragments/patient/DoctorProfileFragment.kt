@@ -7,14 +7,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.medbuddy.R
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.databinding.FragmentPatientDoctorProfileBinding
 import com.medbuddy.dto.DoctorDto
-import com.medbuddy.repository.FeedbackRepository
 import com.medbuddy.repository.RatingRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -26,8 +24,6 @@ import java.util.Locale
 class DoctorProfileFragment : Fragment() {
 
     private lateinit var binding: FragmentPatientDoctorProfileBinding
-    private lateinit var feedbackAdapter: DoctorFeedbackAdapter
-    private lateinit var feedbackRepository: FeedbackRepository
     private var doctor: DoctorDto? = null
 
     override fun onCreateView(
@@ -43,11 +39,6 @@ class DoctorProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         doctor = arguments?.getSerializable(ARG_DOCTOR) as? DoctorDto
-        feedbackRepository = FeedbackRepository(RetrofitClient.getInstance(requireContext()).apiService)
-
-        feedbackAdapter = DoctorFeedbackAdapter()
-        binding.rvFeedback.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvFeedback.adapter = feedbackAdapter
 
         binding.btnBookAppointment.setOnClickListener {
             doctor?.let { selectedDoctor ->
@@ -58,8 +49,17 @@ class DoctorProfileFragment : Fragment() {
             }
         }
 
+        binding.btnViewReviews.setOnClickListener {
+            doctor?.let { selectedDoctor ->
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, PatientDoctorReviewsFragment.newInstance(selectedDoctor))
+                    .addToBackStack(null)
+                    .commit()
+            }
+        }
+
         renderDoctorHeader()
-        loadFeedback()
+        loadRatings()
     }
 
     private fun renderDoctorHeader() {
@@ -93,7 +93,7 @@ class DoctorProfileFragment : Fragment() {
         }
     }
 
-    private fun loadFeedback() {
+    private fun loadRatings() {
         val currentDoctor = doctor ?: return
         val apiService = RetrofitClient.getInstance(requireContext()).apiService
         val ratingRepository = RatingRepository(apiService)
@@ -102,8 +102,7 @@ class DoctorProfileFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val (feedback, avgResponse, availabilityDates) = coroutineScope {
-                    val f = async { runCatching { feedbackRepository.getDoctorFeedback(currentDoctor.id) }.getOrDefault(emptyList()) }
+                val (avgResponse, availabilityDates) = coroutineScope {
                     val r = async { runCatching { ratingRepository.getAverageRating(currentDoctor.id) }.getOrNull() }
                     val today = LocalDate.now()
                     val a = async {
@@ -119,12 +118,8 @@ class DoctorProfileFragment : Fragment() {
                             if (available > 0) date to available else null
                         }
                     }
-                    Triple(f.await(), r.await(), a.await())
+                    Pair(r.await(), a.await())
                 }
-
-                feedbackAdapter.submitList(feedback)
-                binding.tvEmptyState.visibility = if (feedback.isEmpty()) View.VISIBLE else View.GONE
-                binding.tvEmptyState.text = "No feedback yet"
 
                 val rating = avgResponse?.averageRating ?: 0.0
                 binding.ratingBar.rating = rating.toFloat()
@@ -132,8 +127,6 @@ class DoctorProfileFragment : Fragment() {
 
                 renderAvailability(availabilityDates)
             } catch (_: Throwable) {
-                binding.tvEmptyState.visibility = View.VISIBLE
-                binding.tvEmptyState.text = "No feedback yet"
                 binding.ratingBar.rating = 0f
                 binding.tvAverageRating.text = "No ratings yet"
                 renderAvailability(emptyList())

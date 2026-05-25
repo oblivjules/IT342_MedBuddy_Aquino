@@ -13,6 +13,7 @@ import com.medbuddy.dto.CreatePaymentRequest
 import com.medbuddy.dto.CreateRatingRequest
 import com.medbuddy.dto.DoctorAvailabilityRequest
 import com.medbuddy.dto.DoctorAvailabilityResponse
+import com.medbuddy.dto.DoctorDashboardResponse
 import com.medbuddy.dto.DoctorDto
 import com.medbuddy.dto.DrugInfoDto
 import com.medbuddy.dto.DrugInfoResponse
@@ -23,6 +24,7 @@ import com.medbuddy.dto.MedicalRecordFileDto
 import com.medbuddy.dto.MedicalRecordResponse
 import com.medbuddy.dto.PaymentInitiateRequest
 import com.medbuddy.dto.PaymentInitiateResponse
+import com.medbuddy.dto.PaymentConfirmRequest
 import com.medbuddy.dto.PaymentResponse
 import com.medbuddy.dto.PaymentTotalUpdateRequest
 import com.medbuddy.dto.RegisterRequest
@@ -32,10 +34,14 @@ import com.medbuddy.dto.TemplateRequestDto
 import com.medbuddy.dto.UpdateAppointmentStatusRequest
 import com.medbuddy.dto.UpdatePaymentStatusRequest
 import com.medbuddy.dto.UserDto
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
+import retrofit2.http.Part
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -61,6 +67,10 @@ interface UserApiService {
 
     @PATCH("api/users/me")
     suspend fun updateMe(@Body request: com.medbuddy.dto.UpdateProfileRequest): Response<AuthResponseDto>
+
+    @Multipart
+    @POST("api/users/me/profile-image")
+    suspend fun uploadMyProfileImage(@Part file: MultipartBody.Part): Response<UserDto>
 
     @GET("api/users/doctors")
     suspend fun getDoctors(@Query("search") search: String? = null, @Query("specialization") specialization: String? = null): Response<List<DoctorDto>>
@@ -119,6 +129,9 @@ interface AvailabilityApiService {
     @POST("api/doctor/schedule/exception")
     suspend fun saveMyException(@Body request: DoctorAvailabilityRequest): Response<Unit>
 
+    @DELETE("api/doctor/schedule/exception/{date}")
+    suspend fun deleteMyException(@Path("date") date: String): Response<Unit>
+
     @GET("api/appointment-slots/by-doctor/{doctorId}")
     suspend fun getDoctorAppointmentSlots(
         @Path("doctorId") doctorId: Long,
@@ -152,14 +165,39 @@ interface MedicalRecordApiService {
     @GET("api/medical-records/{id}/drug-info")
     suspend fun getDrugInfo(@Path("id") id: Long): Response<DrugInfoResponse>
 
+    @GET("api/medical-record-files/patients/{patientId}")
+    suspend fun getPatientMedicalRecordFiles(@Path("patientId") patientId: Long): Response<List<com.medbuddy.dto.MedicalRecordFileResponse>>
+
     @GET("api/medical-record-files/record/{recordId}")
     suspend fun getMedicalRecordFiles(@Path("recordId") recordId: Long): Response<List<com.medbuddy.dto.MedicalRecordFileResponse>>
+
+    // Backend also exposes record-scoped file uploads at /api/files/{recordId}
+    @GET("api/files/{recordId}")
+    suspend fun getFilesByRecord(@Path("recordId") recordId: Long): Response<List<com.medbuddy.dto.MedicalRecordFileResponse>>
 
     @GET("api/medical-record-files/appointment/{appointmentId}")
     suspend fun getAppointmentFiles(@Path("appointmentId") appointmentId: Long): Response<List<com.medbuddy.dto.MedicalRecordFileResponse>>
 
     @GET("api/record-files/my")
     suspend fun getMyRecordFiles(): Response<List<com.medbuddy.dto.MedicalRecordFileResponse>>
+
+    // Backend file upload endpoints (record/appointment-scoped)
+    @GET("api/files/appointment/{appointmentId}")
+    suspend fun getFilesByAppointment(@Path("appointmentId") appointmentId: Long): Response<List<com.medbuddy.dto.MedicalRecordFileResponse>>
+
+    @GET("api/files/item/{fileId}/url")
+    suspend fun getFileAccessUrl(@Path("fileId") fileId: Long): Response<Map<String, String>>
+
+    @GET("api/medical-record-files/{fileId}/url")
+    suspend fun getMedicalRecordFileAccessUrl(@Path("fileId") fileId: Long): Response<Map<String, String>>
+
+    @Multipart
+    @POST("api/medical-record-files/my")
+    suspend fun uploadMyMedicalRecordFile(
+        @Part file: MultipartBody.Part,
+        @Part("description") description: RequestBody? = null,
+        @Part("appointmentId") appointmentId: RequestBody? = null,
+    ): Response<com.medbuddy.dto.MedicalRecordFileResponse>
 }
 
 interface PaymentApiService {
@@ -178,6 +216,9 @@ interface PaymentApiService {
 
     @POST("api/payments/initiate")
     suspend fun initiatePayment(@Body request: PaymentInitiateRequest): Response<PaymentInitiateResponse>
+
+    @POST("api/payments/confirm")
+    suspend fun confirmPayment(@Body request: PaymentConfirmRequest): Response<PaymentResponse>
 
     @PATCH("api/payments/{id}/status")
     suspend fun updatePaymentStatus(
@@ -217,6 +258,9 @@ interface FeedbackApiService {
 
     @GET("api/ratings/appointment/{appointmentId}")
     suspend fun getRatingByAppointment(@Path("appointmentId") appointmentId: Long): Response<RatingResponse>
+
+    @DELETE("api/ratings/{id}")
+    suspend fun deleteRating(@Path("id") id: Long): Response<Unit>
 }
 
 interface ApiService :

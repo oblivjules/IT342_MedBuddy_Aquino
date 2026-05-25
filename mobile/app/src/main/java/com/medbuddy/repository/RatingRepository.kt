@@ -2,6 +2,7 @@ package com.medbuddy.repository
 
 import com.medbuddy.api.ApiService
 import com.medbuddy.api.bodyOrThrow
+import com.medbuddy.api.ensureSuccess
 import com.medbuddy.dto.AverageRatingResponse
 import com.medbuddy.dto.CreateRatingRequest
 import com.medbuddy.dto.RatingResponse
@@ -9,6 +10,10 @@ import com.medbuddy.dto.RatingResponse
 class RatingRepository(
     private val apiService: ApiService
 ) {
+
+    suspend fun getPatientRatings(patientId: Long): List<RatingResponse> {
+        return apiService.getPatientRatings(patientId).bodyOrThrow()
+    }
 
     suspend fun getDoctorRatings(doctorId: Long): List<RatingResponse> {
         return apiService.getDoctorRatings(doctorId).bodyOrThrow()
@@ -34,5 +39,9 @@ class RatingRepository(
                 feedback = feedback
             )
         ).bodyOrThrow()
+    }
+
+    suspend fun deleteRating(id: Long) {
+        apiService.deleteRating(id).ensureSuccess()
     }
 }

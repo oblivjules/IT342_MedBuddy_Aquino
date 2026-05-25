@@ -58,6 +58,7 @@ data class UpdateProfileRequest(
     val email: String? = null,
     val phoneNumber: String? = null,
     val specialization: String? = null,
+    val specializationIds: List<Long>? = null,
     val currentPassword: String? = null,
     val newPassword: String? = null
 )
@@ -243,7 +244,15 @@ data class PaymentInitiateRequest(
 )
 
 data class PaymentInitiateResponse(
-    val checkoutUrl: String
+    val checkoutUrl: String,
+    val paymentId: Long? = null,
+    val paymentIntentId: String? = null,
+    val clientKey: String? = null
+)
+
+data class PaymentConfirmRequest(
+    val paymentIntentId: String,
+    val clientKey: String
 )
 
 data class InitiatePaymentRequest(
@@ -301,7 +310,7 @@ data class CreateRatingRequest(
 )
 
 data class TemplateRequestDto(
-    val dayOfWeek: String? = null,
+    val dayOfWeek: Int? = null,
     val startTime: String? = null,
     val endTime: String? = null,
     val status: String? = null

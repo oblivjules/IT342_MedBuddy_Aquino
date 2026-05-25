@@ -7,9 +7,6 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.medbuddy.databinding.ItemMedicalRecordFileBinding
 import com.medbuddy.dto.MedicalRecordFileResponse
-import java.text.SimpleDateFormat
-import java.util.Locale
-
 class MedicalRecordFileAdapter(
     private val onOpenClick: (MedicalRecordFileResponse) -> Unit
 ) : ListAdapter<MedicalRecordFileResponse, MedicalRecordFileAdapter.ViewHolder>(DiffCallback()) {
@@ -33,19 +30,6 @@ class MedicalRecordFileAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(file: MedicalRecordFileResponse) {
             binding.tvFileName.text = file.fileName
-            binding.tvUploadedBy.text = "By: ${file.uploadedBy}"
-
-            val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
-            val date = try {
-                dateFormat.format(
-                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-                        .parse(file.uploadedAt.orEmpty()) ?: System.currentTimeMillis()
-                )
-            } catch (e: Exception) {
-                file.uploadedAt.orEmpty()
-            }
-            binding.tvUploadedAt.text = date
-
             binding.btnOpen.setOnClickListener { onOpenClick(file) }
         }
     }

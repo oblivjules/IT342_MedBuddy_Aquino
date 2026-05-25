@@ -1,11 +1,9 @@
 package com.medbuddy.api
 
 import android.content.Context
-import android.content.Intent
 import com.google.gson.GsonBuilder
 import com.medbuddy.BuildConfig
 import com.medbuddy.auth.TokenManager
-import com.medbuddy.constants.AppConstants
 import java.util.concurrent.TimeUnit
 
 import okhttp3.OkHttpClient
@@ -29,22 +27,10 @@ class RetrofitClient private constructor(context: Context) {
         }
 
         val client = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .addInterceptor(AuthInterceptor(tokenManager))
-            .addInterceptor { chain ->
-                val response = chain.proceed(chain.request())
-                if (response.code == 401) {
-                    tokenManager.clearToken()
-                    context.sendBroadcast(
-                        Intent(AppConstants.Auth.ACTION_SESSION_EXPIRED).apply {
-                            setPackage(context.packageName)
-                        }
-                    )
-                }
-                response
-            }
+            .connectTimeout(90, TimeUnit.SECONDS)  // Increased for Render cold-start
+            .readTimeout(90, TimeUnit.SECONDS)     // Increased for Render cold-start
+            .writeTimeout(90, TimeUnit.SECONDS)    // Increased for Render cold-start
+            .addInterceptor(AuthInterceptor(tokenManager, context.applicationContext))
             .addInterceptor(loggingInterceptor)
             .build()
 

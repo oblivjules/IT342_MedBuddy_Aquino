@@ -116,6 +116,8 @@
     <string name="doctor_profile_title">Doctor Profile</string>
     <string name="patient_profile_title">Patient Profile</string>
     <string name="profile_loading">Loading profile...</string>
+    <string name="dashboard_welcome_format">Welcome, %1$s! 👋</string>
+    <string name="dashboard_queue_position_format">Queue Position: #%1$d</string>
     <string name="patient_home_welcome">Welcome to MedBuddy</string>
     <string name="patient_home_upcoming">Upcoming Appointments</string>
     <string name="patient_home_no_upcoming">You have no upcoming appointments</string>
@@ -125,4 +127,26 @@
     <string name="patient">Patient</string>
     <string name="doctor">Doctor</string>
     <string name="specializations">Specializations</string>
+    <string name="payment_status_success_badge">SUCCESS</string>
+    <string name="payment_status_failed_badge">FAILED</string>
+    <string name="payment_status_cancelled_badge">CANCELLED</string>
+    <string name="payment_confirmation_loading_badge">VERIFYING</string>
+    <string name="payment_confirmation_loading_title">Checking payment status</string>
+    <string name="payment_confirmation_loading_message">We are confirming your payment with PayMongo.</string>
+    <string name="payment_confirmation_loading_details">Please keep this screen open while we finish updating your record.</string>
+    <string name="payment_confirmation_success_title">Payment Successful</string>
+    <string name="payment_confirmation_success_message">Your payment has been confirmed and your appointment record is being refreshed.</string>
+    <string name="payment_confirmation_success_details">You can now return to your appointments.</string>
+    <string name="payment_confirmation_paid_details">Payment record #%1$d was marked as PAID.</string>
+    <string name="payment_confirmation_cancelled_title">Payment Cancelled</string>
+    <string name="payment_confirmation_cancelled_message">The payment was cancelled before completion.</string>
+    <string name="payment_confirmation_cancelled_details">Your appointment remains unpaid and you can try again from Billing.</string>
+    <string name="payment_confirmation_failed_title">Payment Failed</string>
+    <string name="payment_confirmation_failed_message">We could not confirm this payment with PayMongo.</string>
+    <string name="payment_confirmation_failed_details">Please try again from Billing or contact support.</string>
+    <string name="payment_confirmation_appointment_id">Appointment ID: %1$s</string>
+    <string name="payment_result_view_appointments">View Appointments</string>
+    <string name="payment_result_go_to_dashboard">Go to Dashboard</string>
+    <string name="payment_banner_confirmed">Payment confirmed. The list has been refreshed.</string>
+    <string name="payment_banner_failed">Payment could not be confirmed. Please try again from Billing.</string>
 </resources>

@@ -13,6 +13,7 @@ import com.medbuddy.R
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.constants.AppointmentStatus
 import com.medbuddy.databinding.FragmentMedicalRecordsBinding
+import com.medbuddy.dto.MedicalRecordFileResponse
 import com.medbuddy.dto.MedicalRecordResponse
 import com.medbuddy.repository.AppointmentRepository
 import com.medbuddy.repository.MedicalRecordRepository
@@ -51,15 +52,7 @@ class MedicalRecordsFragment : Fragment() {
                 .commit()
         }
 
-        uploadAdapter = MedicalRecordFileAdapter { file ->
-            val url = file.url ?: file.fileUrl
-            if (!url.isNullOrBlank()) {
-                CustomTabsIntent.Builder()
-                    .setToolbarColor(requireContext().getColor(R.color.primary))
-                    .build()
-                    .launchUrl(requireContext(), Uri.parse(url))
-            }
-        }
+        uploadAdapter = MedicalRecordFileAdapter { file -> openFile(file) }
 
         binding.rvRecords.layoutManager = LinearLayoutManager(requireContext())
         binding.rvRecords.adapter = recordAdapter
@@ -84,7 +77,7 @@ class MedicalRecordsFragment : Fragment() {
 
                     val allUploads = uploadsDeferred.await()
                     val patientUploads = allUploads.filter { file ->
-                        file.uploadedBy?.trim()?.uppercase() == "PATIENT"
+                        file.uploadedBy?.trim()?.uppercase()?.let { it == "PATIENT" || it.contains("PATIENT") } ?: true
                     }
 
                     records = recordsDeferred.await()
@@ -104,6 +97,21 @@ class MedicalRecordsFragment : Fragment() {
                 binding.progressBar.visibility = View.GONE
                 binding.swipeRefresh.visibility = View.VISIBLE
                 binding.swipeRefresh.isRefreshing = false
+            }
+        }
+    }
+
+    private fun openFile(file: MedicalRecordFileResponse) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val url = runCatching { recordRepository.getFileAccessUrl(file.id) }.getOrNull()
+                ?: file.url
+                ?: file.fileUrl
+
+            if (!url.isNullOrBlank()) {
+                CustomTabsIntent.Builder()
+                    .setToolbarColor(requireContext().getColor(R.color.primary))
+                    .build()
+                    .launchUrl(requireContext(), Uri.parse(url))
             }
         }
     }

@@ -44,6 +44,9 @@ public class Payment {
     @Column(name = "paymongo_session_id", length = 200)
     private String paymongoSessionId;
 
+    @Column(name = "paymongo_payment_intent_id", length = 200)
+    private String paymongoPaymentIntentId;
+
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 

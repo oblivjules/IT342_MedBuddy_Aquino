@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="@color/background">
 
-    <com.google.android.material.appbarcompat.AppBarLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <com.google.android.material.appbar.MaterialToolbar
@@ -18,7 +18,7 @@
             app:navigationIcon="@drawable/ic_back"
             android:title="Create Medical Record"
             android:titleTextColor="@color/white" />
-    </com.google.android.material.appbarcompat.AppBarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <ProgressBar
         android:id="@+id/progressBar"

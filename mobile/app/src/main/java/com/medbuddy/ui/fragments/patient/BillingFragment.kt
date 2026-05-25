@@ -7,15 +7,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.medbuddy.R
 import com.medbuddy.api.ApiErrorMapper
 import com.medbuddy.api.RetrofitClient
 import com.medbuddy.constants.AppointmentStatus
+import com.medbuddy.auth.PaymentSessionManager
 import com.medbuddy.databinding.FragmentBillingBinding
 import com.medbuddy.repository.AppointmentRepository
 import com.medbuddy.repository.PaymentRepository
+import com.medbuddy.viewmodel.PaymentViewModel
+import com.medbuddy.viewmodel.PaymentViewModelFactory
 import kotlinx.coroutines.launch
 
 private const val RESERVATION_FEE = 100.0
@@ -25,6 +30,7 @@ class BillingFragment : Fragment() {
     private lateinit var binding: FragmentBillingBinding
     private lateinit var paymentRepository: PaymentRepository
     private lateinit var appointmentRepository: AppointmentRepository
+    private lateinit var paymentViewModel: PaymentViewModel
     private lateinit var adapter: PatientPaymentAdapter
 
     override fun onCreateView(
@@ -41,19 +47,31 @@ class BillingFragment : Fragment() {
 
         paymentRepository = PaymentRepository(RetrofitClient.getInstance(requireContext()).apiService)
         appointmentRepository = AppointmentRepository(RetrofitClient.getInstance(requireContext()).apiService)
+        paymentViewModel = androidx.lifecycle.ViewModelProvider(
+            this,
+            PaymentViewModelFactory(paymentRepository, PaymentSessionManager(requireContext()))
+        )[PaymentViewModel::class.java]
         adapter = PatientPaymentAdapter { row -> payNow(row) }
 
         binding.rvPayments.layoutManager = LinearLayoutManager(requireContext())
         binding.rvPayments.adapter = adapter
         binding.swipeRefresh.setOnRefreshListener { loadBilling() }
 
+        observePaymentState()
+
         loadBilling()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        paymentViewModel.confirmStoredPayment()
     }
 
     private fun loadBilling() {
         binding.progressBar.visibility = View.VISIBLE
         binding.swipeRefresh.visibility = View.GONE
         binding.tvEmptyState.visibility = View.GONE
+        binding.tvPaymentStatusBanner.visibility = View.GONE
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -128,7 +146,7 @@ class BillingFragment : Fragment() {
         val requestAmount = if (row.amount > 0.0) row.amount else RESERVATION_FEE
         viewLifecycleOwner.lifecycleScope.launch {
             runCatching { paymentRepository.initiatePayment(row.appointmentId, requestAmount.toBigDecimal()) }
-                .onSuccess { checkoutUrl -> openCheckout(checkoutUrl) }
+                .onSuccess { response -> openCheckout(response.checkoutUrl) }
                 .onFailure {
                     binding.tvEmptyState.text = ApiErrorMapper.toUserMessage(requireContext(), it, R.string.error_bad_request)
                     binding.tvEmptyState.visibility = View.VISIBLE
@@ -141,5 +159,39 @@ class BillingFragment : Fragment() {
             .setToolbarColor(requireContext().getColor(R.color.primary))
             .build()
         customTabsIntent.launchUrl(requireContext(), Uri.parse(url))
+    }
+
+    private fun observePaymentState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                paymentViewModel.paymentState.collect { state ->
+                    if (!isAdded) return@collect
+
+                    if (state.loading) {
+                        binding.tvPaymentStatusBanner.visibility = View.VISIBLE
+                        binding.tvPaymentStatusBanner.text = getString(R.string.payment_confirmation_loading_message)
+                        return@collect
+                    }
+
+                    state.payment?.let { payment ->
+                        val status = payment.paymentStatus?.uppercase()
+                        if (status == "PAID") {
+                            binding.tvPaymentStatusBanner.visibility = View.VISIBLE
+                            binding.tvPaymentStatusBanner.text = getString(R.string.payment_banner_confirmed)
+                            loadBilling()
+                        } else if (status == "FAILED") {
+                            binding.tvPaymentStatusBanner.visibility = View.VISIBLE
+                            binding.tvPaymentStatusBanner.text = getString(R.string.payment_banner_failed)
+                            loadBilling()
+                        }
+                    }
+
+                    state.error?.let { error ->
+                        binding.tvPaymentStatusBanner.visibility = View.VISIBLE
+                        binding.tvPaymentStatusBanner.text = error
+                    }
+                }
+            }
+        }
     }
 }

@@ -29,8 +29,10 @@ class AppointmentRepository(
         return raw.map { it.copy(status = AppointmentStatus.normalize(it.status)) }
     }
 
-    suspend fun getDoctorAppointments(): List<AppointmentResponse> =
-        getAppointments()
+    suspend fun getDoctorAppointments(): List<AppointmentResponse> {
+        val raw = apiService.getMyAppointments().bodyOrThrow()
+        return raw.map { it.copy(status = AppointmentStatus.normalize(it.status)) }
+    }
 
     suspend fun updateAppointmentStatus(id: Long, status: String): AppointmentResponse {
         return apiService.updateAppointmentStatus(id, AppointmentStatusRequest(AppointmentStatus.normalize(status))).bodyOrThrow()

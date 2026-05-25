@@ -144,7 +144,7 @@ class AppointmentsFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle("Cancel Appointment")
             .setMessage("Are you sure you want to cancel this appointment?")
-            .setPositiveButton("Cancel appointment") { _, _ ->
+            .setPositiveButton("Yes") { _, _ ->
                 viewModel.updateStatus(appointment.id, AppointmentStatus.CANCELLED, AppConstants.Role.PATIENT)
             }
             .setNegativeButton(android.R.string.cancel, null)

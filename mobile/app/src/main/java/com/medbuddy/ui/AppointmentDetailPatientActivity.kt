@@ -1,15 +1,19 @@
 package com.medbuddy.ui
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.medbuddy.R
 import com.medbuddy.api.RetrofitClient
+import com.medbuddy.auth.PaymentSessionManager
+import com.medbuddy.constants.AppointmentStatus
 import com.medbuddy.databinding.ActivityAppointmentDetailPatientBinding
 import com.medbuddy.dto.AppointmentResponse
 import com.medbuddy.repository.PaymentRepository
@@ -59,7 +63,10 @@ class AppointmentDetailPatientActivity : AppCompatActivity() {
         val paymentRepository = PaymentRepository(
             RetrofitClient.getInstance(applicationContext).apiService
         )
-        val paymentFactory = PaymentViewModelFactory(paymentRepository)
+        val paymentFactory = PaymentViewModelFactory(
+            paymentRepository,
+            PaymentSessionManager(applicationContext)
+        )
         paymentViewModel = ViewModelProvider(this, paymentFactory).get(PaymentViewModel::class.java)
 
         val ratingRepository = RatingRepository(
@@ -76,11 +83,47 @@ class AppointmentDetailPatientActivity : AppCompatActivity() {
     }
 
     private fun displayAppointmentDetails(appointment: AppointmentResponse) {
-        binding.tvDoctorName.text = "${appointment.doctor.firstName} ${appointment.doctor.lastName}"
-        binding.tvSpecialization.text = appointment.doctor.specialization ?: "General"
+        val fullName = "Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName}".trim()
+        val initials = "${appointment.doctor.firstName} ${appointment.doctor.lastName}".trim()
+            .split(" ")
+            .filter { it.isNotBlank() }.take(2)
+            .joinToString("") { it.take(1).uppercase(Locale.getDefault()) }
+        binding.tvAvatar.text = initials.ifBlank { "DR" }
+
+        binding.tvDoctorName.text = fullName
+        binding.tvSpecialization.text = appointment.doctor.specialization
+            ?: appointment.doctor.specializations?.firstOrNull()
+            ?: "General Practice"
         binding.tvDateTime.text = formatDateTime(appointment.dateTime)
-        binding.tvStatus.text = appointment.status
-        binding.tvNotes.text = appointment.notes ?: "No notes"
+
+        val statusText = when (AppointmentStatus.normalize(appointment.status)) {
+            AppointmentStatus.CONFIRMED -> "Approved"
+            AppointmentStatus.CANCELLED -> "Rejected"
+            else -> appointment.status.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            }
+        }
+        binding.tvStatus.text = statusText
+        styleStatusBadge(appointment.status)
+
+        if (!appointment.notes.isNullOrBlank()) {
+            binding.cardNotesContainer.visibility = View.VISIBLE
+            binding.tvNotes.text = appointment.notes
+        } else {
+            binding.cardNotesContainer.visibility = View.GONE
+        }
+    }
+
+    private fun styleStatusBadge(status: String) {
+        val (bg, text) = when (AppointmentStatus.normalize(status)) {
+            AppointmentStatus.CONFIRMED -> R.color.chip_confirmed_bg to R.color.chip_confirmed_text
+            AppointmentStatus.COMPLETED -> R.color.chip_completed_bg to R.color.chip_completed_text
+            AppointmentStatus.PENDING -> R.color.chip_pending_bg to R.color.chip_pending_text
+            AppointmentStatus.CANCELLED -> R.color.chip_cancelled_bg to R.color.chip_cancelled_text
+            else -> R.color.chip_booked_bg to R.color.chip_booked_text
+        }
+        binding.tvStatus.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, bg))
+        binding.tvStatus.setTextColor(ContextCompat.getColor(this, text))
     }
 
     private fun loadPaymentStatus(appointmentId: Long) {
@@ -91,10 +134,10 @@ class AppointmentDetailPatientActivity : AppCompatActivity() {
 
                 state.payment?.let { payment ->
                     binding.cardPayment.visibility = View.VISIBLE
-                    binding.tvPaymentStatus.text = "Status: ${payment.status}"
-                    binding.tvPaymentAmount.text = "Amount: ₱${payment.amount}"
+                    binding.tvPaymentStatus.text = payment.status ?: payment.paymentStatus
+                    binding.tvPaymentAmount.text = "₱${payment.amount ?: payment.feeAmount}"
 
-                    when (payment.status) {
+                    when (payment.status ?: payment.paymentStatus) {
                         "PENDING" -> {
                             binding.btnPayNow.visibility = View.VISIBLE
                             binding.tvPaymentComplete.visibility = View.GONE
@@ -102,12 +145,12 @@ class AppointmentDetailPatientActivity : AppCompatActivity() {
                         "PAID" -> {
                             binding.btnPayNow.visibility = View.GONE
                             binding.tvPaymentComplete.visibility = View.VISIBLE
-                            binding.tvPaymentComplete.text = "Payment Complete (${payment.paidAt})"
+                            binding.tvPaymentComplete.text = "Payment complete${payment.paidAt?.let { " · $it" } ?: ""}"
                             showRatingSection()
                         }
                         else -> {
                             binding.btnPayNow.visibility = View.GONE
-                            binding.tvPaymentComplete.text = "Payment ${payment.status}"
+                            binding.tvPaymentComplete.text = "Payment ${payment.status ?: payment.paymentStatus}"
                             binding.tvPaymentComplete.visibility = View.VISIBLE
                         }
                     }
@@ -127,20 +170,25 @@ class AppointmentDetailPatientActivity : AppCompatActivity() {
     }
 
     private fun loadMedicalRecords(appointmentId: Long) {
-        medicalRecordViewModel.loadAppointmentFiles(appointmentId)
+        medicalRecordViewModel.loadAppointmentRecord(appointmentId)
         lifecycleScope.launchWhenStarted {
             medicalRecordViewModel.detailState.collect { state ->
-                if (state.files.isNotEmpty()) {
+                val hasRecord = state.record != null
+                val hasFiles = state.files.isNotEmpty()
+                if (hasRecord || hasFiles) {
                     binding.cardMedicalRecords.visibility = View.VISIBLE
-                    binding.tvRecordsCount.text = "Files: ${state.files.size}"
+                    val fileCount = state.files.size
+                    binding.tvRecordsCount.text = when {
+                        hasRecord && fileCount > 0 -> "Diagnosis recorded · $fileCount file${if (fileCount > 1) "s" else ""} attached"
+                        hasRecord -> "Diagnosis recorded"
+                        fileCount > 0 -> "$fileCount file${if (fileCount > 1) "s" else ""} attached"
+                        else -> ""
+                    }
                     binding.btnViewRecords.setOnClickListener {
-                        // Navigate to medical record detail
-                        state.record?.let {
-                            val intent = Intent(this@AppointmentDetailPatientActivity, MedicalRecordDetailActivity::class.java)
-                            intent.putExtra("recordId", it.id)
-                            intent.putExtra("appointmentId", appointmentId)
-                            startActivity(intent)
-                        }
+                        val intent = Intent(this@AppointmentDetailPatientActivity, MedicalRecordDetailActivity::class.java)
+                        intent.putExtra("recordId", state.record?.id ?: 0L)
+                        intent.putExtra("appointmentId", appointmentId)
+                        startActivity(intent)
                     }
                 }
             }
@@ -203,6 +251,11 @@ class AppointmentDetailPatientActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         appointment?.let {
+            paymentViewModel.confirmStoredPayment { confirmedPayment ->
+                if (confirmedPayment?.paymentStatus == "PAID") {
+                    loadPaymentStatus(it.id)
+                }
+            }
             loadPaymentStatus(it.id)
         }
     }

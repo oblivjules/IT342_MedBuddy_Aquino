@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/space_2"
+    android:paddingVertical="@dimen/space_1">
+
+    <!-- Date + status info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvExceptionDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvExceptionDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+            android:textColor="@color/text_secondary" />
+
+    </LinearLayout>
+
+    <!-- Status chip -->
+    <TextView
+        android:id="@+id/tvExceptionStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/space_1"
+        android:background="@drawable/bg_status_badge"
+        android:paddingHorizontal="@dimen/space_1"
+        android:paddingVertical="4dp"
+        android:textAppearance="@style/TextAppearance.MedBuddy.Caption" />
+
+    <!-- Delete button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDeleteException"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:minWidth="0dp"
+        android:paddingHorizontal="@dimen/space_0_5"
+        android:text="✕"
+        android:textColor="@color/error"
+        android:textSize="14sp" />
+
+</LinearLayout>
