@@ -25,16 +25,23 @@ export const AuthContext = createContext(null)
 const TOKEN_KEY = 'medbuddy_token'
 const USER_KEY = 'medbuddy_user'
 
+function readStoredToken() {
+  const value = localStorage.getItem(TOKEN_KEY)
+  return value && value !== 'null' && value !== 'undefined' ? value : null
+}
+
+function readStoredUser() {
+  try {
+    const stored = localStorage.getItem(USER_KEY)
+    return stored ? JSON.parse(stored) : null
+  } catch {
+    return null
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY))
-  const [user, setUser] = useState(() => {
-    try {
-      const stored = localStorage.getItem(USER_KEY)
-      return stored ? JSON.parse(stored) : null
-    } catch {
-      return null
-    }
-  })
+  const [token, setToken] = useState(readStoredToken)
+  const [user, setUser] = useState(readStoredUser)
 
   // Keep localStorage in sync whenever token or user changes
   useEffect(() => {
@@ -52,6 +59,20 @@ export function AuthProvider({ children }) {
       localStorage.removeItem(USER_KEY)
     }
   }, [user])
+
+  // Keep auth state in sync when another browser tab logs in/out.
+  useEffect(() => {
+    function handleStorage(event) {
+      if (event.key && event.key !== TOKEN_KEY && event.key !== USER_KEY) {
+        return
+      }
+      setToken(readStoredToken())
+      setUser(readStoredUser())
+    }
+
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
 
   /**
    * Call this after a successful login / register API response.
@@ -80,7 +101,7 @@ export function AuthProvider({ children }) {
       login,
       updateUser,
       logout,
-      isAuthenticated: Boolean(token),
+      isAuthenticated: Boolean(token && user),
     }),
     [user, token, login, updateUser, logout],
   )

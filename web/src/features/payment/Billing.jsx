@@ -3,6 +3,7 @@ import {
   CheckCircle,
   Clock,
   RotateCcw,
+  XCircle,
   TrendingUp,
 } from 'lucide-react'
 import DashboardLayout from '../../components/DashboardLayout'
@@ -48,6 +49,7 @@ export default function PatientBilling() {
               ...payment,
               appointmentId: appointment.id,
               appointmentDateTime: appointment.dateTime,
+              appointmentStatus: appointment.status,
               doctor: appointment.doctor,
             })
           } catch {
@@ -56,6 +58,7 @@ export default function PatientBilling() {
               id: null,
               appointmentId: appointment.id,
               appointmentDateTime: appointment.dateTime,
+              appointmentStatus: appointment.status,
               doctor: appointment.doctor,
               feeAmount: RESERVATION_FEE,
               paymentStatus: 'PENDING',
@@ -83,9 +86,11 @@ export default function PatientBilling() {
     () => items.map((item) => {
       const total = Number(item.feeAmount || RESERVATION_FEE)
       const paid = Number(item.paidAmount || 0)
+      const appointmentStatus = String(item.appointmentStatus || '').toUpperCase()
       const isRefunded = String(item.paymentStatus || '').toUpperCase() === 'REFUNDED'
+      const isCancelled = appointmentStatus === 'CANCELLED'
       const remainingRaw = Number(item.remainingAmount ?? (total - paid))
-      const remaining = isRefunded ? 0 : (remainingRaw > 0 ? remainingRaw : 0)
+      const remaining = isRefunded || isCancelled ? 0 : (remainingRaw > 0 ? remainingRaw : 0)
 
       return {
         ...item,
@@ -94,7 +99,7 @@ export default function PatientBilling() {
         remaining,
         refunded: isRefunded ? total : 0,
         amount: remaining,
-        status: normalizeStatus(item.paymentStatus),
+        status: isCancelled ? 'Cancelled' : normalizeStatus(item.paymentStatus),
         date: item.appointmentDateTime ? new Date(item.appointmentDateTime).toLocaleDateString() : 'N/A',
         doctorName: formatDoctorName(item.doctor),
         description: item.description || 'Consultation Bill',
@@ -104,6 +109,7 @@ export default function PatientBilling() {
   )
 
   const totalPending = invoiceRows
+    .filter((invoice) => invoice.status !== 'Cancelled')
     .reduce((sum, invoice) => sum + invoice.remaining, 0)
   const totalPaid = invoiceRows
     .reduce((sum, invoice) => sum + invoice.paid, 0)
@@ -216,12 +222,14 @@ export default function PatientBilling() {
             {invoiceRows.map((invoice) => (
               <div key={invoice.id || `appt-${invoice.appointmentId}`} className="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-muted/30 sm:flex-row sm:items-center sm:p-5">
                 <div className="flex items-center gap-3">
-                  <div className={`rounded-xl p-2.5 ${invoice.status === 'Paid' ? 'bg-primary-soft' : 'bg-accent-soft'}`}>
+                  <div className={`rounded-xl p-2.5 ${invoice.status === 'Paid' ? 'bg-primary-soft' : invoice.status === 'Cancelled' ? 'bg-destructive/10' : 'bg-accent-soft'}`}>
                       {invoice.status === 'Paid'
                       ? <CheckCircle className="h-4 w-4 text-primary" />
                         : invoice.status === 'Refunded'
                           ? <RotateCcw className="h-4 w-4 text-destructive" />
-                          : <Clock className="h-4 w-4 text-accent" />}
+                          : invoice.status === 'Cancelled'
+                            ? <XCircle className="h-4 w-4 text-destructive" />
+                            : <Clock className="h-4 w-4 text-accent" />}
                   </div>
                   <div>
                     <p className="font-medium">{invoice.description}</p>
@@ -234,16 +242,18 @@ export default function PatientBilling() {
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="font-semibold">
-                      {invoice.status === 'Refunded'
+                      {invoice.status === 'Cancelled'
+                        ? `Cancelled: PHP ${invoice.total.toFixed(2)}`
+                        : invoice.status === 'Refunded'
                         ? `Refunded: PHP ${invoice.refunded.toFixed(2)}`
                         : `Remaining: PHP ${invoice.remaining.toFixed(2)}`}
                     </p>
                     <p className="text-xs text-muted-foreground">Total: PHP {invoice.total.toFixed(2)} • Paid: PHP {invoice.paid.toFixed(2)}</p>
-                    <span className={`text-xs font-medium ${invoice.status === 'Paid' ? 'text-primary' : invoice.status === 'Refunded' ? 'text-destructive' : 'text-accent'}`}>
+                    <span className={`text-xs font-medium ${invoice.status === 'Paid' ? 'text-primary' : invoice.status === 'Refunded' || invoice.status === 'Cancelled' ? 'text-destructive' : 'text-accent'}`}>
                       {invoice.status}
                     </span>
                   </div>
-                  {invoice.status !== 'Paid' && invoice.status !== 'Refunded' && (
+                  {invoice.status !== 'Paid' && invoice.status !== 'Refunded' && invoice.status !== 'Cancelled' && (
                     <button
                       type="button"
                       onClick={() => handlePayNow(invoice)}
