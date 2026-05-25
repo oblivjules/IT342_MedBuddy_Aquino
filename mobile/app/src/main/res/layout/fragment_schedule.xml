@@ -1,124 +1,479 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="@dimen/space_2">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Manage Availability"
-            android:textAppearance="@style/TextAppearance.MedBuddy.H1" />
-
-        <TextView
-            android:id="@+id/tvMonthLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_0_5"
-            android:textAppearance="@style/TextAppearance.MedBuddy.Body"
-            android:textColor="@color/text_secondary" />
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_1"
-            android:scrollbars="none">
-
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chipGroupDays"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:singleLine="true"
-                app:singleSelection="true" />
-
-        </HorizontalScrollView>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_1_5"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="@dimen/space_2">
 
+            <!-- Header -->
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Time Slots"
-                android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+                android:text="Schedule Management"
+                android:textAppearance="@style/TextAppearance.MedBuddy.H1" />
 
             <TextView
-                android:id="@+id/tvSlotCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_0_5"
+                android:text="Set your weekly availability and time slots"
+                android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                android:textColor="@color/text_secondary" />
+
+            <!-- Stat cards -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_2"
+                android:orientation="horizontal">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/space_0_5"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_1_5">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Active Days"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvStatActiveDays"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_0_5"
+                            android:text="0 / 7"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.H1"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_0_5"
+                    android:layout_marginEnd="@dimen/space_0_5"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_1_5">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Avg Hours/Day"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvStatAvgHours"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_0_5"
+                            android:text="0h"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.H1"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/space_0_5"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_1_5">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Exceptions"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvStatExceptions"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_0_5"
+                            android:text="0"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.H1"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <!-- Loading / error -->
+            <ProgressBar
+                android:id="@+id/progressBar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_status_badge"
-                android:paddingHorizontal="@dimen/space_1"
-                android:paddingVertical="@dimen/space_0_5"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/space_2"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvLoadError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_1"
+                android:background="@drawable/bg_error_banner"
+                android:padding="@dimen/space_1"
                 android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
-                android:textColor="@color/text_secondary" />
+                android:textColor="@color/error"
+                android:visibility="gone" />
+
+            <!-- ═══ Weekly Template Card ═══ -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_2"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Card header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Recurring Weekly Template"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_0_5"
+                            android:text="Set recurring clinic hours for each weekday"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/border" />
+
+                    <!-- Day rows injected here programmatically -->
+                    <LinearLayout
+                        android:id="@+id/llTemplateDays"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/border" />
+
+                    <!-- Template footer -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2">
+
+                        <TextView
+                            android:id="@+id/tvTemplateError"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/space_1"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/error"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/tvTemplateSuccess"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/space_1"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/chip_completed_text"
+                            android:visibility="gone" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSaveTemplate"
+                            style="@style/Widget.MedBuddy.Button.Primary"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:text="Save Template" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ═══ Exceptions Card ═══ -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_2"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Card header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Date Exceptions"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_0_5"
+                            android:text="Override a specific date as a day off or custom hours"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/border" />
+
+                    <!-- Add exception form -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2">
+
+                        <!-- Date picker row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnPickDate"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="44dp"
+                                android:layout_weight="1"
+                                android:text="Pick date"
+                                android:textSize="13sp" />
+
+                            <!-- Status: Day Off chip -->
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipDayOff"
+                                style="@style/Widget.MedBuddy.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/space_1"
+                                android:checked="true"
+                                android:text="Day Off" />
+
+                            <!-- Status: Custom Hours chip -->
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipCustomHours"
+                                style="@style/Widget.MedBuddy.Chip.Filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:text="Custom Hours" />
+
+                        </LinearLayout>
+
+                        <!-- Custom hours time pickers (hidden by default) -->
+                        <LinearLayout
+                            android:id="@+id/llCustomHours"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/space_1"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExceptionStart"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="40dp"
+                                android:layout_weight="1"
+                                android:text="09:00"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginHorizontal="@dimen/space_1"
+                                android:text="to"
+                                android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                                android:textColor="@color/text_secondary" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnExceptionEnd"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="40dp"
+                                android:layout_weight="1"
+                                android:text="17:00"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddException"
+                            style="@style/Widget.MedBuddy.Button.Secondary"
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="@dimen/space_1"
+                            android:text="+ Add Exception" />
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/border" />
+
+                    <!-- Exception list (injected programmatically) -->
+                    <LinearLayout
+                        android:id="@+id/llExceptions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/tvNoExceptions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="@dimen/space_2"
+                        android:text="No exceptions added"
+                        android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                        android:textColor="@color/text_secondary"
+                        android:visibility="gone" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/border" />
+
+                    <!-- Exception footer -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/space_2">
+
+                        <TextView
+                            android:id="@+id/tvExceptionError"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/space_1"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/error"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/tvExceptionSuccess"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/space_1"
+                            android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
+                            android:textColor="@color/chip_completed_text"
+                            android:visibility="gone" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSaveExceptions"
+                            style="@style/Widget.MedBuddy.Button.Primary"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:text="Save Exceptions" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Bottom padding -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/space_2" />
 
         </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/space_2"
-            android:visibility="gone" />
+    </androidx.core.widget.NestedScrollView>
 
-        <TextView
-            android:id="@+id/tvEmptyState"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="@dimen/space_2"
-            android:text="No slots available for this day"
-            android:textAppearance="@style/TextAppearance.MedBuddy.Body"
-            android:textColor="@color/text_secondary"
-            android:visibility="gone" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRetry"
-            style="@style/Widget.MedBuddy.Button.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:text="@string/btn_retry"
-            android:visibility="gone" />
-
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipeRefresh"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvSchedule"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingTop="@dimen/space_1" />
-
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddSlot"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/space_2"
-        android:contentDescription="Add time slot"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/primary"
-        app:layout_anchorGravity="bottom|end"
-        app:tint="@android:color/white" />
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>

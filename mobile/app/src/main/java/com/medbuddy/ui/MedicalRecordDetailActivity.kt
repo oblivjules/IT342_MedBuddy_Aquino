@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.medbuddy.R
 import com.medbuddy.api.RetrofitClient
+import com.medbuddy.auth.PaymentSessionManager
 import com.medbuddy.databinding.ActivityMedicalRecordDetailBinding
 import com.medbuddy.repository.MedicalRecordRepository
 import com.medbuddy.repository.PaymentRepository
@@ -48,7 +49,13 @@ class MedicalRecordDetailActivity : AppCompatActivity() {
         setupViewModels()
         setupAdapter()
         observeStates()
-        recordViewModel.loadRecordDetail(recordId)
+        // Load either the medical record detail (when recordId provided)
+        // or appointment-scoped files when only appointmentId is available.
+        if (recordId > 0) {
+            recordViewModel.loadRecordDetail(recordId)
+        } else if (appointmentId > 0) {
+            recordViewModel.loadAppointmentFiles(appointmentId)
+        }
 
         if (appointmentId > 0) {
             paymentViewModel.loadPaymentStatus(appointmentId)
@@ -69,7 +76,10 @@ class MedicalRecordDetailActivity : AppCompatActivity() {
         val paymentRepository = PaymentRepository(
             RetrofitClient.getInstance(applicationContext).apiService
         )
-        val paymentFactory = PaymentViewModelFactory(paymentRepository)
+        val paymentFactory = PaymentViewModelFactory(
+            paymentRepository,
+            PaymentSessionManager(applicationContext)
+        )
         paymentViewModel = ViewModelProvider(this, paymentFactory).get(PaymentViewModel::class.java)
     }
 

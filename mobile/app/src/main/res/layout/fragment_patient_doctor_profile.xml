@@ -125,6 +125,7 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:id="@+id/layoutRatingsSummary"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
@@ -184,30 +185,13 @@
                 android:layout_marginTop="8dp"
                 android:orientation="vertical" />
 
-            <TextView
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewReviews"
+                style="@style/Widget.MedBuddy.Button.Secondary"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_marginTop="20dp"
-                android:text="Feedback"
-                android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
-
-            <TextView
-                android:id="@+id/tvEmptyState"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:gravity="center"
-                android:text="No feedback yet"
-                android:textAppearance="@style/TextAppearance.MedBuddy.Body"
-                android:textColor="@color/text_secondary"
-                android:visibility="gone" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvFeedback"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:nestedScrollingEnabled="false" />
+                android:text="View Reviews" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

@@ -36,4 +36,19 @@ class ScheduleRepository(
     suspend fun saveTemplate(template: List<TemplateRequestDto>) {
         apiService.saveMyScheduleTemplate(template).ensureSuccess()
     }
+
+    suspend fun saveException(date: String, startTime: String, endTime: String, status: String) {
+        apiService.saveMyException(
+            DoctorAvailabilityRequest(
+                availableDate = date,
+                startTime = startTime,
+                endTime = endTime,
+                status = status
+            )
+        ).ensureSuccess()
+    }
+
+    suspend fun deleteException(date: String) {
+        apiService.deleteMyException(date).ensureSuccess()
+    }
 }

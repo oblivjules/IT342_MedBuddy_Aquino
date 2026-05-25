@@ -6,13 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.google.gson.Gson
+import com.medbuddy.api.RetrofitClient
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.databinding.FragmentDoctorProfileBinding
 import com.medbuddy.dto.UserDto
 import com.medbuddy.ui.LoginActivity
+import kotlinx.coroutines.launch
 
 class DoctorProfileFragment : Fragment() {
 
@@ -46,18 +49,40 @@ class DoctorProfileFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        loadProfileInfo()
+    }
+
     private fun loadProfileInfo() {
-        val userJson = tokenManager.getUserJson()
-        val user = runCatching {
+        val cachedUser = runCatching {
+            val userJson = tokenManager.getUserJson().orEmpty()
             Gson().fromJson(userJson, UserDto::class.java)
         }.getOrNull()
 
-        val first = user?.firstName.orEmpty()
-        val last = user?.lastName.orEmpty()
-        binding.tvName.text = "Dr. $first $last".trim()
-        binding.tvEmail.text = user?.email.orEmpty()
+        renderProfile(cachedUser)
 
-        val imageUrl = user?.profileImageUrl
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val liveUser = RetrofitClient.getInstance(requireContext()).apiService.getMe().bodyOrThrow()
+                renderProfile(liveUser)
+            } catch (_: Throwable) {
+                if (cachedUser == null) {
+                    binding.tvName.text = "Dr. Profile"
+                }
+            }
+        }
+    }
+
+    private fun renderProfile(user: UserDto?) {
+        if (user == null) return
+
+        val first = user.firstName.orEmpty()
+        val last = user.lastName.orEmpty()
+        binding.tvName.text = "Dr. $first $last".trim()
+        binding.tvEmail.text = user.email.orEmpty()
+
+        val imageUrl = user.profileImageUrl
         if (!imageUrl.isNullOrBlank()) {
             binding.ivAvatar.visibility = View.VISIBLE
             binding.tvAvatar.visibility = View.GONE
@@ -69,18 +94,21 @@ class DoctorProfileFragment : Fragment() {
             binding.tvAvatar.text = initials
         }
 
-        val phone = user?.phoneNumber?.takeIf { it.isNotBlank() }
+        val phone = user.phoneNumber?.takeIf { it.isNotBlank() }
         if (phone != null) {
             binding.tvPhone.text = phone
             binding.rowPhone.visibility = View.VISIBLE
         }
 
-        val specialization = user?.specializations?.joinToString(", ")
-            ?: user?.specialization ?: "General Practice"
+        val specialization = user.specializations?.joinToString(", ")
+            ?: user.specialization ?: "General Practice"
         binding.tvSpecialization.text = "Specialization: $specialization"
 
         binding.btnEditProfile.setOnClickListener {
-            Toast.makeText(requireContext(), "Edit profile flow coming soon", Toast.LENGTH_SHORT).show()
+            parentFragmentManager.beginTransaction()
+                .replace(com.medbuddy.R.id.fragmentContainer, DoctorEditProfileFragment())
+                .addToBackStack(null)
+                .commit()
         }
     }
 

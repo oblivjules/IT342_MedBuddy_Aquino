@@ -50,18 +50,13 @@ class FindDoctorFragment : Fragment() {
         binding.rvDoctors.adapter = doctorAdapter
 
         binding.etSearch.doAfterTextChanged { applyFilters() }
+        binding.dropdownSpecialization.setOnClickListener {
+            binding.dropdownSpecialization.showDropDown()
+        }
         binding.dropdownSpecialization.setOnItemClickListener { _, _, position, _ ->
             val selected = binding.dropdownSpecialization.adapter?.getItem(position)?.toString().orEmpty()
-            selectedSpecialization = if (selected.equals("All Specializations", ignoreCase = true) || selected.isBlank()) "ALL" else selected
+            selectedSpecialization = selected.toFilterToken()
             applyFilters()
-        }
-        binding.dropdownSpecialization.doAfterTextChanged { text ->
-            val selected = text?.toString().orEmpty()
-            val newFilter = if (selected.equals("All Specializations", ignoreCase = true) || selected.isBlank()) "ALL" else selected
-            if (newFilter != selectedSpecialization) {
-                selectedSpecialization = newFilter
-                applyFilters()
-            }
         }
 
         loadDoctors()
@@ -92,14 +87,11 @@ class FindDoctorFragment : Fragment() {
                 val specializations = buildList {
                     add("All Specializations")
                     allDoctors.forEach { doctor ->
-                        doctor.specializations?.forEach { add(it) }
-                        doctor.specialization?.let { add(it) }
+                        addAll(extractDoctorSpecializations(doctor))
                     }
                 }
-                    .map { it.trim() }
-                    .filter { it.isNotBlank() }
-                    .distinct()
-                    .sorted()
+                    .distinctBy { it.toFilterToken() }
+                    .sortedBy { if (it.equals("All Specializations", ignoreCase = true)) "" else it.lowercase() }
 
                 binding.dropdownSpecialization.setAdapter(
                     ArrayAdapter(
@@ -108,7 +100,7 @@ class FindDoctorFragment : Fragment() {
                         specializations,
                     )
                 )
-                binding.dropdownSpecialization.setText("All Specializations", false)
+                binding.dropdownSpecialization.setText("All", false)
                 selectedSpecialization = "ALL"
                 applyFilters()
             } catch (_: Throwable) {
@@ -123,21 +115,44 @@ class FindDoctorFragment : Fragment() {
 
     private fun applyFilters() {
         val query = binding.etSearch.text?.toString().orEmpty().trim().lowercase()
-        val specializationFilter = selectedSpecialization
+        val specializationFilter = selectedSpecialization.toFilterToken()
         val filtered = allDoctors.filter { doctor ->
             val name = listOfNotNull(doctor.firstName, doctor.lastName).joinToString(" ").lowercase()
             val email = doctor.email.orEmpty().lowercase()
-            val specializations = buildList {
-                doctor.specializations?.forEach { add(it) }
-                doctor.specialization?.let { add(it) }
-            }
+            val specializations = extractDoctorSpecializations(doctor)
             val matchesQuery = query.isBlank() || name.contains(query) || email.contains(query)
-            val matchesSpecialization = specializationFilter == "ALL" || specializations.any { it.equals(specializationFilter, ignoreCase = true) }
+            val matchesSpecialization = specializationFilter == "ALL" || specializations.any { it.toFilterToken() == specializationFilter }
             matchesQuery && matchesSpecialization
         }
 
         binding.tvEmptyState.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
         doctorAdapter.submitList(filtered)
+    }
+
+    private fun extractDoctorSpecializations(doctor: DoctorDto): List<String> {
+        val rawValues = buildList {
+            doctor.specializations?.forEach { add(it) }
+            doctor.specialization?.let { add(it) }
+        }
+
+        return rawValues
+            .flatMap { value -> value.split(",") }
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinctBy { it.lowercase() }
+    }
+
+    private fun String.toFilterToken(): String {
+        val normalized = trim().replace(Regex("\\s+"), " ")
+        return if (
+            normalized.isBlank() ||
+            normalized.equals("All", ignoreCase = true) ||
+            normalized.equals("All Specializations", ignoreCase = true)
+        ) {
+            "ALL"
+        } else {
+            normalized.lowercase()
+        }
     }
 
     private fun openDoctorProfile(doctor: DoctorDto) {

@@ -43,8 +43,26 @@ class EditProfileFragment : Fragment() {
     }
 
     private fun loadCurrentProfile() {
-        val userJson = tokenManager.getUserJson().orEmpty()
-        val user = runCatching { Gson().fromJson(userJson, UserDto::class.java) }.getOrNull() ?: return
+        val cachedUser = runCatching {
+            val userJson = tokenManager.getUserJson().orEmpty()
+            Gson().fromJson(userJson, UserDto::class.java)
+        }.getOrNull()
+
+        cachedUser?.let { populateProfileFields(it) }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val user = RetrofitClient.getInstance(requireContext()).apiService.getMe().bodyOrThrow()
+                populateProfileFields(user)
+            } catch (_: Throwable) {
+                if (cachedUser == null) {
+                    showError("Failed to load profile details.")
+                }
+            }
+        }
+    }
+
+    private fun populateProfileFields(user: UserDto) {
         binding.etFirstName.setText(user.firstName.orEmpty())
         binding.etLastName.setText(user.lastName.orEmpty())
         binding.etEmail.setText(user.email.orEmpty())

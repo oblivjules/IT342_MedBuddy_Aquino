@@ -6,12 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.google.gson.Gson
+import com.medbuddy.api.RetrofitClient
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.auth.TokenManager
 import com.medbuddy.databinding.FragmentPatientProfileRefinedBinding
 import com.medbuddy.dto.UserDto
 import com.medbuddy.ui.LoginActivity
+import kotlinx.coroutines.launch
 
 class PatientProfileFragment : Fragment() {
 
@@ -52,14 +56,34 @@ class PatientProfileFragment : Fragment() {
     }
 
     private fun loadProfileInfo() {
-        val userJson = tokenManager.getUserJson().orEmpty()
-        val user = runCatching { Gson().fromJson(userJson, UserDto::class.java) }.getOrNull()
-        val firstName = user?.firstName.orEmpty()
-        val lastName = user?.lastName.orEmpty()
-        binding.tvName.text = listOf(firstName, lastName).filter { it.isNotBlank() }.joinToString(" ").ifBlank { "Patient" }
-        binding.tvEmail.text = user?.email.orEmpty()
+        val cachedUser = runCatching {
+            val userJson = tokenManager.getUserJson().orEmpty()
+            Gson().fromJson(userJson, UserDto::class.java)
+        }.getOrNull()
 
-        val imageUrl = user?.profileImageUrl
+        renderProfile(cachedUser)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val liveUser = RetrofitClient.getInstance(requireContext()).apiService.getMe().bodyOrThrow()
+                renderProfile(liveUser)
+            } catch (_: Throwable) {
+                if (cachedUser == null) {
+                    binding.tvName.text = "Patient"
+                }
+            }
+        }
+    }
+
+    private fun renderProfile(user: UserDto?) {
+        if (user == null) return
+
+        val firstName = user.firstName.orEmpty()
+        val lastName = user.lastName.orEmpty()
+        binding.tvName.text = listOf(firstName, lastName).filter { it.isNotBlank() }.joinToString(" ").ifBlank { "Patient" }
+        binding.tvEmail.text = user.email.orEmpty()
+
+        val imageUrl = user.profileImageUrl
         if (!imageUrl.isNullOrBlank()) {
             binding.ivAvatar.visibility = View.VISIBLE
             binding.tvAvatar.visibility = View.GONE
@@ -70,7 +94,7 @@ class PatientProfileFragment : Fragment() {
             binding.tvAvatar.text = patientInitials(firstName, lastName)
         }
 
-        val phone = user?.phoneNumber?.takeIf { it.isNotBlank() }
+        val phone = user.phoneNumber?.takeIf { it.isNotBlank() }
         if (phone != null) {
             binding.tvPhone.text = phone
             binding.rowPhone.visibility = View.VISIBLE

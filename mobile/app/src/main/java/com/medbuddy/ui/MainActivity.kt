@@ -16,10 +16,13 @@ import com.medbuddy.dto.UserDto
 import com.medbuddy.ui.fragments.patient.PatientHomeFragment
 import com.medbuddy.ui.fragments.patient.AppointmentsFragment
 import com.medbuddy.ui.fragments.patient.FindDoctorFragment
+import com.medbuddy.ui.fragments.patient.PatientMyReviewsFragment
 import com.medbuddy.ui.fragments.patient.PatientProfileFragment
-import com.medbuddy.ui.fragments.doctor.DoctorHomeFragment
+import com.medbuddy.ui.fragments.doctor.DoctorDashboardFragment
 import com.medbuddy.ui.fragments.doctor.ScheduleFragment
 import com.medbuddy.ui.fragments.doctor.DoctorAppointmentsFragment
+import com.medbuddy.ui.fragments.doctor.DoctorFeedbackFragment
+import com.medbuddy.ui.fragments.doctor.DoctorPatientRecordsFragment
 import com.medbuddy.ui.fragments.doctor.DoctorProfileFragment
 
 class MainActivity : AppCompatActivity() {
@@ -89,6 +92,10 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(AppointmentsFragment())
                     true
                 }
+                R.id.nav_patient_reviews -> {
+                    loadFragment(PatientMyReviewsFragment())
+                    true
+                }
                 R.id.nav_find_doctor -> {
                     loadFragment(FindDoctorFragment())
                     true
@@ -100,7 +107,7 @@ class MainActivity : AppCompatActivity() {
 
                 // Doctor navigation
                 R.id.nav_doctor_home -> {
-                    loadFragment(DoctorHomeFragment())
+                    loadFragment(DoctorDashboardFragment())
                     true
                 }
                 R.id.nav_doctor_schedule -> {
@@ -109,6 +116,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.nav_doctor_appointments -> {
                     loadFragment(DoctorAppointmentsFragment())
+                    true
+                }
+                R.id.nav_doctor_ratings -> {
+                    loadFragment(DoctorFeedbackFragment())
                     true
                 }
                 R.id.nav_doctor_profile -> {
@@ -123,7 +134,7 @@ class MainActivity : AppCompatActivity() {
         // Load the first fragment by default
         if (isFirstCreation) {
             val defaultFragment = if (userRole == AppConstants.Role.DOCTOR) {
-                DoctorHomeFragment()
+                DoctorDashboardFragment()
             } else {
                 PatientHomeFragment()
             }

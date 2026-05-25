@@ -72,6 +72,33 @@ class MedicalRecordViewModel(
         }
     }
 
+    // Loads both the medical record (diagnosis/prescription) and attached files for a given appointment.
+    // Used by doctor and patient detail activities. Falls back gracefully when no record exists yet.
+    fun loadAppointmentRecord(appointmentId: Long) {
+        viewModelScope.launch {
+            _detailState.value = _detailState.value.copy(loading = true, error = null)
+            try {
+                val record = repository.getMedicalRecordByAppointment(appointmentId)
+                val files = filesForRecord(record.id, appointmentId)
+                _detailState.value = MedicalRecordDetailUiState(
+                    loading = false,
+                    record = record,
+                    files = files
+                )
+                if (!record.medicineName.isNullOrBlank()) {
+                    loadDrugInfo(record.id)
+                }
+            } catch (_: Throwable) {
+                // No record yet (appointment not completed) — just fetch files
+                _detailState.value = _detailState.value.copy(loading = false)
+                viewModelScope.launch {
+                    val files = filesForAppointment(appointmentId)
+                    _detailState.value = _detailState.value.copy(files = files)
+                }
+            }
+        }
+    }
+
     private fun loadDrugInfo(recordId: Long) {
         viewModelScope.launch {
             _detailState.value = _detailState.value.copy(drugInfoLoading = true)
@@ -81,21 +108,34 @@ class MedicalRecordViewModel(
                     drugInfo = drugInfo,
                     drugInfoLoading = false
                 )
-            } catch (e: Throwable) {
+            } catch (_: Throwable) {
                 _detailState.value = _detailState.value.copy(drugInfoLoading = false)
             }
         }
     }
 
+    // Legacy method kept for backward compatibility — prefer loadAppointmentRecord
     fun loadAppointmentFiles(appointmentId: Long) {
         viewModelScope.launch {
             try {
-                val files = repository.getAppointmentFiles(appointmentId)
+                val files = filesForAppointment(appointmentId)
                 _detailState.value = _detailState.value.copy(files = files)
-            } catch (e: Throwable) {
-                // Silent fail - files are optional
-            }
+            } catch (_: Throwable) {}
         }
+    }
+
+    private suspend fun filesForRecord(recordId: Long, appointmentId: Long): List<MedicalRecordFileResponse> {
+        val recordFiles = runCatching { repository.getMedicalRecordFiles(recordId) }.getOrElse { emptyList() }
+        val appointmentFiles = filesForAppointment(appointmentId)
+        val seen = mutableSetOf<Long>()
+        return (recordFiles + appointmentFiles).filter { seen.add(it.id) }
+    }
+
+    private suspend fun filesForAppointment(appointmentId: Long): List<MedicalRecordFileResponse> {
+        val fromFileUpload = runCatching { repository.getFilesByAppointment(appointmentId) }.getOrElse { emptyList() }
+        val fromPatientFiles = runCatching { repository.getAppointmentFiles(appointmentId) }.getOrElse { emptyList() }
+        val seen = mutableSetOf<Long>()
+        return (fromFileUpload + fromPatientFiles).filter { seen.add(it.id) }
     }
 
     fun createRecord(

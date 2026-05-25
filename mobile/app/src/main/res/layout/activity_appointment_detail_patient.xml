@@ -6,27 +6,27 @@
     android:orientation="vertical"
     android:background="@color/background">
 
-    <com.google.android.material.appbarcompat.AppBarLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:elevation="0dp"
+        app:elevation="0dp"
+        android:background="@color/surface">
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
-            android:background="@color/primary"
-            android:elevation="4dp"
+            android:background="@color/surface"
             app:navigationIcon="@drawable/ic_back"
+            app:navigationIconTint="@color/text_primary"
             android:title="Appointment Details"
-            android:titleTextColor="@color/white" />
-    </com.google.android.material.appbarcompat.AppBarLayout>
+            android:titleTextColor="@color/text_primary" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="16dp"
-        android:visibility="gone" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -36,89 +36,164 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="32dp">
 
             <!-- Doctor Info Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp">
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/surface">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:id="@+id/tvDoctorName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Subtitle1"
-                        android:textColor="@color/text_primary" />
-
-                    <TextView
-                        android:id="@+id/tvSpecialization"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Body"
-                        android:textColor="@color/text_secondary" />
-
+                    <!-- Avatar + doctor name row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:id="@+id/tvAvatar"
+                            android:layout_width="46dp"
+                            android:layout_height="46dp"
+                            android:background="@drawable/bg_avatar_soft"
+                            android:gravity="center"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/primary"
+                            android:text="DR" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="Date &amp; Time:" />
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
 
-                        <TextView
-                            android:id="@+id/tvDateTime"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
+                            <TextView
+                                android:id="@+id/tvDoctorName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary" />
 
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/tvSpecialization"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:orientation="horizontal">
+                        </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Status:" />
-
+                        <!-- Status badge -->
                         <TextView
                             android:id="@+id/tvStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
+                            android:background="@drawable/bg_status_badge"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="5dp"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
 
                     </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="14dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@color/divider" />
+
+                    <!-- Date/Time row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:src="@drawable/ic_calendar_outline"
+                            app:tint="@color/text_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:text="Date &amp; Time:" />
+
+                        <TextView
+                            android:id="@+id/tvDateTime"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="6dp"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Notes Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardNotesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/divider"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="#F9FAFB"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="Notes:"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
+                        android:text="YOUR NOTES"
+                        android:textSize="10sp"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.08"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_secondary" />
 
                     <TextView
                         android:id="@+id/tvNotes"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Body"
-                        android:textColor="@color/text_secondary" />
+                        android:layout_marginTop="6dp"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary"
+                        android:lineSpacingExtra="2dp" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -128,34 +203,62 @@
                 android:id="@+id/cardMedicalRecords"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/surface"
                 android:visibility="gone">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Medical Records"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
-                    <TextView
-                        android:id="@+id/tvRecordsCount"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Body" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnViewRecords"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="View Records" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Medical Records"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:id="@+id/tvRecordsCount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textSize="12sp"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnViewRecords"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="View Records"
+                            android:textAllCaps="false"
+                            android:textSize="13sp"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            app:strokeColor="@color/primary"
+                            android:textColor="@color/primary" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -165,9 +268,14 @@
                 android:id="@+id/cardPayment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/surface"
                 android:visibility="gone">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -178,7 +286,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Payment"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Subtitle1" />
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
 
                     <ProgressBar
                         android:id="@+id/progressPayment"
@@ -188,43 +298,64 @@
                         android:layout_marginTop="8dp"
                         android:visibility="gone" />
 
+                    <!-- Status + Amount row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Status:" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:background="@drawable/bg_info_section"
+                            android:padding="10dp"
+                            android:layout_marginEnd="4dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="STATUS"
+                                android:textSize="10sp"
+                                android:textAllCaps="true"
+                                android:letterSpacing="0.08"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_secondary" />
+                            <TextView
+                                android:id="@+id/tvPaymentStatus"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:textSize="13sp"
+                                android:textColor="@color/text_primary" />
+                        </LinearLayout>
 
-                        <TextView
-                            android:id="@+id/tvPaymentStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Amount:" />
-
-                        <TextView
-                            android:id="@+id/tvPaymentAmount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:background="@drawable/bg_info_section"
+                            android:padding="10dp"
+                            android:layout_marginStart="4dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="AMOUNT"
+                                android:textSize="10sp"
+                                android:textAllCaps="true"
+                                android:letterSpacing="0.08"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_secondary" />
+                            <TextView
+                                android:id="@+id/tvPaymentAmount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:textSize="13sp"
+                                android:textColor="@color/text_primary" />
+                        </LinearLayout>
 
                     </LinearLayout>
 
@@ -233,7 +364,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                        android:textSize="13sp"
                         android:textColor="@color/success"
                         android:visibility="gone" />
 
@@ -243,6 +374,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="Pay Now"
+                        android:textAllCaps="false"
+                        android:backgroundTint="@color/primary"
                         android:visibility="gone" />
 
                     <TextView
@@ -250,7 +383,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Body"
+                        android:textSize="13sp"
                         android:textColor="@color/error"
                         android:visibility="gone" />
 
@@ -262,9 +395,14 @@
                 android:id="@+id/cardRating"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/border"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/surface"
                 android:visibility="gone">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -274,8 +412,18 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Rate Doctor"
-                        android:textAppearance="@style/TextAppearance.MedBuddy.Subtitle1" />
+                        android:text="Rate Your Experience"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="How was your visit with this doctor?"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary" />
 
                     <RatingBar
                         android:id="@+id/ratingBar"
@@ -284,16 +432,24 @@
                         android:layout_marginTop="12dp"
                         android:numStars="5"
                         android:stepSize="1.0"
-                        style="@style/Widget.AppCompat.RatingBar.Indicator" />
+                        android:progressTint="@color/primary"
+                        style="@style/Widget.AppCompat.RatingBar" />
 
-                    <EditText
-                        android:id="@+id/etFeedback"
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
-                        android:layout_height="100dp"
+                        android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:hint="Additional feedback (optional)"
-                        android:inputType="textMultiLine"
-                        android:gravity="top" />
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:hint="Additional feedback (optional)">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etFeedback"
+                            android:layout_width="match_parent"
+                            android:layout_height="100dp"
+                            android:inputType="textMultiLine"
+                            android:gravity="top" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSubmitRating"
@@ -301,13 +457,14 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="Submit Rating"
+                        android:textAllCaps="false"
+                        android:backgroundTint="@color/primary"
                         android:visibility="gone" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-
     </ScrollView>
 
 </LinearLayout>

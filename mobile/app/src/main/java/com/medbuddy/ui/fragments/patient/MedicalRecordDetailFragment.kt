@@ -15,6 +15,7 @@ import com.medbuddy.databinding.FragmentMedicalRecordDetailBinding
 import com.medbuddy.dto.MedicalRecordResponse
 import com.medbuddy.repository.AppointmentRepository
 import com.medbuddy.repository.MedicalRecordRepository
+import com.medbuddy.repository.PaymentRepository
 import kotlinx.coroutines.launch
 
 class MedicalRecordDetailFragment : Fragment() {
@@ -23,6 +24,7 @@ class MedicalRecordDetailFragment : Fragment() {
     private lateinit var fileAdapter: MedicalRecordFileAdapter
     private lateinit var recordRepository: MedicalRecordRepository
     private lateinit var appointmentRepository: AppointmentRepository
+    private lateinit var paymentRepository: PaymentRepository
 
     private var recordId: Long = -1
     private var appointmentId: Long = -1
@@ -43,10 +45,20 @@ class MedicalRecordDetailFragment : Fragment() {
 
         recordRepository = MedicalRecordRepository(RetrofitClient.getInstance(requireContext()).apiService)
         appointmentRepository = AppointmentRepository(RetrofitClient.getInstance(requireContext()).apiService)
-        fileAdapter = MedicalRecordFileAdapter { file -> openFile(file.url ?: file.fileUrl) }
+        paymentRepository = PaymentRepository(RetrofitClient.getInstance(requireContext()).apiService)
+        fileAdapter = MedicalRecordFileAdapter { file ->
+            viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+                try {
+                    val accessUrl = runCatching { recordRepository.getFileAccessUrl(file.id) }.getOrNull() ?: file.fileUrl ?: file.url
+                    accessUrl?.let { openFile(it) }
+                } catch (_: Throwable) {
+                    // silent fail - openFile handles nulls
+                }
+            }
+        }
 
-        binding.rvFiles.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvFiles.adapter = fileAdapter
+        binding.recyclerFiles.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerFiles.adapter = fileAdapter
 
         loadDetail()
     }
@@ -57,29 +69,81 @@ class MedicalRecordDetailFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
+                val payment = loadPaymentStatus()
+                if (!isPaymentUnlocked(payment?.paymentStatus)) {
+                    showLockedState()
+                    return@launch
+                }
+
                 val record = loadRecord()
                 val appointment = appointmentRepository.getPatientAppointments().firstOrNull { it.id == record.appointmentId }
                 val doctorName = appointment?.let { appointmentDoctorName(it) } ?: record.doctorName ?: "Doctor"
                 val dateLabel = appointment?.let { formatAppointmentDateTime(it.dateTime) } ?: record.formattedDate ?: record.createdAt ?: record.uploadedAt.orEmpty()
                 val files = record.id.let { runCatching { recordRepository.getMedicalRecordFiles(it) }.getOrDefault(emptyList()) }
 
+                binding.cardLocked.visibility = View.GONE
+                binding.cardContent.visibility = View.VISIBLE
+                binding.cardContent.alpha = 1f
+
                 binding.tvDiagnosis.text = record.diagnosis
                 binding.tvDoctorName.text = doctorName
                 binding.tvDate.text = dateLabel
+                binding.tvMedicineName.text = record.medicineName?.takeIf { it.isNotBlank() } ?: "N/A"
+                binding.tvDosage.text = record.dosage?.takeIf { it.isNotBlank() } ?: "N/A"
+                binding.tvRoute.text = record.route?.takeIf { it.isNotBlank() } ?: "N/A"
+                binding.tvFrequency.text = record.frequency?.takeIf { it.isNotBlank() } ?: "N/A"
+                binding.tvDuration.text = record.duration?.takeIf { it.isNotBlank() } ?: "N/A"
+                binding.tvPrescriptionNotes.text = record.prescriptionNotes?.takeIf { it.isNotBlank() } ?: "N/A"
                 binding.tvPrescriptionDetails.text = record.prescriptionDetails?.takeIf { it.isNotBlank() }
                     ?: buildPrescriptionSummary(record)
                 fileAdapter.submitList(files)
-                binding.tvFilesEmptyState.visibility = if (files.isEmpty()) View.VISIBLE else View.GONE
+                binding.tvNoFiles.visibility = if (files.isEmpty()) View.VISIBLE else View.GONE
+                binding.recyclerFiles.visibility = if (files.isEmpty()) View.GONE else View.VISIBLE
 
-                loadDrugInfo(record.id)
+                if (!record.medicineName.isNullOrBlank()) {
+                    loadDrugInfo(record.id)
+                } else {
+                    binding.progressDrugInfo.visibility = View.GONE
+                    binding.cardDrugInfo.visibility = View.GONE
+                    binding.tvDrugUnavailable.visibility = View.VISIBLE
+                }
             } catch (throwable: Throwable) {
                 binding.tvDiagnosis.text = throwable.message ?: "Unable to load medical record"
-                binding.tvFilesEmptyState.visibility = View.VISIBLE
+                binding.tvError.visibility = View.VISIBLE
+                binding.tvError.text = throwable.message ?: "Unable to load medical record"
             } finally {
                 binding.progressBar.visibility = View.GONE
                 binding.scrollContent.visibility = View.VISIBLE
             }
         }
+    }
+
+    private suspend fun loadPaymentStatus() = when {
+        appointmentId > 0 -> runCatching { paymentRepository.getPaymentByAppointmentId(appointmentId) }.getOrNull()
+        recordId > 0 -> runCatching { loadRecord() }.getOrNull()?.let { record ->
+            runCatching { paymentRepository.getPaymentByAppointmentId(record.appointmentId) }.getOrNull()
+        }
+        else -> null
+    }
+
+    private fun isPaymentUnlocked(status: String?): Boolean {
+        return when (status?.uppercase()) {
+            "PAID", "COMPLETED" -> true
+            else -> false
+        }
+    }
+
+    private fun showLockedState() {
+        binding.cardLocked.visibility = View.VISIBLE
+        binding.cardContent.visibility = View.GONE
+        binding.cardDrugInfo.visibility = View.GONE
+        binding.recyclerFiles.visibility = View.GONE
+        binding.tvNoFiles.visibility = View.GONE
+        binding.tvError.visibility = View.GONE
+        binding.tvDiagnosis.text = ""
+        binding.tvDoctorName.text = ""
+        binding.tvDate.text = ""
+        binding.tvPrescriptionDetails.text = ""
     }
 
     private suspend fun loadRecord(): MedicalRecordResponse {
@@ -96,7 +160,7 @@ class MedicalRecordDetailFragment : Fragment() {
                 ?: return@launch
             if (drugInfo.available != true) return@launch
 
-            binding.layoutDrugInfo.visibility = View.VISIBLE
+            binding.cardDrugInfo.visibility = View.VISIBLE
             drugInfo.description?.takeIf { it.isNotBlank() }?.let {
                 binding.tvDrugDescription.text = it
                 binding.tvDrugDescription.visibility = View.VISIBLE

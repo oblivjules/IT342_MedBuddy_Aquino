@@ -3,6 +3,7 @@ package com.medbuddy.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.medbuddy.constants.AppConstants
+import com.medbuddy.auth.PaymentSessionManager
 import com.medbuddy.dto.PaymentResponse
 import com.medbuddy.ui.viewstate.PaymentUiState
 import com.medbuddy.repository.PaymentRepository
@@ -11,7 +12,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
-class PaymentViewModel(private val paymentRepository: PaymentRepository) : ViewModel() {
+class PaymentViewModel(
+    private val paymentRepository: PaymentRepository,
+    private val paymentSessionManager: PaymentSessionManager
+) : ViewModel() {
 
     private val _paymentState = MutableStateFlow(PaymentUiState())
     val paymentState: StateFlow<PaymentUiState> = _paymentState
@@ -40,11 +44,45 @@ class PaymentViewModel(private val paymentRepository: PaymentRepository) : ViewM
     ) {
         viewModelScope.launch {
             try {
-                val url = paymentRepository.initiatePayment(appointmentId, amount, returnUrl)
-                _paymentState.value = _paymentState.value.copy(checkoutUrl = url)
-                onResult(url)
+                val response = paymentRepository.initiatePayment(appointmentId, amount, returnUrl)
+                paymentSessionManager.savePendingPayment(appointmentId, response.paymentIntentId, response.clientKey)
+                _paymentState.value = _paymentState.value.copy(
+                    checkoutUrl = response.checkoutUrl,
+                    paymentIntentId = response.paymentIntentId,
+                    clientKey = response.clientKey,
+                    error = null
+                )
+                onResult(response.checkoutUrl)
             } catch (e: Exception) {
                 _paymentState.value = _paymentState.value.copy(error = e.message)
+                onResult(null)
+            }
+        }
+    }
+
+    fun confirmStoredPayment(onResult: (PaymentResponse?) -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                val session = paymentSessionManager.getPendingPayment()
+                if (session == null) {
+                    onResult(null)
+                    return@launch
+                }
+
+                _paymentState.value = _paymentState.value.copy(loading = true, error = null)
+                val payment = paymentRepository.confirmPayment(session.paymentIntentId, session.clientKey)
+                paymentSessionManager.clearPendingPayment()
+                _paymentState.value = _paymentState.value.copy(
+                    loading = false,
+                    payment = payment,
+                    paymentIntentId = null,
+                    clientKey = null,
+                    checkoutUrl = null,
+                    error = null
+                )
+                onResult(payment)
+            } catch (e: Exception) {
+                _paymentState.value = _paymentState.value.copy(loading = false, error = e.message)
                 onResult(null)
             }
         }

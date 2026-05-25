@@ -95,7 +95,7 @@
                         android:layout_width="match_parent"
                         android:id="@+id/tvNextPatient"
                         android:layout_marginTop="@dimen/space_0_5"
-                        android:text="Next Patient: -"
+                        android:text="Upcoming Today: -"
                         android:textAppearance="@style/TextAppearance.MedBuddy.Caption" />
 
                     <com.google.android.material.button.MaterialButton
@@ -109,7 +109,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ✅ UPCOMING TODAY (like patient appointment card) -->
+            <!-- ✅ UPCOMING Appointments (like patient appointment card) -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.MedBuddy.Card.Surface"
                 android:layout_width="match_parent"
@@ -125,7 +125,7 @@
                     <TextView
                         android:layout_height="wrap_content"
                         android:layout_width="match_parent"
-                        android:text="Upcoming Today"
+                        android:text="Upcoming Appointments"
                         android:textAppearance="@style/TextAppearance.MedBuddy.H2" />
 
                     <TextView
@@ -165,21 +165,18 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <TextView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_avatar_circle"
-                            android:gravity="center"
-                            android:text="📅"
-                            android:textColor="@android:color/white" />
-
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnViewSchedule"
                             style="@style/Widget.MedBuddy.Button.Secondary"
                             android:layout_width="match_parent"
                             android:layout_height="52dp"
                             android:layout_marginTop="@dimen/space_1"
-                            android:text="View Schedule" />
+                            android:text="View Schedule"
+                            app:icon="@drawable/ic_calendar_outline"
+                            app:iconGravity="textStart"
+                            app:iconSize="18dp"
+                            app:iconPadding="8dp"
+                            app:iconTint="@color/colorPink" />
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

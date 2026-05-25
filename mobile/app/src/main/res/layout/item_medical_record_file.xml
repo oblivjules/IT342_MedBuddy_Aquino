@@ -31,31 +31,16 @@
                     android:textAppearance="@style/TextAppearance.MedBuddy.BodyBold"
                     android:textColor="@color/text_primary" />
 
-                <TextView
-                    android:id="@+id/tvUploadedBy"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
-                    android:textColor="@color/text_secondary" />
-
-                <TextView
-                    android:id="@+id/tvUploadedAt"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textAppearance="@style/TextAppearance.MedBuddy.Caption"
-                    android:textColor="@color/text_secondary" />
-
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnOpen"
+                style="@style/Widget.MedBuddy.Button.Secondary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Open"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                android:minHeight="36dp"
+                android:text="Open" />
 
         </LinearLayout>
 

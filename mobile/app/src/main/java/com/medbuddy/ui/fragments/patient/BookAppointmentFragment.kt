@@ -1,10 +1,13 @@
 package com.medbuddy.ui.fragments.patient
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -13,11 +16,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.chip.Chip
 import com.medbuddy.R
 import com.medbuddy.api.RetrofitClient
+import com.medbuddy.api.bodyOrThrow
 import com.medbuddy.databinding.FragmentBookAppointmentRefinedBinding
 import com.medbuddy.dto.DoctorDto
 import com.medbuddy.repository.AppointmentRepository
 import com.medbuddy.viewmodel.AppointmentViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.time.LocalDate
 
 class BookAppointmentFragment : Fragment() {
@@ -28,6 +39,15 @@ class BookAppointmentFragment : Fragment() {
     private var doctor: DoctorDto? = null
     private var selectedDate: LocalDate = LocalDate.now().plusDays(1)
     private var selectedSlotId: Long? = null
+    private val selectedAttachmentUris = mutableListOf<Uri>()
+    private val attachmentPicker = registerForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNullOrEmpty()) return@registerForActivityResult
+        selectedAttachmentUris.clear()
+        selectedAttachmentUris.addAll(uris)
+        renderSelectedAttachments()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,6 +67,7 @@ class BookAppointmentFragment : Fragment() {
 
         setupDoctorHeader()
         setupDates()
+        setupAttachments()
         observeSlots()
 
         binding.btnBook.setOnClickListener { submitBooking() }
@@ -64,6 +85,13 @@ class BookAppointmentFragment : Fragment() {
         binding.tvDoctorName.text = doctorName
         binding.tvDoctorSpec.text = specialization
         binding.tvReservationFee.text = "₱100 reservation fee"
+    }
+
+    private fun setupAttachments() {
+        binding.btnChooseFiles.setOnClickListener {
+            attachmentPicker.launch(arrayOf("application/pdf", "image/jpeg", "image/png"))
+        }
+        renderSelectedAttachments()
     }
 
     private fun setupDates() {
@@ -184,19 +212,92 @@ class BookAppointmentFragment : Fragment() {
             doctorId = currentDoctor.id,
             slotId = chosenSlotId,
             reason = notes
-        ) { success ->
+        ) { appointmentResponse ->
             if (!isAdded) return@bookAppointment
-            if (success) {
-                Toast.makeText(requireContext(), getString(R.string.success_booked), Toast.LENGTH_SHORT).show()
-                parentFragmentManager.popBackStack()
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragmentContainer, AppointmentsFragment())
-                    .commit()
+            if (appointmentResponse != null) {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val failedUploads = uploadSelectedAttachments(notes, appointmentResponse.id)
+                    val message = if (failedUploads.isEmpty()) {
+                        getString(R.string.success_booked)
+                    } else {
+                        "Appointment booked, but some attachments failed to upload: ${failedUploads.joinToString(", ")}"
+                    }
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, AppointmentsFragment())
+                        .commit()
+                }
             } else {
                 binding.btnBook.isEnabled = true
                 Toast.makeText(requireContext(), "Failed to book appointment", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun renderSelectedAttachments() {
+        binding.containerSelectedFiles.removeAllViews()
+        binding.tvSelectedFilesEmpty.visibility = if (selectedAttachmentUris.isEmpty()) View.VISIBLE else View.GONE
+
+        selectedAttachmentUris.forEachIndexed { index, uri ->
+            val row = LayoutInflater.from(requireContext()).inflate(
+                R.layout.item_selected_attachment,
+                binding.containerSelectedFiles,
+                false,
+            )
+            val nameView = row.findViewById<TextView>(R.id.tvAttachmentName)
+            val removeButton = row.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnRemoveAttachment)
+            nameView.text = displayNameForUri(uri)
+            removeButton.setOnClickListener {
+                if (index in selectedAttachmentUris.indices) {
+                    selectedAttachmentUris.removeAt(index)
+                    renderSelectedAttachments()
+                }
+            }
+            binding.containerSelectedFiles.addView(row)
+        }
+    }
+
+    private suspend fun uploadSelectedAttachments(description: String, appointmentId: Long?): List<String> {
+        if (selectedAttachmentUris.isEmpty()) return emptyList()
+
+        val apiService = RetrofitClient.getInstance(requireContext()).apiService
+        return withContext(Dispatchers.IO) {
+            selectedAttachmentUris.map { uri ->
+                async {
+                    runCatching {
+                        val requestBody = description.takeIf { it.isNotBlank() }
+                            ?.toRequestBody("text/plain".toMediaTypeOrNull())
+                        val appointmentBody = appointmentId?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull())
+                        apiService.uploadMyMedicalRecordFile(uri.toMultipartPart(), requestBody, appointmentBody).bodyOrThrow()
+                        null
+                    }.getOrElse {
+                        displayNameForUri(uri)
+                    }
+                }
+            }.awaitAll().filterNotNull()
+        }
+    }
+
+    private fun Uri.toMultipartPart(): MultipartBody.Part {
+        val resolver = requireContext().contentResolver
+        val mimeType = resolver.getType(this)?.toMediaTypeOrNull() ?: "application/octet-stream".toMediaTypeOrNull()
+        val fileName = displayNameForUri(this).ifBlank { "attachment" }
+        val bytes = resolver.openInputStream(this)?.use { input -> input.readBytes() }
+            ?: throw IllegalArgumentException("Unable to read selected file")
+        val requestBody = bytes.toRequestBody(mimeType)
+        return MultipartBody.Part.createFormData("file", fileName, requestBody)
+    }
+
+    private fun displayNameForUri(uri: Uri): String {
+        val projection = arrayOf(android.provider.OpenableColumns.DISPLAY_NAME)
+        requireContext().contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            val index = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+            if (index >= 0 && cursor.moveToFirst()) {
+                return cursor.getString(index).orEmpty()
+            }
+        }
+        return uri.lastPathSegment.orEmpty()
     }
 
     companion object {
