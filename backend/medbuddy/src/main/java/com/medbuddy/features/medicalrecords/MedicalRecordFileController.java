@@ -34,10 +34,19 @@ public class MedicalRecordFileController {
     public ResponseEntity<MedicalRecordFileResponse> uploadMyRecord(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "description", required = false) String description) {
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "appointmentId", required = false) Long appointmentId) {
         MedicalRecordFileResponse response = medicalRecordFileService.uploadAsPatient(
-                userDetails.getUsername(), file, description);
+                userDetails.getUsername(), file, description, appointmentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/appointment/{appointmentId}")
+    @PreAuthorize("hasAnyRole('PATIENT','DOCTOR')")
+    public ResponseEntity<List<MedicalRecordFileResponse>> getByAppointment(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long appointmentId) {
+        return ResponseEntity.ok(medicalRecordFileService.getByAppointment(userDetails.getUsername(), appointmentId));
     }
 
     @PostMapping(value = "/patients/{patientId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

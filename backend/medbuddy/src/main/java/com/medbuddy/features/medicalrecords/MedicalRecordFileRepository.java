@@ -11,5 +11,7 @@ import com.medbuddy.shared.model.MedicalRecordFile;
 public interface MedicalRecordFileRepository extends JpaRepository<MedicalRecordFile, Long> {
 
     List<MedicalRecordFile> findByPatient_IdOrderByUploadedAtDesc(Long patientId);
+
+    List<MedicalRecordFile> findByAppointment_IdOrderByUploadedAtDesc(Long appointmentId);
 }
 

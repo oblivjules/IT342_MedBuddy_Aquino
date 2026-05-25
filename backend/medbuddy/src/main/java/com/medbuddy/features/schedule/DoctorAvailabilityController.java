@@ -108,6 +108,14 @@ public class DoctorAvailabilityController {
         return ResponseEntity.ok(doctorScheduleService.getTemplates(doctorId));
     }
 
+    @GetMapping("/doctor/schedule/exception")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<List<DoctorAvailabilityResponse>> getMyExceptions(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long doctorId = availabilityService.getAuthenticatedDoctorId(userDetails.getUsername());
+        return ResponseEntity.ok(availabilityService.getByDoctor(doctorId));
+    }
+
     @PostMapping("/doctor/schedule/exception")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<Void> saveException(

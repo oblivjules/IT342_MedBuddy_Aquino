@@ -17,27 +17,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.medbuddy.features.payment.PaymentRequest;
-import com.medbuddy.features.payment.PaymentResponse;
-import com.medbuddy.features.payment.PaymentTotalUpdateRequest;
-import com.medbuddy.features.payment.PaymentService;
 import com.medbuddy.shared.model.PaymentStatus;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * PaymentController
- *
- * Endpoints:
- *   POST   /api/payments                          — create a payment for an appointment
- *   GET    /api/payments/{id}                     — get payment by ID
- *   GET    /api/payments/appointment/{id}          — get payment by appointment
- *   PATCH  /api/payments/{id}/status              — update payment status
- */
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -47,31 +36,45 @@ public class PaymentController {
     public ResponseEntity<PaymentResponse> create(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody PaymentRequest request) {
-        PaymentResponse response = paymentService.create(userDetails.getUsername(), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(paymentService.create(userDetails.getUsername(), request));
     }
 
     @PostMapping("/initiate")
     @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<?> initiate(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody com.medbuddy.features.payment.PaymentInitiateRequest request) {
+            @Valid @RequestBody PaymentInitiateRequest request) {
         try {
-            com.medbuddy.features.payment.PaymentInitiateResponse resp = paymentService.initiatePayment(userDetails.getUsername(), request);
+            PaymentInitiateResponse resp = paymentService.initiatePayment(userDetails.getUsername(), request);
             if (resp == null || resp.getCheckoutUrl() == null) {
                 return ResponseEntity.badRequest().body(
-                    Map.of("error", "Failed to create PayMongo checkout session. Please try again."));
+                        Map.of("error", "Failed to create PayMongo checkout session. Please try again."));
             }
             return ResponseEntity.ok(resp);
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().body(
-                Map.of("error", ex.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         } catch (org.springframework.security.access.AccessDeniedException ex) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                Map.of("error", ex.getMessage()));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(
-                Map.of("error", "Validation failed: " + ex.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", "Validation failed: " + ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/confirm")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<?> confirm(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, String> request) {
+        try {
+            String paymentIntentId = request != null ? request.get("paymentIntentId") : null;
+            String clientKey = request != null ? request.get("clientKey") : null;
+            return ResponseEntity.ok(paymentService.confirmPayment(
+                    userDetails.getUsername(), paymentIntentId, clientKey));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        } catch (org.springframework.security.access.AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
         }
     }
 
@@ -102,7 +105,6 @@ public class PaymentController {
             @PathVariable Long appointmentId) {
         try {
             PaymentResponse response = paymentService.getByAppointment(userDetails.getUsername(), appointmentId);
-            // Return 404 when no payment record exists yet instead of 200 with null
             if (response == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -110,8 +112,7 @@ public class PaymentController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.notFound().build();
         } catch (org.springframework.security.access.AccessDeniedException ex) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                Map.of("error", ex.getMessage()));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
         }
     }
 
@@ -136,16 +137,20 @@ public class PaymentController {
                 request.getTotalBillAmount()));
     }
 
-        @GetMapping("/webhook")
-        public ResponseEntity<Void> webhookHealthCheck() {
-            return ResponseEntity.ok().build();
-        }
+    @GetMapping("/webhook")
+    public ResponseEntity<Void> webhookHealthCheck() {
+        return ResponseEntity.ok().build();
+    }
 
-        @PostMapping("/webhook")
-        public ResponseEntity<Map<String, String>> webhook(
-                @RequestHeader(value = "PayMongo-Signature", required = false) String signature,
-                @RequestBody String rawPayload) {
-            paymentService.handleWebhook(rawPayload, signature);
-            return ResponseEntity.ok(Map.of("message", "Webhook received"));
+    @PostMapping("/webhook")
+    public ResponseEntity<Map<String, String>> webhook(
+            @RequestHeader(value = "PayMongo-Signature", required = false) String signature,
+            @RequestBody(required = false) String rawPayload) {
+        try {
+            paymentService.handleWebhook(rawPayload != null ? rawPayload : "", signature);
+        } catch (Exception ex) {
+            log.error("PayMongo webhook handler failed", ex);
         }
+        return ResponseEntity.ok(Map.of("message", "Webhook received"));
+    }
 }

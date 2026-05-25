@@ -143,6 +143,8 @@ public class PaymentService {
 
         String sessionId = pmResp.at("/data/id").asText(null);
         String checkoutUrl = pmResp.at("/data/attributes/checkout_url").asText(null);
+        String paymentIntentId = extractPaymentIntentId(pmResp);
+        String clientKey = extractClientKey(pmResp);
 
         if (sessionId == null || checkoutUrl == null) {
             log.error("PayMongo response missing session id or checkout_url: {}", pmResp.toString());
@@ -151,10 +153,54 @@ public class PaymentService {
 
         // Save session id and keep the payment pending until webhook confirmation
         payment.setPaymongoSessionId(sessionId);
+        payment.setPaymongoPaymentIntentId(paymentIntentId);
         payment.setPaymentStatus(PaymentStatus.PENDING);
         paymentRepository.save(payment);
 
-        return new PaymentInitiateResponse(checkoutUrl, payment.getId());
+        return new PaymentInitiateResponse(checkoutUrl, payment.getId(), paymentIntentId, clientKey);
+    }
+
+    @Transactional
+    public PaymentResponse confirmPayment(String userEmail, String paymentIntentId, String clientKey) {
+        User user = findUserByEmail(userEmail);
+        if (user.getRole() != Role.PATIENT) {
+            throw new AccessDeniedException("Only patients can confirm payments.");
+        }
+
+        if (paymentIntentId == null || paymentIntentId.isBlank()) {
+            throw new IllegalArgumentException("Payment intent ID is required.");
+        }
+        if (clientKey == null || clientKey.isBlank()) {
+            throw new IllegalArgumentException("Client key is required.");
+        }
+
+        Payment payment = paymentRepository.findByPaymongoPaymentIntentId(paymentIntentId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Payment not found for payment intent id: " + paymentIntentId));
+
+        validateAppointmentOwnership(user, payment.getAppointment());
+
+        JsonNode paymentIntent = payMongoService.getPaymentIntent(paymentIntentId, clientKey);
+        if (paymentIntent == null) {
+            throw new IllegalArgumentException("Unable to retrieve payment intent from PayMongo.");
+        }
+
+        String status = paymentIntent.at("/data/attributes/status").asText(null);
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("PayMongo payment intent status is unavailable.");
+        }
+
+        if ("succeeded".equalsIgnoreCase(status)) {
+            payment.setPaymentStatus(PaymentStatus.PAID);
+            payment.setPaidAmount(payment.getFeeAmount());
+            payment.setPaidAt(LocalDateTime.now());
+        } else {
+            payment.setPaymentStatus(PaymentStatus.FAILED);
+            payment.setPaidAmount(BigDecimal.ZERO);
+        }
+
+        payment.setPaymongoPaymentIntentId(paymentIntentId);
+        return toResponse(paymentRepository.save(payment));
     }
 
     @Async
@@ -398,6 +444,30 @@ public class PaymentService {
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("No account found with email: " + email));
+    }
+
+    private String extractPaymentIntentId(JsonNode pmResp) {
+        String paymentIntentId = pmResp.at("/data/attributes/payment_intent/id").asText(null);
+        if (paymentIntentId != null && !paymentIntentId.isBlank()) {
+            return paymentIntentId;
+        }
+        paymentIntentId = pmResp.at("/data/attributes/payment_intent/data/id").asText(null);
+        if (paymentIntentId != null && !paymentIntentId.isBlank()) {
+            return paymentIntentId;
+        }
+        return pmResp.at("/data/attributes/payment_intent_id").asText(null);
+    }
+
+    private String extractClientKey(JsonNode pmResp) {
+        String clientKey = pmResp.at("/data/attributes/payment_intent/attributes/client_key").asText(null);
+        if (clientKey != null && !clientKey.isBlank()) {
+            return clientKey;
+        }
+        clientKey = pmResp.at("/data/attributes/client_key").asText(null);
+        if (clientKey != null && !clientKey.isBlank()) {
+            return clientKey;
+        }
+        return pmResp.at("/data/attributes/payment_intent/client_key").asText(null);
     }
 
     private PaymentResponse toResponse(Payment p) {

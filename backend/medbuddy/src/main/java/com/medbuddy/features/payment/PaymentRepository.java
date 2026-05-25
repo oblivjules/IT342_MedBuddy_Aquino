@@ -14,5 +14,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByPaymongoSessionId(String paymongoSessionId);
 
+    Optional<Payment> findByPaymongoPaymentIntentId(String paymongoPaymentIntentId);
+
     boolean existsByAppointment_Id(Long appointmentId);
 }

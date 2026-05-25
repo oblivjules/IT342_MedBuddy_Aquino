@@ -48,11 +48,12 @@ public class MedicalRecordFileService {
     private final FileUploadValidationService fileUploadValidationService;
 
     @Transactional
-    public MedicalRecordFileResponse uploadAsPatient(String email, MultipartFile file, String description) {
-        log.info("[MEDICAL_RECORD_FILE][PATIENT] request email={} fileName={} size={} bytes",
+    public MedicalRecordFileResponse uploadAsPatient(String email, MultipartFile file, String description, Long appointmentId) {
+        log.info("[MEDICAL_RECORD_FILE][PATIENT] request email={} fileName={} size={} bytes appointmentId={}",
                 email,
                 file != null ? file.getOriginalFilename() : null,
-                file != null ? file.getSize() : null);
+                file != null ? file.getSize() : null,
+                appointmentId);
 
         User user = findUser(email);
         if (user.getRole() != Role.PATIENT) {
@@ -62,7 +63,16 @@ public class MedicalRecordFileService {
         Patient patient = patientRepository.findByUser_Id(user.getId())
                 .orElseThrow(() -> new IllegalStateException("Patient profile not found for user: " + email));
 
-        return saveFile(file, description, user, patient, "medical-records/patient-" + patient.getId());
+        com.medbuddy.shared.model.Appointment appointment = null;
+        if (appointmentId != null) {
+            appointment = appointmentRepository.findById(appointmentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + appointmentId));
+            if (!appointment.getPatient().getId().equals(patient.getId())) {
+                throw new AccessDeniedException("Cannot attach file to an appointment that does not belong to you.");
+            }
+        }
+
+        return saveFile(file, description, user, patient, appointment, "medical-records/patient-" + patient.getId());
     }
 
     @Transactional
@@ -88,7 +98,37 @@ public class MedicalRecordFileService {
             throw new AccessDeniedException("Doctor can only upload records for assigned patients.");
         }
 
-        return saveFile(file, description, user, patient, "medical-records/patient-" + patient.getId());
+        return saveFile(file, description, user, patient, null, "medical-records/patient-" + patient.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<MedicalRecordFileResponse> getByAppointment(String requesterEmail, Long appointmentId) {
+        User requester = findUser(requesterEmail);
+        com.medbuddy.shared.model.Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + appointmentId));
+
+        switch (requester.getRole()) {
+            case PATIENT -> {
+                Patient patient = patientRepository.findByUser_Id(requester.getId())
+                        .orElseThrow(() -> new IllegalStateException("Patient profile not found for user: " + requesterEmail));
+                if (!patient.getId().equals(appointment.getPatient().getId())) {
+                    throw new AccessDeniedException("You can only view files for your own appointments.");
+                }
+            }
+            case DOCTOR -> {
+                Doctor doctor = doctorRepository.findByUser_Id(requester.getId())
+                        .orElseThrow(() -> new IllegalStateException("Doctor profile not found for user: " + requesterEmail));
+                if (!doctor.getId().equals(appointment.getDoctor().getId())) {
+                    throw new AccessDeniedException("You can only view files for appointments assigned to you.");
+                }
+            }
+            default -> throw new AccessDeniedException("Not allowed to access appointment files.");
+        }
+
+        return medicalRecordFileRepository.findByAppointment_IdOrderByUploadedAtDesc(appointmentId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -188,7 +228,7 @@ public class MedicalRecordFileService {
         }
     }
 
-    private MedicalRecordFileResponse saveFile(MultipartFile file, String description, User uploadedBy, Patient patient, String folder) {
+    private MedicalRecordFileResponse saveFile(MultipartFile file, String description, User uploadedBy, Patient patient, com.medbuddy.shared.model.Appointment appointment, String folder) {
         validate(file);
 
         FileUploadValidationService.ValidatedFileMetadata metadata =
@@ -196,9 +236,10 @@ public class MedicalRecordFileService {
 
         StorageUploadResult storageResult = fileStorageService.store(file, folder);
 
-        log.info("[MEDICAL_RECORD_FILE][STORE] uploadedByUserId={} patientId={} storagePath={}",
+        log.info("[MEDICAL_RECORD_FILE][STORE] uploadedByUserId={} patientId={} appointmentId={} storagePath={}",
             uploadedBy.getId(),
             patient.getId(),
+            appointment != null ? appointment.getId() : null,
             storageResult.storagePath());
 
         MedicalRecordFile recordFile = MedicalRecordFile.builder()
@@ -210,6 +251,7 @@ public class MedicalRecordFileService {
                 .description(description)
                 .uploadedBy(uploadedBy)
                 .patient(patient)
+                .appointment(appointment)
                 .build();
 
         log.info("[MEDICAL_RECORD_FILE][DB] About to persist entity: uploadedByUserId={} patientId={} fileName={}",
@@ -258,6 +300,7 @@ public class MedicalRecordFileService {
                 .uploadedAt(file.getUploadedAt())
                 .uploadedByUserId(file.getUploadedBy().getId())
                 .patientId(file.getPatient().getId())
+                .appointmentId(file.getAppointment() != null ? file.getAppointment().getId() : null)
                 .build();
     }
 }
