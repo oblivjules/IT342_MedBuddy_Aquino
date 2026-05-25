@@ -35,8 +35,8 @@ class RatingRepository(
         return apiService.createRating(
             CreateRatingRequest(
                 appointmentId = appointmentId,
-                rating = rating,
-                feedback = feedback
+                ratingScore = rating,
+                feedbackComment = feedback
             )
         ).bodyOrThrow()
     }

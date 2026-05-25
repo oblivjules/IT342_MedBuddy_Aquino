@@ -272,10 +272,12 @@ data class FeedbackResponse(
     val appointmentId: Long,
     val doctorId: Long,
     val patientId: Long? = null,
+    val patientName: String? = null,
     val rating: Int,
     val comment: String? = null,
     val createdAt: String? = null,
     val patient: PatientDto? = null,
+    val doctor: DoctorDto? = null,
     val feedback: String? = null
 ) : java.io.Serializable
 
@@ -289,12 +291,14 @@ data class CreateFeedbackRequest(
 data class RatingResponse(
     val id: Long,
     val appointmentId: Long,
-    val doctorId: Long,
+    val doctorId: Long? = null,
     val patientId: Long? = null,
+    val patientName: String? = null,
     val rating: Int,
     val comment: String? = null,
     val createdAt: String? = null,
     val patient: PatientDto? = null,
+    val doctor: DoctorDto? = null,
     val feedback: String? = null
 ) : java.io.Serializable
 
@@ -305,8 +309,8 @@ data class AverageRatingResponse(
 
 data class CreateRatingRequest(
     val appointmentId: Long,
-    val rating: Int,
-    val feedback: String? = null
+    val ratingScore: Int,
+    val feedbackComment: String? = null
 )
 
 data class TemplateRequestDto(

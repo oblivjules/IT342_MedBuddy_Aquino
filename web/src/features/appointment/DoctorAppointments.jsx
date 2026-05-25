@@ -1,25 +1,24 @@
-import { useEffect, useMemo, useState } from 'react'
 import {
   Calendar,
   CheckCircle,
   ClipboardCheck,
   Clock,
-  Eye,
   FileText,
   Search,
   Upload,
   X,
-  XCircle,
+  XCircle
 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import DashboardLayout from '../../components/DashboardLayout'
+import { useToast } from '../../hooks/useToast'
+import { useUnsavedChangesGuard } from '../../hooks/useUnsavedChangesGuard'
 import FileOpenerModal from '../medicalrecords/FileOpenerModal'
-import { getMyAppointments, updateAppointmentStatus } from './appointmentApi'
 import { getFileAccessUrl, getFilesByAppointment, uploadAppointmentFile } from '../medicalrecords/fileUploadApi'
 import { createMedicalRecord, getMedicalRecordByAppointment, updateMedicalRecord } from '../medicalrecords/medicalRecordApi'
 import { getPaymentByAppointment, updateAppointmentTotalBill, updatePaymentStatus } from '../payment/paymentApi'
 import { getDrugInfo } from '../prescription/drugInfoApi'
-import { useUnsavedChangesGuard } from '../../hooks/useUnsavedChangesGuard'
-import { useToast } from '../../hooks/useToast'
+import { getMyAppointments, updateAppointmentStatus } from './appointmentApi'
 
 const statuses = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED']
 const avatarColors = ['bg-primary', 'bg-teal', 'bg-accent', 'bg-primary', 'bg-teal', 'bg-accent']
@@ -139,6 +138,18 @@ function inferRecordType(record) {
   return 'Consultation'
 }
 
+function getFileAppointmentId(file) {
+  return file?.appointmentId ?? file?.appointment?.id ?? file?.medicalRecord?.appointmentId ?? file?.medicalRecordAppointmentId ?? null
+}
+
+function filesForAppointment(files, appointmentId) {
+  if (!Array.isArray(files)) return []
+  return files.filter((file) => {
+    const fileAppointmentId = getFileAppointmentId(file)
+    return fileAppointmentId == null || String(fileAppointmentId) === String(appointmentId)
+  })
+}
+
 export default function DoctorAppointments() {
   const { success } = useToast()
   const [appointments, setAppointments] = useState([])
@@ -188,7 +199,7 @@ export default function DoctorAppointments() {
           safeAppointments.map(async (appointment) => {
             try {
               const files = await getFilesByAppointment(appointment.id)
-              return [appointment.id, Array.isArray(files) ? files : []]
+              return [appointment.id, filesForAppointment(files, appointment.id)]
             } catch {
               return [appointment.id, []]
             }
@@ -365,7 +376,7 @@ export default function DoctorAppointments() {
         getFilesByAppointment(appointmentId).catch(() => []),
       ])
       const record = fetchedRecord
-      const files = fetchedFiles
+      const files = filesForAppointment(fetchedFiles, appointmentId)
       let drugInfo = null
       let drugInfoError = ''
 
@@ -1085,7 +1096,10 @@ export default function DoctorAppointments() {
           const formattedTime = new Date(appointment.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           const modalDetails = detailsByAppointmentId[detailsModalId] || {}
           const detailsLoading = Boolean(detailsLoadingByAppointmentId[detailsModalId])
-          const modalFiles = detailsByAppointmentId[detailsModalId]?.files || filesByAppointmentId[detailsModalId] || []
+          const modalFiles = filesForAppointment(
+            detailsByAppointmentId[detailsModalId]?.files || filesByAppointmentId[detailsModalId] || [],
+            detailsModalId,
+          )
 
           return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm">
@@ -1296,11 +1310,11 @@ export default function DoctorAppointments() {
                 {pendingStatusChange.status === 'COMPLETED' && (
                   <div className="rounded-xl border border-border p-4">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Attached Files</p>
-                    {(filesByAppointmentId[pendingStatusChange.appointment?.id] || []).length === 0 ? (
+                    {filesForAppointment(filesByAppointmentId[pendingStatusChange.appointment?.id] || [], pendingStatusChange.appointment?.id).length === 0 ? (
                       <p className="mt-2 text-sm text-muted-foreground">No files attached.</p>
                     ) : (
                       <div className="mt-2 space-y-2">
-                        {(filesByAppointmentId[pendingStatusChange.appointment?.id] || []).map((file, index) => (
+                        {filesForAppointment(filesByAppointmentId[pendingStatusChange.appointment?.id] || [], pendingStatusChange.appointment?.id).map((file, index) => (
                           <div key={file.id || `${file.fileName}-${index}`} className="inline-flex items-center gap-2 rounded-lg bg-primary-soft/50 px-3 py-1.5 text-xs font-medium text-foreground">
                             <FileText className="h-3 w-3 text-primary" />
                             <span className="truncate">{file.fileName || `Attachment ${index + 1}`}</span>

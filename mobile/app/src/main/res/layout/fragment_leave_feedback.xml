@@ -76,6 +76,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
+                        android:progressBackgroundTint="#888888"
                         android:numStars="5"
                         android:stepSize="1" />
 

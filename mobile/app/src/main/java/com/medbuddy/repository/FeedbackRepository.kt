@@ -2,8 +2,9 @@ package com.medbuddy.repository
 
 import com.medbuddy.api.ApiService
 import com.medbuddy.api.bodyOrThrow
-import com.medbuddy.dto.CreateFeedbackRequest
+import com.medbuddy.dto.CreateRatingRequest
 import com.medbuddy.dto.FeedbackResponse
+import com.medbuddy.dto.RatingResponse
 
 class FeedbackRepository(
     private val apiService: ApiService
@@ -14,13 +15,12 @@ class FeedbackRepository(
         doctorId: Long,
         rating: Int,
         comment: String?
-    ): FeedbackResponse {
-        return apiService.createFeedback(
-            CreateFeedbackRequest(
+    ): RatingResponse {
+        return apiService.createRating(
+            CreateRatingRequest(
                 appointmentId = appointmentId,
-                doctorId = doctorId,
-                rating = rating,
-                comment = comment
+                ratingScore = rating,
+                feedbackComment = comment
             )
         ).bodyOrThrow()
     }
