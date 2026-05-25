@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import logo from '../assets/medbuddy-logo-removebg-preview.png'
+import { useAuth } from '../features/auth/useAuth'
 
 const navItems = [
     { label: 'Home', href: '#' },
@@ -11,6 +12,9 @@ const navItems = [
 
 export default function LandingNavbar() {
     const [mobileOpen, setMobileOpen] = useState(false)
+    const { isAuthenticated, user, logout } = useAuth()
+    const dashboardPath = user?.role === 'DOCTOR' ? '/doctor/dashboard' : '/patient/dashboard'
+    const displayName = user?.firstName || user?.email || 'Account'
 
     return (
         <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-lg">
@@ -35,18 +39,39 @@ export default function LandingNavbar() {
 
                 {/* Desktop CTA */}
                 <div className="hidden items-center gap-3 md:flex">
-                    <Link
-                        to="/login"
-                        className="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
-                    >
-                        Log In
-                    </Link>
-                    <Link
-                        to="/register"
-                        className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-                    >
-                        Sign Up
-                    </Link>
+                    {isAuthenticated ? (
+                        <>
+                            <span className="max-w-40 truncate text-sm text-muted-foreground">{displayName}</span>
+                            <Link
+                                to={dashboardPath}
+                                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                            >
+                                Dashboard
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={logout}
+                                className="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                            >
+                                Log Out
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link
+                                to="/login"
+                                className="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                            >
+                                Log In
+                            </Link>
+                            <Link
+                                to="/register"
+                                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                            >
+                                Sign Up
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* Mobile toggle */}
@@ -74,20 +99,44 @@ export default function LandingNavbar() {
                             </a>
                         ))}
                         <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
-                            <Link
-                                to="/login"
-                                className="inline-flex h-9 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold text-foreground"
-                                onClick={() => setMobileOpen(false)}
-                            >
-                                Log In
-                            </Link>
-                            <Link
-                                to="/register"
-                                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
-                                onClick={() => setMobileOpen(false)}
-                            >
-                                Sign Up
-                            </Link>
+                            {isAuthenticated ? (
+                                <>
+                                    <Link
+                                        to={dashboardPath}
+                                        className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                                        onClick={() => setMobileOpen(false)}
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        className="inline-flex h-9 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold text-foreground"
+                                        onClick={() => {
+                                            logout()
+                                            setMobileOpen(false)
+                                        }}
+                                    >
+                                        Log Out
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        to="/login"
+                                        className="inline-flex h-9 items-center justify-center rounded-md border border-border px-4 text-sm font-semibold text-foreground"
+                                        onClick={() => setMobileOpen(false)}
+                                    >
+                                        Log In
+                                    </Link>
+                                    <Link
+                                        to="/register"
+                                        className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                                        onClick={() => setMobileOpen(false)}
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </nav>
                 </div>

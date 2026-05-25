@@ -12,6 +12,7 @@ import {
 import LandingNavbar from '../components/LandingNavbar'
 import LandingFooter from '../components/LandingFooter'
 import heroImage from '../assets/hero-image.jpg'
+import { useAuth } from '../features/auth/useAuth'
 
 /* ─────────────────────────────────────────────── */
 /*  Features data                                   */
@@ -53,6 +54,13 @@ const features = [
 /*  Landing Page                                    */
 /* ─────────────────────────────────────────────── */
 export default function LandingPage() {
+    const { isAuthenticated, user } = useAuth()
+    const dashboardPath = user?.role === 'DOCTOR' ? '/doctor/dashboard' : '/patient/dashboard'
+    const primaryCtaPath = isAuthenticated ? dashboardPath : '/register'
+    const primaryCtaLabel = isAuthenticated ? 'Go to Dashboard' : 'Get Started Free'
+    const secondaryCtaPath = isAuthenticated ? dashboardPath : '/login'
+    const secondaryCtaLabel = isAuthenticated ? 'Continue Session' : 'Log In'
+
     return (
         <div className="min-h-screen bg-background">
             <LandingNavbar />
@@ -75,17 +83,17 @@ export default function LandingPage() {
                         </p>
                         <div className="flex flex-wrap gap-3">
                             <Link
-                                to="/register"
+                                to={primaryCtaPath}
                                 className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                             >
-                                Get Started Free
+                                {primaryCtaLabel}
                                 <ArrowRight className="h-4 w-4" />
                             </Link>
                             <Link
-                                to="/login"
+                                to={secondaryCtaPath}
                                 className="inline-flex h-11 items-center justify-center rounded-md border border-border px-6 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                             >
-                                Log In
+                                {secondaryCtaLabel}
                             </Link>
                         </div>
                     </div>
@@ -146,10 +154,10 @@ export default function LandingPage() {
                                 Join thousands of patients who trust MedBuddy for their healthcare needs. Sign up today and book your first appointment.
                             </p>
                             <Link
-                                to="/register"
+                                to={primaryCtaPath}
                                 className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-white px-6 text-sm font-semibold text-primary transition-colors hover:bg-white/90"
                             >
-                                Get Started Free
+                                {primaryCtaLabel}
                                 <ArrowRight className="h-4 w-4" />
                             </Link>
                         </div>
